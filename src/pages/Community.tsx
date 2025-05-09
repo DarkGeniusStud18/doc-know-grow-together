@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -57,13 +56,15 @@ const Community: React.FC = () => {
   });
 
   const fetchTopics = async () => {
+    // Modified query to properly join with profiles table
     const { data, error } = await supabase
       .from('community_topics')
       .select(`
         *,
-        profiles:author_id (display_name),
-        responses:community_responses (id)
-      `);
+        profiles(display_name),
+        responses:community_responses(id)
+      `)
+      .order('created_at', { ascending: false });
       
     if (error) {
       throw new Error(`Error fetching topics: ${error.message}`);

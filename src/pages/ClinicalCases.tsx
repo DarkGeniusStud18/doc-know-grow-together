@@ -80,12 +80,14 @@ const ClinicalCases: React.FC = () => {
       return [];
     }
     
+    // Modified query to properly join with profiles table
     const { data, error } = await supabase
       .from('clinical_cases')
       .select(`
         *,
-        profiles:author_id (display_name)
-      `);
+        profiles(display_name)
+      `)
+      .order('created_at', { ascending: false });
       
     if (error) {
       throw new Error(`Error fetching clinical cases: ${error.message}`);
