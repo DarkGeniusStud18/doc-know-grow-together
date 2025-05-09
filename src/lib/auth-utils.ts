@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,6 +39,9 @@ export const signUp = async (
     
     if (data.user) {
       // Create user profile in our database
+      // Convert Date objects to ISO strings for Supabase
+      const now = new Date().toISOString();
+      
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -48,7 +50,8 @@ export const signUp = async (
           role: role,
           kyc_status: 'not_submitted',
           email: email,
-          created_at: new Date()
+          created_at: now,
+          updated_at: now
         });
       
       if (profileError) {
