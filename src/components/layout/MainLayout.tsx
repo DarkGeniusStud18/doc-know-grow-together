@@ -2,7 +2,9 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from './Navbar';
-import Sidebar from './Sidebar';
+import DiscordSidebar from './DiscordSidebar';
+import MobileNavbar from './MobileNavbar';
+import DesktopNavbar from './DesktopNavbar';
 import { useNavigate } from 'react-router-dom';
 
 interface MainLayoutProps {
@@ -50,15 +52,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     );
   }
   
-  // Authenticated layout with sidebar
+  // Authenticated layout with Discord-style navigation
   return (
     <div className="min-h-screen bg-medical-light flex">
-      <Sidebar />
+      {/* Discord-style sidebar for desktop */}
+      <DiscordSidebar />
+      
       <div className="flex-1 flex flex-col">
-        <Navbar />
+        {/* Mobile navbar shown on small screens */}
+        <MobileNavbar />
+        
+        {/* Desktop navbar shown on medium screens and above */}
+        <DesktopNavbar />
+        
         <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
           {children}
         </main>
+        
         <footer className="bg-white py-4 border-t">
           <div className="container mx-auto px-4">
             <p className="text-center text-sm text-gray-500">

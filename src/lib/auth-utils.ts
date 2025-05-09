@@ -40,6 +40,22 @@ export const signUp = async (
     
     if (data.user) {
       // Create user profile in our database
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          display_name: displayName,
+          role: role,
+          kyc_status: 'not_submitted',
+          email: email,
+          created_at: new Date()
+        });
+      
+      if (profileError) {
+        console.error("Error creating profile:", profileError);
+        throw profileError;
+      }
+      
       const user: User = {
         id: data.user.id,
         email: data.user.email || '',
