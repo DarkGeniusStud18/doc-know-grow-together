@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -108,7 +109,7 @@ const ClinicalCases: React.FC = () => {
       return clinicalCase;
     }));
     
-    return enrichedCases;
+    return enrichedCases as ClinicalCase[];
   };
 
   const { data: clinicalCases = [], isLoading, error } = useQuery({
@@ -438,7 +439,7 @@ const ClinicalCases: React.FC = () => {
                       <CardDescription className="line-clamp-2">{clinicalCase.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="pb-3">
-                      {!clinicalCase.is_anonymized && (
+                      {!clinicalCase.is_anonymized && 'author_name' in clinicalCase && (
                         <div className="text-sm mb-3">
                           <span className="text-gray-600">Par: </span>
                           <span className="font-medium">{clinicalCase.author_name || 'Professionnel de santé'}</span>
