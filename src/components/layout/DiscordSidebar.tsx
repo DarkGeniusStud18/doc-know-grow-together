@@ -28,7 +28,7 @@ const DiscordSidebar: React.FC = () => {
             <Link to={path} className="block">
               <div 
                 className={cn(
-                  "relative group w-12 h-12 flex items-center justify-center rounded-full mb-2 transition-all duration-200",
+                  "relative group w-12 h-12 flex items-center justify-center rounded-full mb-2 transition-all duration-300",
                   active 
                     ? "bg-medical-blue text-white rounded-2xl" 
                     : "bg-gray-200 text-gray-500 hover:bg-medical-teal hover:text-white hover:rounded-2xl"
@@ -73,7 +73,7 @@ const DiscordSidebar: React.FC = () => {
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="w-12 h-12 bg-medical-blue text-white rounded-full mb-4 flex items-center justify-center">
+            <div className="w-12 h-12 bg-medical-blue text-white rounded-full mb-4 flex items-center justify-center hover:shadow-md transition-all duration-300">
               <span className="font-semibold">{user.displayName.substring(0, 2).toUpperCase()}</span>
             </div>
           </TooltipTrigger>
@@ -86,7 +86,7 @@ const DiscordSidebar: React.FC = () => {
       <div className="w-8 h-0.5 bg-gray-300 rounded-full my-2"></div>
       
       {/* Navigation Icons */}
-      <div className="flex flex-col items-center space-y-1 flex-1 overflow-y-auto py-2 px-3">
+      <div className="flex flex-col items-center space-y-1 flex-1 overflow-y-auto py-2 px-3 w-full">
         {navItems.map((item) => (
           <NavIcon key={item.path} path={item.path} icon={item.icon} label={item.label} />
         ))}

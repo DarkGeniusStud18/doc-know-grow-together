@@ -38,7 +38,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     return (
       <div className="min-h-screen bg-medical-light flex flex-col">
         <Navbar simplified />
-        <main className="flex-grow">
+        <main className="flex-grow overflow-x-hidden">
           {children}
         </main>
         <footer className="bg-white py-6 border-t">
@@ -54,22 +54,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   
   // Authenticated layout with Discord-style navigation
   return (
-    <div className="min-h-screen bg-medical-light flex">
+    <div className="min-h-screen bg-medical-light flex overflow-hidden">
       {/* Discord-style sidebar for desktop */}
       <DiscordSidebar />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-x-hidden">
         {/* Mobile navbar shown on small screens */}
         <MobileNavbar />
         
         {/* Desktop navbar shown on medium screens and above */}
         <DesktopNavbar />
         
-        <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
+        <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full overflow-x-hidden">
           {children}
         </main>
         
-        <footer className="bg-white py-4 border-t">
+        <footer className="bg-white py-4 border-t mt-auto">
           <div className="container mx-auto px-4">
             <p className="text-center text-sm text-gray-500">
               &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
