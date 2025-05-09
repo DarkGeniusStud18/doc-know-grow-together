@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -43,12 +42,12 @@ const StudyGroups: React.FC = () => {
   const fetchStudyGroups = async () => {
     if (!user) return [];
     
-    // Fixed query to correctly access profile data
+    // Modified query to use a simpler join approach
     const { data, error } = await supabase
       .from('study_groups')
       .select(`
         *,
-        profiles!study_groups_owner_id_fkey(display_name),
+        profiles(display_name),
         members:study_group_members(id)
       `)
       .order('created_at', { ascending: false });

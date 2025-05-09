@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -80,12 +79,12 @@ const ClinicalCases: React.FC = () => {
       return [];
     }
     
-    // Fixed query to correctly access profile data
+    // Modified query to use a simpler join approach
     const { data, error } = await supabase
       .from('clinical_cases')
       .select(`
         *,
-        profiles!clinical_cases_author_id_fkey(display_name)
+        profiles(display_name)
       `)
       .order('created_at', { ascending: false });
       

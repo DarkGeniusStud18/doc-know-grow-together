@@ -56,12 +56,12 @@ const Community: React.FC = () => {
   });
 
   const fetchTopics = async () => {
-    // Fixed query to correctly access profile data
+    // Modified query to use a simpler join approach
     const { data, error } = await supabase
       .from('community_topics')
       .select(`
         *,
-        profiles!community_topics_author_id_fkey(display_name),
+        profiles(display_name),
         responses:community_responses(id)
       `)
       .order('created_at', { ascending: false });
