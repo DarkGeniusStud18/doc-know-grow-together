@@ -67,8 +67,8 @@ const Register: React.FC = () => {
   
   return (
     <MainLayout requireAuth={false}>
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-        <Card className="w-full max-w-md animate-fade-in">
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 overflow-hidden">
+        <Card className="w-full max-w-md animate-fade-in shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">Créer un compte</CardTitle>
             <CardDescription className="text-center">
@@ -89,6 +89,7 @@ const Register: React.FC = () => {
                           placeholder="Jean Dupont" 
                           {...field} 
                           disabled={isLoading}
+                          className="transition-all focus:ring-2 focus:ring-medical-teal"
                         />
                       </FormControl>
                       <FormMessage />
@@ -108,6 +109,7 @@ const Register: React.FC = () => {
                           type="email" 
                           {...field} 
                           disabled={isLoading}
+                          className="transition-all focus:ring-2 focus:ring-medical-teal"
                         />
                       </FormControl>
                       <FormMessage />
@@ -127,6 +129,7 @@ const Register: React.FC = () => {
                           type="password" 
                           {...field} 
                           disabled={isLoading}
+                          className="transition-all focus:ring-2 focus:ring-medical-teal"
                         />
                       </FormControl>
                       <FormMessage />
@@ -146,6 +149,7 @@ const Register: React.FC = () => {
                           type="password" 
                           {...field} 
                           disabled={isLoading}
+                          className="transition-all focus:ring-2 focus:ring-medical-teal"
                         />
                       </FormControl>
                       <FormMessage />
@@ -168,17 +172,17 @@ const Register: React.FC = () => {
                         >
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="student" />
+                              <RadioGroupItem value="student" className="transition-transform hover:scale-110" />
                             </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">
+                            <FormLabel className="font-normal cursor-pointer transition-colors hover:text-medical-blue">
                               Étudiant en médecine
                             </FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="professional" />
+                              <RadioGroupItem value="professional" className="transition-transform hover:scale-110" />
                             </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">
+                            <FormLabel className="font-normal cursor-pointer transition-colors hover:text-medical-blue">
                               Professionnel de santé
                             </FormLabel>
                           </FormItem>
@@ -191,7 +195,7 @@ const Register: React.FC = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full hover:bg-medical-teal transition-colors duration-300" 
                   disabled={isLoading}
                 >
                   {isLoading ? 'Inscription en cours...' : 'S\'inscrire'}
@@ -201,7 +205,7 @@ const Register: React.FC = () => {
             
             <div className="mt-6 text-center text-sm">
               <span className="text-gray-500">Vous avez déjà un compte?</span>{' '}
-              <Link to="/login" className="text-medical-teal hover:underline font-medium">
+              <Link to="/login" className="text-medical-teal hover:underline font-medium transition-colors hover:text-medical-blue">
                 Se connecter
               </Link>
             </div>

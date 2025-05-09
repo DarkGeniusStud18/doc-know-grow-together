@@ -36,24 +36,24 @@ const DesktopNavbar: React.FC = () => {
             <input
               type="search"
               placeholder="Rechercher..."
-              className="pl-9 py-2 pr-4 rounded-md border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-medical-teal focus:border-transparent"
+              className="pl-9 py-2 pr-4 rounded-md border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-medical-teal focus:border-transparent transition-all"
             />
           </div>
         </div>
 
         {/* Right side - user menu & notifications */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" title="Traduction">
+          <Button variant="ghost" size="icon" title="Traduction" className="transition-transform hover:scale-110">
             <Globe className="h-5 w-5" />
           </Button>
           
-          <Button variant="ghost" size="icon" title="Notifications">
+          <Button variant="ghost" size="icon" title="Notifications" className="transition-transform hover:scale-110">
             <Bell className="h-5 w-5" />
           </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full transition-transform hover:scale-110">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg" alt={user.displayName} />
                   <AvatarFallback className="bg-medical-teal text-white">
@@ -71,25 +71,25 @@ const DesktopNavbar: React.FC = () => {
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/profile" className="w-full cursor-pointer">
+                <Link to="/profile" className="w-full cursor-pointer hover:bg-gray-100 transition-colors">
                   Mon profil
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/settings" className="w-full cursor-pointer">
+                <Link to="/settings" className="w-full cursor-pointer hover:bg-gray-100 transition-colors">
                   Paramètres
                 </Link>
               </DropdownMenuItem>
               {user.role === 'student' && user.kycStatus !== 'verified' && (
                 <DropdownMenuItem asChild>
-                  <Link to="/kyc" className="w-full cursor-pointer">
+                  <Link to="/kyc" className="w-full cursor-pointer hover:bg-gray-100 transition-colors">
                     Vérifier mon identité
                   </Link>
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="cursor-pointer text-red-500 focus:text-red-500"
+                className="cursor-pointer text-red-500 focus:text-red-500 hover:bg-red-50 transition-colors"
                 onClick={logout}
               >
                 Déconnexion

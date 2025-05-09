@@ -47,12 +47,12 @@ const MobileNavbar: React.FC = () => {
         <div className="flex items-center gap-3">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="transition-transform hover:scale-110">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[250px] p-0">
+            <SheetContent side="left" className="w-[280px] p-0">
               <div className="p-4 border-b">
                 <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
                   <div className="h-8 w-8 rounded-md bg-medical-blue text-white flex items-center justify-center font-bold">M</div>
@@ -77,17 +77,17 @@ const MobileNavbar: React.FC = () => {
               </div>
               
               {/* Navigation links */}
-              <nav className="p-2">
+              <nav className="p-2 overflow-y-auto max-h-[60vh]">
                 <ul className="space-y-1">
                   {allItems.map((item) => (
                     <li key={item.path}>
                       <Link
                         to={item.path}
                         className={cn(
-                          "flex w-full rounded-md px-3 py-2 text-sm font-medium",
+                          "flex w-full rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
                           isActive(item.path) 
                             ? "bg-medical-blue text-white" 
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-gray-700 hover:bg-gray-100 hover:translate-x-1"
                         )}
                         onClick={() => setOpen(false)}
                       >
@@ -102,7 +102,7 @@ const MobileNavbar: React.FC = () => {
               <div className="p-4 border-t mt-auto">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                   onClick={() => {
                     logout();
                     setOpen(false);
@@ -115,19 +115,19 @@ const MobileNavbar: React.FC = () => {
           </Sheet>
           
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-md bg-medical-blue text-white flex items-center justify-center font-bold">M</div>
+            <div className="h-8 w-8 rounded-md bg-medical-blue text-white flex items-center justify-center font-bold transition-transform hover:scale-110">M</div>
           </Link>
         </div>
         
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="transition-transform hover:scale-110">
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="transition-transform hover:scale-110">
             <Bell className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="transition-transform hover:scale-110">
             <Globe className="h-5 w-5" />
           </Button>
         </div>
