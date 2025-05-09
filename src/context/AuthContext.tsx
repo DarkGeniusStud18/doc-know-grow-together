@@ -1,12 +1,13 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { User, getCurrentUser, signIn, signOut, signUp, UserRole } from '@/lib/auth-utils';
+import { User, UserRole, getCurrentUser, signIn, signOut, signUp } from '@/lib/auth';
+import { toast } from '@/components/ui/sonner';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (email: string, password: string, role: UserRole, displayName: string) => Promise<boolean>;
 }
 
@@ -19,9 +20,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error checking user:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkUser();
@@ -29,34 +35,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
+      setLoading(true);
+      
+      // Handle demo accounts
+      if (email === "student@example.com" && password === "password") {
+        localStorage.setItem('demoUser', 'student');
+      } else if (email === "doctor@example.com" && password === "password") {
+        localStorage.setItem('demoUser', 'professional');
+      }
+      
       const user = await signIn(email, password);
       if (user) {
         setUser(user);
         return true;
       }
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      toast.error('Erreur de connexion', {
+        description: error.message || 'Veuillez vérifier vos identifiants et réessayer.'
+      });
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
-    await signOut();
-    setUser(null);
+    try {
+      setLoading(true);
+      await signOut();
+      localStorage.removeItem('demoUser');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const register = async (email: string, password: string, role: UserRole, displayName: string) => {
     try {
-      const user = await signUp(email, password, role, displayName);
-      if (user) {
-        setUser(user);
-        return true;
-      }
-      return false;
-    } catch (error) {
+      setLoading(true);
+      const success = await signUp(email, password, role, displayName);
+      return success;
+    } catch (error: any) {
       console.error('Registration error:', error);
+      toast.error('Erreur d\'inscription', {
+        description: error.message || 'Veuillez réessayer plus tard.'
+      });
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 

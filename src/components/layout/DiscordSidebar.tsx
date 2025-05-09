@@ -30,8 +30,8 @@ const DiscordSidebar: React.FC = () => {
                 className={cn(
                   "relative group w-12 h-12 flex items-center justify-center rounded-full mb-2 transition-all duration-300",
                   active 
-                    ? "bg-medical-blue text-white rounded-2xl" 
-                    : "bg-gray-200 text-gray-500 hover:bg-medical-teal hover:text-white hover:rounded-2xl"
+                    ? "bg-medical-blue text-white rounded-2xl transform scale-105" 
+                    : "bg-gray-200 text-gray-500 hover:bg-medical-teal hover:text-white hover:rounded-2xl hover:scale-105"
                 )}
               >
                 {active && (
@@ -41,7 +41,7 @@ const DiscordSidebar: React.FC = () => {
               </div>
             </Link>
           </TooltipTrigger>
-          <TooltipContent side="right">
+          <TooltipContent side="right" className="bg-gray-800 text-white border-gray-700">
             {label}
           </TooltipContent>
         </Tooltip>
@@ -68,16 +68,16 @@ const DiscordSidebar: React.FC = () => {
       ];
 
   return (
-    <div className="hidden md:flex flex-col items-center w-[72px] bg-gray-100 h-screen py-4 border-r">
+    <div className="hidden md:flex flex-col items-center w-[72px] bg-gray-100 h-screen py-4 border-r shadow-sm">
       {/* User avatar */}
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="w-12 h-12 bg-medical-blue text-white rounded-full mb-4 flex items-center justify-center hover:shadow-md transition-all duration-300">
+            <div className="w-12 h-12 bg-medical-blue text-white rounded-full mb-4 flex items-center justify-center hover:shadow-md transition-all duration-300 hover:scale-105 cursor-pointer">
               <span className="font-semibold">{user.displayName.substring(0, 2).toUpperCase()}</span>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="right">
+          <TooltipContent side="right" className="bg-gray-800 text-white border-gray-700">
             MedCollab
           </TooltipContent>
         </Tooltip>

@@ -11,10 +11,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
+import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email invalide' }),
-  password: z.string().min(8, { message: 'Le mot de passe doit contenir au moins 8 caractères' }),
+  password: z.string().min(1, { message: 'Mot de passe requis' }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -39,9 +40,9 @@ const Login: React.FC = () => {
       if (success) {
         navigate('/dashboard');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Erreur de connexion', { 
-        description: 'Veuillez vérifier vos identifiants et réessayer.' 
+        description: error.message || 'Veuillez vérifier vos identifiants et réessayer.' 
       });
     } finally {
       setIsLoading(false);
@@ -51,15 +52,19 @@ const Login: React.FC = () => {
   const handleDemo = async (type: 'student' | 'professional') => {
     setIsLoading(true);
     try {
+      let success;
       if (type === 'student') {
-        await login('student@example.com', 'password');
+        success = await login('student@example.com', 'password');
       } else {
-        await login('doctor@example.com', 'password');
+        success = await login('doctor@example.com', 'password');
       }
-      navigate('/dashboard');
-    } catch (error) {
+      
+      if (success) {
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
       toast.error('Erreur de connexion', { 
-        description: 'Veuillez réessayer plus tard.' 
+        description: error.message || 'Veuillez réessayer plus tard.' 
       });
     } finally {
       setIsLoading(false);
@@ -68,7 +73,7 @@ const Login: React.FC = () => {
   
   return (
     <MainLayout requireAuth={false}>
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="min-h-[calc(100vh-120px)] md:min-h-[80vh] flex flex-col items-center justify-center p-4 overflow-hidden">
         <Card className="w-full max-w-md animate-fade-in shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">Connexion</CardTitle>
@@ -91,7 +96,7 @@ const Login: React.FC = () => {
                           type="email" 
                           {...field} 
                           disabled={isLoading}
-                          className="transition-all focus:ring-2 focus:ring-medical-teal"
+                          className="transition-all focus:ring-2 focus:ring-medical-teal hover:border-medical-teal"
                         />
                       </FormControl>
                       <FormMessage />
@@ -111,7 +116,7 @@ const Login: React.FC = () => {
                           type="password" 
                           {...field} 
                           disabled={isLoading}
-                          className="transition-all focus:ring-2 focus:ring-medical-teal"
+                          className="transition-all focus:ring-2 focus:ring-medical-teal hover:border-medical-teal"
                         />
                       </FormControl>
                       <FormDescription>
@@ -126,10 +131,17 @@ const Login: React.FC = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full hover:bg-medical-teal transition-colors duration-300" 
+                  className="w-full hover:bg-medical-teal transition-colors duration-300 hover:scale-[1.02]" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Connexion en cours...' : 'Se connecter'}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connexion en cours...
+                    </>
+                  ) : (
+                    'Se connecter'
+                  )}
                 </Button>
               </form>
             </Form>
@@ -149,17 +161,25 @@ const Login: React.FC = () => {
                   variant="outline" 
                   onClick={() => handleDemo('student')}
                   disabled={isLoading}
-                  className="transition-transform hover:scale-105 hover:shadow-md"
+                  className="transition-all hover:scale-105 hover:shadow-md hover:bg-medical-light"
                 >
-                  Démo Étudiant
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Démo Étudiant'
+                  )}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => handleDemo('professional')}
                   disabled={isLoading}
-                  className="transition-transform hover:scale-105 hover:shadow-md"
+                  className="transition-all hover:scale-105 hover:shadow-md hover:bg-medical-light"
                 >
-                  Démo Médecin
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Démo Médecin'
+                  )}
                 </Button>
               </div>
               

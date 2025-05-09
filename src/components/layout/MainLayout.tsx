@@ -6,6 +6,7 @@ import DiscordSidebar from './DiscordSidebar';
 import MobileNavbar from './MobileNavbar';
 import DesktopNavbar from './DesktopNavbar';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -28,7 +29,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin-slow h-16 w-16 rounded-full border-4 border-medical-teal border-t-transparent"></div>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 text-medical-blue animate-spin" />
+          <p className="text-medical-navy animate-pulse">Chargement...</p>
+        </div>
       </div>
     );
   }
@@ -38,10 +42,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     return (
       <div className="min-h-screen bg-medical-light flex flex-col">
         <Navbar simplified />
-        <main className="flex-grow overflow-x-hidden">
+        <main className="flex-grow overflow-x-hidden px-4 sm:px-6">
           {children}
         </main>
-        <footer className="bg-white py-6 border-t">
+        <footer className="bg-white py-6 border-t mt-auto">
           <div className="container mx-auto px-4">
             <p className="text-center text-sm text-gray-500">
               &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
@@ -58,14 +62,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       {/* Discord-style sidebar for desktop */}
       <DiscordSidebar />
       
-      <div className="flex-1 flex flex-col overflow-x-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile navbar shown on small screens */}
         <MobileNavbar />
         
         {/* Desktop navbar shown on medium screens and above */}
         <DesktopNavbar />
         
-        <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full overflow-x-hidden">
+        <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full overflow-x-auto">
           {children}
         </main>
         
