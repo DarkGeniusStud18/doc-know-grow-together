@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
-      const currentUser = getCurrentUser();
+      const currentUser = await getCurrentUser();
       setUser(currentUser);
       setLoading(false);
     };
@@ -41,8 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    signOut();
+  const logout = async () => {
+    await signOut();
     setUser(null);
   };
 

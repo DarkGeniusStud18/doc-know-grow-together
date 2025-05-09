@@ -12,6 +12,11 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import KYCVerification from "./pages/KYCVerification";
 import Resources from "./pages/Resources";
+import Notes from "./pages/Notes";
+import Calendar from "./pages/Calendar";
+import StudyGroups from "./pages/StudyGroups";
+import ClinicalCases from "./pages/ClinicalCases";
+import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +35,11 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/kyc" element={<KYCVerification />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/notes" element={<Notes />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/study-groups" element={<StudyGroups />} />
+            <Route path="/clinical-cases" element={<ClinicalCases />} />
+            <Route path="/community" element={<Community />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

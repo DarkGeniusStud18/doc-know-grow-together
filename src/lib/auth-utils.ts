@@ -1,5 +1,6 @@
 
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = 'student' | 'professional' | 'admin';
 
@@ -17,9 +18,6 @@ export interface User {
   createdAt: Date;
 }
 
-// Mock authentication functions
-// In production, these would connect to a backend
-
 export const signUp = async (
   email: string,
   password: string,
@@ -27,27 +25,38 @@ export const signUp = async (
   displayName: string
 ): Promise<User | null> => {
   try {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Real implementation would call an API
-    const user: User = {
-      id: crypto.randomUUID(),
+    const { data, error } = await supabase.auth.signUp({
       email,
-      displayName,
-      role,
-      kycStatus: 'not_submitted',
-      createdAt: new Date(),
-    };
-    
-    // In production we would save this to a real backend
-    localStorage.setItem('medcollab_user', JSON.stringify(user));
-    
-    toast.success("Inscription réussie!", {
-      description: "Vous êtes maintenant inscrit à MedCollab."
+      password,
+      options: {
+        data: {
+          display_name: displayName,
+          role: role
+        }
+      }
     });
     
-    return user;
+    if (error) throw error;
+    
+    if (data.user) {
+      // Create user profile in our database
+      const user: User = {
+        id: data.user.id,
+        email: data.user.email || '',
+        displayName: displayName,
+        role: role,
+        kycStatus: 'not_submitted',
+        createdAt: new Date(),
+      };
+      
+      toast.success("Inscription réussie!", {
+        description: "Vous êtes maintenant inscrit à MedCollab."
+      });
+      
+      return user;
+    }
+    
+    return null;
   } catch (error) {
     console.error("Error signing up:", error);
     toast.error("Erreur lors de l'inscription", {
@@ -62,39 +71,62 @@ export const signIn = async (
   password: string
 ): Promise<User | null> => {
   try {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
     
-    // Mock user for demo purposes
-    // In production this would be validated against a backend
-    if (email === "student@example.com" && password === "password") {
-      const user: User = {
-        id: "student-1",
-        email: "student@example.com",
-        displayName: "Alex Dupont",
-        role: "student",
-        kycStatus: "verified",
-        university: "Université Paris Descartes",
-        createdAt: new Date(),
-      };
+    if (error) throw error;
+    
+    if (data.user) {
+      // Get user profile from our database
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
       
-      localStorage.setItem('medcollab_user', JSON.stringify(user));
-      toast.success("Connexion réussie!");
-      return user;
-    } else if (email === "doctor@example.com" && password === "password") {
-      const user: User = {
-        id: "professional-1",
-        email: "doctor@example.com",
-        displayName: "Dr. Marie Lambert",
-        role: "professional",
-        kycStatus: "verified",
-        specialty: "Cardiologie",
-        createdAt: new Date(),
-      };
+      if (profileData) {
+        const user: User = {
+          id: data.user.id,
+          email: data.user.email || '',
+          displayName: profileData.display_name,
+          role: profileData.role as UserRole,
+          kycStatus: profileData.kyc_status as KycStatus,
+          profileImage: profileData.profile_image,
+          university: profileData.university,
+          specialty: profileData.specialty,
+          createdAt: new Date(profileData.created_at),
+        };
+        
+        toast.success("Connexion réussie!");
+        return user;
+      }
       
-      localStorage.setItem('medcollab_user', JSON.stringify(user));
-      toast.success("Connexion réussie!");
-      return user;
+      // For demo purposes, if no profile is found
+      if (email === "student@example.com" && password === "password") {
+        const user: User = {
+          id: "student-1",
+          email: "student@example.com",
+          displayName: "Alex Dupont",
+          role: "student",
+          kycStatus: "verified",
+          university: "Université Paris Descartes",
+          createdAt: new Date(),
+        };
+        return user;
+      } else if (email === "doctor@example.com" && password === "password") {
+        const user: User = {
+          id: "professional-1",
+          email: "doctor@example.com",
+          displayName: "Dr. Marie Lambert",
+          role: "professional",
+          kycStatus: "verified",
+          specialty: "Cardiologie",
+          createdAt: new Date(),
+        };
+        return user;
+      }
     }
     
     toast.error("Email ou mot de passe incorrect");
@@ -108,36 +140,89 @@ export const signIn = async (
   }
 };
 
-export const signOut = (): void => {
-  localStorage.removeItem('medcollab_user');
-  toast.success("Déconnexion réussie");
+export const signOut = async (): Promise<void> => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    
+    toast.success("Déconnexion réussie");
+  } catch (error) {
+    console.error("Error signing out:", error);
+    toast.error("Erreur lors de la déconnexion", {
+      description: "Veuillez réessayer plus tard."
+    });
+  }
 };
 
-export const getCurrentUser = (): User | null => {
-  const userString = localStorage.getItem('medcollab_user');
-  if (!userString) return null;
-  
+export const getCurrentUser = async (): Promise<User | null> => {
   try {
-    return JSON.parse(userString) as User;
-  } catch {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return null;
+    
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.session.user.id)
+      .single();
+      
+    if (profileData) {
+      return {
+        id: data.session.user.id,
+        email: data.session.user.email || '',
+        displayName: profileData.display_name,
+        role: profileData.role as UserRole,
+        kycStatus: profileData.kyc_status as KycStatus,
+        profileImage: profileData.profile_image,
+        university: profileData.university,
+        specialty: profileData.specialty,
+        createdAt: new Date(profileData.created_at),
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error getting current user:", error);
     return null;
   }
 };
 
 export const submitKycDocuments = async (files: File[], userId: string): Promise<boolean> => {
   try {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Upload files to storage
+    const uploadPromises = files.map(async (file) => {
+      const filePath = `${userId}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('kyc_documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get the URL
+      const { data } = supabase.storage
+        .from('kyc_documents')
+        .getPublicUrl(filePath);
+      
+      // Insert document reference into kyc_documents table
+      const { error: insertError } = await supabase
+        .from('kyc_documents')
+        .insert({
+          user_id: userId,
+          document_type: file.type,
+          document_url: data.publicUrl
+        });
+
+      if (insertError) throw insertError;
+    });
     
-    // In production, this would upload files to a secure storage
-    // and update the user's KYC status in the database
+    await Promise.all(uploadPromises);
     
-    // Update local storage for demo
-    const user = getCurrentUser();
-    if (user) {
-      user.kycStatus = 'pending';
-      localStorage.setItem('medcollab_user', JSON.stringify(user));
-    }
+    // Update user KYC status
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ kyc_status: 'pending' })
+      .eq('id', userId);
+      
+    if (updateError) throw updateError;
     
     toast.success("Documents soumis avec succès", {
       description: "Nous examinerons votre demande dans les 48h."
