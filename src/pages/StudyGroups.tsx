@@ -42,25 +42,39 @@ const StudyGroups: React.FC = () => {
   const fetchStudyGroups = async () => {
     if (!user) return [];
     
-    // Modified query to use a simpler join approach
-    const { data, error } = await supabase
+    // First fetch the study groups
+    const { data: groups, error: groupsError } = await supabase
       .from('study_groups')
-      .select(`
-        *,
-        profiles(display_name),
-        members:study_group_members(id)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
       
-    if (error) {
-      throw new Error(`Error fetching study groups: ${error.message}`);
+    if (groupsError) {
+      throw new Error(`Error fetching study groups: ${groupsError.message}`);
     }
     
-    return data.map(group => ({
-      ...group,
-      owner_name: group.profiles?.display_name,
-      member_count: group.members ? group.members.length : 0
+    // Then for each group, fetch the owner's profile and member count
+    const enrichedGroups = await Promise.all(groups.map(async (group) => {
+      // Get owner profile
+      const { data: ownerProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', group.owner_id)
+        .single();
+      
+      // Get member count
+      const { data: members, error: membersError } = await supabase
+        .from('study_group_members')
+        .select('id', { count: 'exact' })
+        .eq('group_id', group.id);
+        
+      return {
+        ...group,
+        owner_name: profileError ? 'Unknown' : ownerProfile?.display_name,
+        member_count: membersError ? 0 : (members?.length || 0)
+      };
     }));
+    
+    return enrichedGroups;
   };
 
   const { data: studyGroups = [], isLoading, error } = useQuery({

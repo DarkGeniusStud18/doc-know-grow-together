@@ -79,23 +79,36 @@ const ClinicalCases: React.FC = () => {
       return [];
     }
     
-    // Modified query to use a simpler join approach
-    const { data, error } = await supabase
+    // First fetch the clinical cases
+    const { data: cases, error: casesError } = await supabase
       .from('clinical_cases')
-      .select(`
-        *,
-        profiles(display_name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
       
-    if (error) {
-      throw new Error(`Error fetching clinical cases: ${error.message}`);
+    if (casesError) {
+      throw new Error(`Error fetching clinical cases: ${casesError.message}`);
     }
     
-    return data.map(clinicalCase => ({
-      ...clinicalCase,
-      author_name: clinicalCase.profiles?.display_name
+    // Then for each case, fetch the author profile if needed
+    const enrichedCases = await Promise.all(cases.map(async (clinicalCase) => {
+      // Only fetch author profile if the case is not anonymized
+      if (!clinicalCase.is_anonymized) {
+        const { data: authorProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', clinicalCase.author_id)
+          .single();
+          
+        return {
+          ...clinicalCase,
+          author_name: profileError ? 'Unknown' : authorProfile?.display_name
+        };
+      }
+      
+      return clinicalCase;
     }));
+    
+    return enrichedCases;
   };
 
   const { data: clinicalCases = [], isLoading, error } = useQuery({

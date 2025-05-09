@@ -56,25 +56,39 @@ const Community: React.FC = () => {
   });
 
   const fetchTopics = async () => {
-    // Modified query to use a simpler join approach
-    const { data, error } = await supabase
+    // First fetch the topics
+    const { data: topics, error: topicsError } = await supabase
       .from('community_topics')
-      .select(`
-        *,
-        profiles(display_name),
-        responses:community_responses(id)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
       
-    if (error) {
-      throw new Error(`Error fetching topics: ${error.message}`);
+    if (topicsError) {
+      throw new Error(`Error fetching topics: ${topicsError.message}`);
     }
     
-    return data.map(topic => ({
-      ...topic,
-      author_name: topic.profiles?.display_name,
-      response_count: topic.responses ? topic.responses.length : 0
+    // Then for each topic, fetch the author profile and response count
+    const enrichedTopics = await Promise.all(topics.map(async (topic) => {
+      // Get author profile
+      const { data: authorProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', topic.author_id)
+        .single();
+      
+      // Get response count
+      const { count: responseCount, error: responsesError } = await supabase
+        .from('community_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('topic_id', topic.id);
+        
+      return {
+        ...topic,
+        author_name: profileError ? 'Unknown' : authorProfile?.display_name,
+        response_count: responsesError ? 0 : responseCount
+      };
     }));
+    
+    return enrichedTopics;
   };
 
   const { data: topics = [], isLoading, error } = useQuery({
