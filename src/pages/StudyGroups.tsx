@@ -43,12 +43,12 @@ const StudyGroups: React.FC = () => {
   const fetchStudyGroups = async () => {
     if (!user) return [];
     
-    // Modified query to properly join with profiles table
+    // Fixed query to correctly access profile data
     const { data, error } = await supabase
       .from('study_groups')
       .select(`
         *,
-        profiles(display_name),
+        profiles!study_groups_owner_id_fkey(display_name),
         members:study_group_members(id)
       `)
       .order('created_at', { ascending: false });

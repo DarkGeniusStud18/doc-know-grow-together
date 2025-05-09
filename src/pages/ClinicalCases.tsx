@@ -80,12 +80,12 @@ const ClinicalCases: React.FC = () => {
       return [];
     }
     
-    // Modified query to properly join with profiles table
+    // Fixed query to correctly access profile data
     const { data, error } = await supabase
       .from('clinical_cases')
       .select(`
         *,
-        profiles(display_name)
+        profiles!clinical_cases_author_id_fkey(display_name)
       `)
       .order('created_at', { ascending: false });
       
