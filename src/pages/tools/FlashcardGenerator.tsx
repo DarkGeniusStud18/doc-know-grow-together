@@ -303,6 +303,12 @@ const FlashcardGenerator: React.FC = () => {
     handleNextCard();
   };
 
+  const handleTabChange = (tabValue: string) => {
+    if (tabValue === 'browse' || tabValue === 'create') {
+      setSelectedDeckId(tabValue === 'browse' ? selectedDeckId : null);
+    }
+  };
+
   return (
     <MainLayout>
       <div className="container mx-auto py-6">
@@ -409,7 +415,7 @@ const FlashcardGenerator: React.FC = () => {
             </Card>
           </div>
         ) : (
-          <Tabs defaultValue={selectedDeckId || 'browse'}>
+          <Tabs defaultValue={selectedDeckId || 'browse'} onValueChange={handleTabChange}>
             <TabsList className="grid grid-cols-2 mb-6">
               <TabsTrigger value="browse">Parcourir les paquets</TabsTrigger>
               <TabsTrigger value="create">Créer un paquet</TabsTrigger>

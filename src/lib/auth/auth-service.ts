@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole, KycStatus } from "./types";
@@ -13,7 +14,7 @@ export const signUp = async (
     const { data: existingUsers } = await supabase
       .from('profiles')
       .select('email')
-      .eq('email', email)
+      .eq('email', email as string)
       .limit(1);
       
     if (existingUsers && existingUsers.length > 0) {
