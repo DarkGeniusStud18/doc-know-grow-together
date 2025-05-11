@@ -156,7 +156,7 @@ const Login: React.FC = () => {
             </Form>
             
             <div className="mt-6">
-              <div className="relative">
+              {/*<div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
@@ -165,7 +165,7 @@ const Login: React.FC = () => {
                 </div>
               </div>
               
-              {/*<div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="mt-6 grid grid-cols-2 gap-3">
                 <Button 
                   variant="outline" 
                   onClick={() => handleDemo('student')}
