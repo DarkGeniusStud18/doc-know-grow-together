@@ -1,3 +1,5 @@
+
+// Tableau de bord principal - Page d'accueil après connexion
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -6,12 +8,16 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Book, Calendar, Clock, FileText, MessageSquare, Search, User, Users, Video } from 'lucide-react';
 
+/**
+ * Tableau de bord personnalisé qui affiche des fonctionnalités adaptées
+ * au rôle de l'utilisateur (étudiant ou professionnel)
+ */
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   
   if (!user) return null;
   
-  // Feature cards common to all users
+  // Cartes de fonctionnalités communes à tous les utilisateurs
   const commonFeatureCards = [
     {
       title: 'Base de connaissances médicales',
@@ -36,7 +42,7 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  // Student-specific features
+  // Fonctionnalités spécifiques aux étudiants
   const studentFeatureCards = [
     {
       title: 'Groupes d\'étude',
@@ -49,12 +55,12 @@ const Dashboard: React.FC = () => {
       title: 'Simulateurs d\'examen',
       description: 'Préparez-vous aux examens avec des QCM et des cas cliniques.',
       icon: <FileText className="h-8 w-8 text-red-500" />,
-      link: '/exam-simulators',
+      link: '/exam-simulator', // URL corrigée
       color: 'bg-red-50',
     },
   ];
 
-  // Professional-specific features
+  // Fonctionnalités spécifiques aux professionnels
   const professionalFeatureCards = [
     {
       title: 'Cas cliniques',
@@ -80,16 +86,16 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  // Determine which specific feature cards to display based on user role
+  // Déterminer quelles cartes spécifiques afficher en fonction du rôle de l'utilisateur
   const roleSpecificFeatureCards = user.role === 'student' ? studentFeatureCards : professionalFeatureCards;
   
-  // Combine common and role-specific feature cards
+  // Combiner les cartes communes et spécifiques au rôle
   const featureCards = [...commonFeatureCards, ...roleSpecificFeatureCards];
   
   return (
     <MainLayout>
       <div className="space-y-8">
-        {/* Welcome section */}
+        {/* Section de bienvenue */}
         <section className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-lg p-6 md:p-8 shadow-md">
           <div className="max-w-3xl">
             <h1 className="text-2xl md:text-3xl font-bold mb-3">
@@ -231,7 +237,9 @@ const Dashboard: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button variant="ghost" className="w-full">Voir toutes les activités</Button>
+              <Button variant="ghost" className="w-full" asChild>
+                <Link to="/activities">Voir toutes les activités</Link>
+              </Button>
             </CardFooter>
           </Card>
         </section>

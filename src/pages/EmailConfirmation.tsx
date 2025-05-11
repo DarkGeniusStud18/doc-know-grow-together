@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,12 @@ import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 
+/**
+ * Composant qui gère la confirmation d'email après inscription
+ * Vérifie le token dans l'URL et confirme l'activation du compte
+ */
 const EmailConfirmation: React.FC = () => {
+  // État pour suivre le statut de la vérification
   const [verificationStatus, setVerificationStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,7 +19,7 @@ const EmailConfirmation: React.FC = () => {
   useEffect(() => {
     const confirmEmail = async () => {
       try {
-        // Get the query parameters from the URL
+        // Récupération des paramètres de requête depuis l'URL
         const queryParams = new URLSearchParams(location.search);
         const access_token = queryParams.get('access_token');
         const refresh_token = queryParams.get('refresh_token');
@@ -26,7 +30,7 @@ const EmailConfirmation: React.FC = () => {
           return;
         }
 
-        // Set the session if available
+        // Configuration de la session si disponible
         if (access_token && refresh_token) {
           const { error } = await supabase.auth.setSession({
             access_token,
@@ -40,14 +44,14 @@ const EmailConfirmation: React.FC = () => {
           }
         }
 
-        // If the type is signup_email_confirmation, the email has been verified successfully
+        // Si le type est signup_email_confirmation, l'email a été vérifié avec succès
         if (type === 'signup') {
           setVerificationStatus('success');
           toast.success("Email vérifié avec succès!", {
             description: "Votre compte est maintenant activé. Vous pouvez vous connecter."
           });
           
-          // Automatically redirect to login after a short delay
+          // Redirection automatique vers la connexion après un court délai
           setTimeout(() => {
             navigate('/login?verified=true');
           }, 5000);
@@ -63,6 +67,7 @@ const EmailConfirmation: React.FC = () => {
     confirmEmail();
   }, [location, navigate]);
 
+  // Rendu conditionnel selon le statut de vérification
   return (
     <div className="min-h-screen bg-gradient-to-b from-medical-blue/10 to-medical-teal/10 flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full">

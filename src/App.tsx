@@ -20,6 +20,8 @@ import Community from "./pages/Community";
 import Settings from "./pages/Settings";
 import Tools from "./pages/Tools";
 import ExamSimulator from "./pages/ExamSimulator";
+import ExamHistory from "./pages/ExamHistory"; // Nouvelle page d'historique d'examens
+import Activities from "./pages/Activities"; // Nouvelle page d'activités
 import ContinuingEducation from "./pages/ContinuingEducation";
 import Profile from "./pages/Profile";
 import EmailConfirmation from "./pages/EmailConfirmation";
@@ -29,7 +31,7 @@ import NotFound from "./pages/NotFound";
 import StudyPlanner from "./pages/tools/StudyPlanner";
 import TaskList from "./pages/tools/TaskList";
 import StudyTimer from "./pages/tools/StudyTimer";
-import FlashcardGenerator from "./pages/tools/FlashcardGenerator";
+import FlashcardGenerator from "./pages/tools/flashcards/FlashcardGenerator"; // Chemin corrigé
 import InteractivePresentations from "./pages/tools/InteractivePresentations";
 import ClinicalCasesExplorer from "./pages/tools/ClinicalCasesExplorer";
 
@@ -57,13 +59,15 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/continuing-education" element={<ContinuingEducation />} />
             <Route path="/exam-simulator" element={<ExamSimulator />} />
+            <Route path="/exam-history" element={<ExamHistory />} />
+            <Route path="/activities" element={<Activities />} />
             
             {/* Productivity tools routes */}
             <Route path="/tools" element={<Tools />} />
             <Route path="/tools/study-planner" element={<StudyPlanner />} />
             <Route path="/tools/task-list" element={<TaskList />} />
             <Route path="/tools/study-timer" element={<StudyTimer />} />
-            <Route path="/tools/flashcard-generator" element={<FlashcardGenerator />} />
+            <Route path="/tools/flashcards/flashcard-generator" element={<FlashcardGenerator />} />
             <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
             <Route path="/tools/clinical-cases-explorer" element={<ClinicalCasesExplorer />} />
             

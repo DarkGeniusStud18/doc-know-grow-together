@@ -7,6 +7,7 @@ import { CalendarRange, Clock, FileSpreadsheet, ListChecks, Microscope, Presenta
 import { Link } from 'react-router-dom';
 
 const Tools = () => {
+  // Liste des outils disponibles
   const tools = [
     {
       title: "Planificateur d'études",
@@ -38,7 +39,7 @@ const Tools = () => {
       icon: FileSpreadsheet,
       color: "bg-purple-100 text-purple-600",
       action: "Créer",
-      path: "/tools/flashcard-generator"
+      path: "/tools/flashcards/flashcard-generator" // Chemin corrigé
     },
     {
       title: "Présentations interactives",

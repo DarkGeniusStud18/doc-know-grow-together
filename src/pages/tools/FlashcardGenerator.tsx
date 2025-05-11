@@ -9,7 +9,7 @@ const FlashcardGeneratorRedirect = () => {
   
   useEffect(() => {
     // Redirection automatique vers la nouvelle implémentation
-    navigate('/tools/flashcards/FlashcardGenerator');
+    navigate('/tools/flashcards/flashcard-generator');
   }, [navigate]);
   
   return null; // Pas de rendu, puisque nous redirigeons immédiatement

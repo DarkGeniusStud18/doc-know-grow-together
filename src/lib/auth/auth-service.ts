@@ -7,6 +7,9 @@ import { signIn } from './services/auth-signin';
 import { signOut } from './services/auth-signout';
 import { createUserProfile } from './services/profile-service';
 
+// Re-export des types
+export * from './types';
+
 // Ré-export des services pour maintenir la compatibilité avec le code existant
 export {
   signUp,

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Clock, FileText, LayoutGrid, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ExamSimulator = () => {
   const [loading, setLoading] = useState(false);
@@ -180,7 +181,9 @@ const ExamSimulator = () => {
                 ))}
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">Voir tout l'historique</Button>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link to="/exam-history">Voir tout l'historique</Link>
+                </Button>
               </CardFooter>
             </Card>
           </div>

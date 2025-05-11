@@ -1,8 +1,10 @@
 
 // Service pour la gestion de l'inscription des utilisateurs
-import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole, KycStatus } from "../types";
+import { UserRole } from "../types";
+import { checkUserExists } from "../utils/user-validation";
+import { createUserProfileRecord } from "../utils/profile";
+import { showSignupSuccessMessage, showErrorMessage } from "../utils/notification";
 
 /**
  * Gère le processus d'inscription d'un nouvel utilisateur
@@ -20,14 +22,9 @@ export const signUp = async (
 ): Promise<boolean> => {
   try {
     // Vérification si l'utilisateur existe déjà
-    const { data: existingUsers } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('email', email as string) // Correction: Cast explicite pour éviter l'erreur de type
-      .limit(1);
-      
-    if (existingUsers && existingUsers.length > 0) {
-      toast.error("Un compte avec cet email existe déjà");
+    const userExists = await checkUserExists(email);
+    if (userExists) {
+      showErrorMessage("Un compte avec cet email existe déjà");
       return false;
     }
 
@@ -49,37 +46,26 @@ export const signUp = async (
     
     if (error) {
       console.error("Error signing up:", error);
-      toast.error(error.message || "Erreur lors de l'inscription");
+      showErrorMessage(error.message || "Erreur lors de l'inscription");
       return false;
     }
     
     if (data.user) {
       // Création du profil utilisateur dans notre base de données
-      const now = new Date().toISOString();
+      const profileCreated = await createUserProfileRecord(
+        data.user.id,
+        displayName,
+        email,
+        role
+      );
       
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          display_name: displayName,
-          role: role,
-          kyc_status: 'not_submitted' as KycStatus,
-          email: email,
-          created_at: now,
-          updated_at: now
-        });
-      
-      if (profileError) {
-        console.error("Error creating profile:", profileError);
-        toast.error("Erreur lors de la création du profil");
+      if (!profileCreated) {
+        showErrorMessage("Erreur lors de la création du profil");
         return false;
       }
       
       // Affichage d'un message toast sur la vérification par email
-      toast.success("Inscription réussie!", {
-        description: "Un email de confirmation a été envoyé. Veuillez vérifier votre boîte mail et cliquer sur le lien de vérification pour activer votre compte.",
-        duration: 8000, // Afficher plus longtemps pour que l'utilisateur le voie
-      });
+      showSignupSuccessMessage();
       
       return true;
     }
@@ -87,9 +73,7 @@ export const signUp = async (
     return false;
   } catch (error: any) {
     console.error("Error signing up:", error);
-    toast.error("Erreur lors de l'inscription", {
-      description: error.message || "Veuillez réessayer plus tard."
-    });
+    showErrorMessage("Erreur lors de l'inscription", error.message);
     return false;
   }
 };

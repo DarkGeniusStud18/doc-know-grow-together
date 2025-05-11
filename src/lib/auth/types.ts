@@ -1,8 +1,15 @@
 
-export type UserRole = 'student' | 'professional' | 'admin';
+/**
+ * Types et interfaces pour l'authentification et la gestion des utilisateurs
+ */
 
-export type KycStatus = 'pending' | 'verified' | 'rejected' | 'not_submitted';
+// Rôles d'utilisateur disponibles
+export type UserRole = 'student' | 'professional';
 
+// Statuts de vérification KYC
+export type KycStatus = 'not_submitted' | 'pending' | 'verified' | 'rejected';
+
+// Interface pour l'utilisateur
 export interface User {
   id: string;
   email: string;
@@ -13,4 +20,18 @@ export interface User {
   university?: string;
   specialty?: string;
   createdAt: Date;
+}
+
+// Interface pour le profil utilisateur
+export interface UserProfile {
+  id: string;
+  display_name: string;
+  email: string;
+  role: UserRole;
+  kyc_status: KycStatus;
+  created_at: string;
+  updated_at: string;
+  university?: string;
+  specialty?: string;
+  profile_image_url?: string;
 }

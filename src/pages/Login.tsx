@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -13,13 +12,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/components/ui/sonner';
 import { Loader2 } from 'lucide-react';
 
+/**
+ * Schéma de validation du formulaire de connexion
+ */
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email invalide' }),
   password: z.string().min(1, { message: 'Mot de passe requis' }),
 });
 
+/**
+ * Type dérivé du schéma de validation
+ */
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+/**
+ * Page de connexion avec formulaire et options de connexion rapide (démo)
+ */
 const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();

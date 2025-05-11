@@ -1,12 +1,18 @@
 
+// Page d'erreur 404 - Affichée lorsqu'un utilisateur tente d'accéder à une route inexistante
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MoveLeft } from "lucide-react";
 
+/**
+ * Composant pour la page 404 (page non trouvée)
+ * Affiche un message amical et un bouton pour retourner à l'accueil
+ */
 const NotFound = () => {
   const location = useLocation();
 
+  // Enregistre dans la console les tentatives d'accès à des routes inexistantes
   useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
