@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -164,7 +165,7 @@ const Login: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              {/*<div className="mt-6 grid grid-cols-2 gap-3">
                 <Button 
                   variant="outline" 
                   onClick={() => handleDemo('student')}
@@ -189,7 +190,7 @@ const Login: React.FC = () => {
                     'Démo Médecin'
                   )}
                 </Button>
-              </div>
+              </div>*/}
               
               <div className="mt-6 text-center text-sm">
                 <span className="text-gray-500">Vous n'avez pas de compte?</span>{' '}
