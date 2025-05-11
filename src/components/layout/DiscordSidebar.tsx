@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/context/AuthContext';
-import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, MessageSquare, Settings, Tool, TrendingUp, Users } from 'lucide-react';
+import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, MessageSquare, Settings, Wrench, TrendingUp, Users } from 'lucide-react';
 
 const DiscordSidebar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -61,7 +61,7 @@ const DiscordSidebar: React.FC = () => {
   const studentItems = [
     { path: '/notes', icon: FileText, label: 'Mes cours' },
     { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' },
-    { path: '/tools', icon: Tool, label: 'Outils de productivité' },
+    { path: '/tools', icon: Wrench, label: 'Outils de productivité' },
     { path: '/exam-simulator', icon: LayoutGrid, label: 'Simulateur d\'examen' },
   ];
   

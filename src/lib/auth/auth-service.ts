@@ -1,6 +1,7 @@
+
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { User, UserRole } from "./types";
+import { User, UserRole, KycStatus } from "./types";
 
 export const signUp = async (
   email: string,
@@ -220,7 +221,7 @@ export const signOut = async (): Promise<void> => {
 
 export const createUserProfile = async (user: User) => {
   // Convert Date to ISO string format for Supabase
-  const createdAt = new Date().toISOString();
+  const createdAt = user.createdAt.toISOString();
   
   const { data, error } = await supabase
     .from('profiles')

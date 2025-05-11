@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, Menu, MessageSquare, Settings, Tool, TrendingUp, Users } from 'lucide-react';
+import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, Menu, MessageSquare, Settings, Wrench, TrendingUp, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MobileNavbar: React.FC = () => {
@@ -30,7 +31,7 @@ const MobileNavbar: React.FC = () => {
   const studentItems = [
     { path: '/notes', label: 'Mes cours', icon: FileText },
     { path: '/study-groups', label: 'Groupes d\'étude', icon: Users },
-    { path: '/tools', label: 'Outils de productivité', icon: Tool },
+    { path: '/tools', label: 'Outils de productivité', icon: Wrench },
     { path: '/exam-simulator', label: 'Simulateur d\'examen', icon: LayoutGrid },
   ];
   
