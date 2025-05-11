@@ -1,0 +1,9 @@
+
+# Redirections pour Netlify
+
+# Route pour accéder aux Netlify Functions - Très important!
+/.netlify/functions/*  /.netlify/functions/:splat  200!
+
+# Toutes les autres routes sont gérées par l'application React
+/*      /index.html    200
+
