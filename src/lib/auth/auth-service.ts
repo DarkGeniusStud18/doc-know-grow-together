@@ -54,7 +54,7 @@ export const signUp = async (
           id: data.user.id,
           display_name: displayName,
           role: role,
-          kyc_status: 'not_submitted',
+          kyc_status: 'not_submitted' as KycStatus,
           email: email,
           created_at: now,
           updated_at: now
