@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -466,7 +465,7 @@ const FlashcardGenerator: React.FC = () => {
                               <div className="font-medium">{deck.name}</div>
                               <div className="text-xs text-gray-500 mb-2">{deck.description}</div>
                               <div className="flex items-center justify-between">
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs">
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700">
                                   {deck.category.charAt(0).toUpperCase() + deck.category.slice(1)}
                                 </Badge>
                                 <span className="text-xs text-gray-500">{deck.cards.length} cartes</span>

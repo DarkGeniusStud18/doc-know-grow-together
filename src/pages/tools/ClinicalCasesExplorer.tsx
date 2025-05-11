@@ -4,7 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, BookOpen, Stethoscope, Heart, Brain, Lungs } from 'lucide-react';
+import { Search, Filter, BookOpen, Stethoscope, Heart, Brain, Wind } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -13,7 +13,7 @@ const ClinicalCasesExplorer: React.FC = () => {
   const categories = [
     { name: 'Cardiologie', icon: <Heart className="h-4 w-4" /> },
     { name: 'Neurologie', icon: <Brain className="h-4 w-4" /> },
-    { name: 'Pneumologie', icon: <Lungs className="h-4 w-4" /> },
+    { name: 'Pneumologie', icon: <Wind className="h-4 w-4" /> },
     { name: 'Général', icon: <Stethoscope className="h-4 w-4" /> },
   ];
 

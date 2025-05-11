@@ -14,7 +14,7 @@ export const signUp = async (
     const { data: existingUsers } = await supabase
       .from('profiles')
       .select('email')
-      .eq('email', email)
+      .eq('email', email as string)
       .limit(1);
       
     if (existingUsers && existingUsers.length > 0) {
