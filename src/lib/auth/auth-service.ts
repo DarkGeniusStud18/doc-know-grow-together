@@ -24,7 +24,7 @@ export const signUp = async (
 
     // Get the base URL for redirection, excluding any path or parameters
     const origin = window.location.origin;
-    const redirectTo = `${origin}/login?verified=true`;
+    const redirectTo = `${origin}/email-confirmation`;
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -46,7 +46,6 @@ export const signUp = async (
     
     if (data.user) {
       // Create user profile in our database
-      // Convert Date objects to ISO strings for Supabase
       const now = new Date().toISOString();
       
       const { error: profileError } = await supabase

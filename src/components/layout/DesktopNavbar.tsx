@@ -29,6 +29,7 @@ const DesktopNavbar: React.FC = () => {
             {window.location.pathname === '/exam-simulator' && 'Simulateur d\'examen'}
             {window.location.pathname === '/continuing-education' && 'Formation continue'}
             {window.location.pathname === '/settings' && 'Paramètres'}
+            {window.location.pathname === '/profile' && 'Mon Profil'}
           </h1>
         </div>
 
@@ -100,17 +101,6 @@ const DesktopNavbar: React.FC = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          {/* Standalone logout button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            title="Déconnexion" 
-            onClick={logout}
-            className="transition-transform hover:scale-110 text-red-500 hover:text-red-600 hover:bg-red-50"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
         </div>
       </div>
     </header>

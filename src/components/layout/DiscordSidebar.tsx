@@ -68,22 +68,23 @@ const DiscordSidebar: React.FC = () => {
   const professionalItems = [
     { path: '/clinical-cases', icon: MessageSquare, label: 'Cas cliniques' },
     { path: '/continuing-education', icon: TrendingUp, label: 'Formation continue' },
+    { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' }, // Added for doctor accounts
   ];
   
   const roleSpecificItems = user.role === 'student' ? studentItems : professionalItems;
 
   return (
     <div className="hidden md:flex flex-col items-center w-[72px] bg-gray-100 h-screen py-4 border-r shadow-sm">
-      {/* User avatar */}
+      {/* User avatar - changed to Link to profile page */}
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="w-12 h-12 bg-medical-blue text-white rounded-full mb-4 flex items-center justify-center hover:shadow-md transition-all duration-300 hover:scale-105 cursor-pointer">
+            <Link to="/profile" className="w-12 h-12 bg-medical-blue text-white rounded-full mb-4 flex items-center justify-center hover:shadow-md transition-all duration-300 hover:scale-105 cursor-pointer">
               <span className="font-semibold">{user.displayName.substring(0, 2).toUpperCase()}</span>
-            </div>
+            </Link>
           </TooltipTrigger>
           <TooltipContent side="right" className="bg-gray-800 text-white border-gray-700">
-            MedCollab
+            Mon Profil
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -91,7 +92,7 @@ const DiscordSidebar: React.FC = () => {
       <div className="w-8 h-0.5 bg-gray-300 rounded-full my-2"></div>
       
       {/* Navigation Icons */}
-      <div className="flex flex-col items-center space-y-1 flex-1 overflow-y-auto py-2 px-3 w-full">
+      <div className="flex flex-col items-center space-y-1 flex-1 py-2 px-3 w-full no-scrollbar">
         {navItems.map((item) => (
           <NavIcon key={item.path} path={item.path} icon={item.icon} label={item.label} />
         ))}

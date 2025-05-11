@@ -21,6 +21,8 @@ import Settings from "./pages/Settings";
 import Tools from "./pages/Tools";
 import ExamSimulator from "./pages/ExamSimulator";
 import ContinuingEducation from "./pages/ContinuingEducation";
+import Profile from "./pages/Profile";
+import EmailConfirmation from "./pages/EmailConfirmation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/email-confirmation" element={<EmailConfirmation />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/kyc" element={<KYCVerification />} />
             <Route path="/resources" element={<Resources />} />
@@ -46,6 +49,7 @@ const App = () => (
             <Route path="/tools" element={<Tools />} />
             <Route path="/exam-simulator" element={<ExamSimulator />} />
             <Route path="/continuing-education" element={<ContinuingEducation />} />
+            <Route path="/profile" element={<Profile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
