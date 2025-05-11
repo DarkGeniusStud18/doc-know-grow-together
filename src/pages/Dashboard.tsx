@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -70,6 +69,14 @@ const Dashboard: React.FC = () => {
       icon: <FileText className="h-8 w-8 text-teal-500" />,
       link: '/continuing-education',
       color: 'bg-teal-50',
+    },
+    // Adding Study Groups feature for professional users as requested
+    {
+      title: 'Groupes d\'étude',
+      description: 'Rejoignez ou créez des groupes d\'étude collaboratifs.',
+      icon: <Video className="h-8 w-8 text-orange-500" />,
+      link: '/study-groups',
+      color: 'bg-orange-50',
     },
   ];
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -62,6 +61,11 @@ const Sidebar: React.FC = () => {
       icon: FileText,
       label: 'Formation continue',
       path: '/continuing-education',
+    },
+    {
+      icon: Video,
+      label: 'Groupes d\'étude',
+      path: '/study-groups',
     },
   ];
 
