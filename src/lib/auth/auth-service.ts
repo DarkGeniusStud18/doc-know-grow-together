@@ -169,7 +169,7 @@ export const signIn = async (
             id: data.user.id,
             display_name: displayName,
             role: role,
-            kyc_status: 'not_submitted',
+            kyc_status: 'not_submitted' as KycStatus,
             email: data.user.email,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -184,7 +184,7 @@ export const signIn = async (
           email: data.user.email || '',
           displayName: displayName,
           role: role as UserRole,
-          kycStatus: 'not_submitted',
+          kycStatus: 'not_submitted' as KycStatus,
           createdAt: new Date(),
         };
         

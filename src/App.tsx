@@ -25,6 +25,14 @@ import Profile from "./pages/Profile";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import NotFound from "./pages/NotFound";
 
+// Productivity tools
+import StudyPlanner from "./pages/tools/StudyPlanner";
+import TaskList from "./pages/tools/TaskList";
+import StudyTimer from "./pages/tools/StudyTimer";
+import FlashcardGenerator from "./pages/tools/FlashcardGenerator";
+import InteractivePresentations from "./pages/tools/InteractivePresentations";
+import ClinicalCasesExplorer from "./pages/tools/ClinicalCasesExplorer";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -46,10 +54,19 @@ const App = () => (
             <Route path="/clinical-cases" element={<ClinicalCases />} />
             <Route path="/community" element={<Community />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/tools" element={<Tools />} />
-            <Route path="/exam-simulator" element={<ExamSimulator />} />
-            <Route path="/continuing-education" element={<ContinuingEducation />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/continuing-education" element={<ContinuingEducation />} />
+            <Route path="/exam-simulator" element={<ExamSimulator />} />
+            
+            {/* Productivity tools routes */}
+            <Route path="/tools" element={<Tools />} />
+            <Route path="/tools/study-planner" element={<StudyPlanner />} />
+            <Route path="/tools/task-list" element={<TaskList />} />
+            <Route path="/tools/study-timer" element={<StudyTimer />} />
+            <Route path="/tools/flashcard-generator" element={<FlashcardGenerator />} />
+            <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
+            <Route path="/tools/clinical-cases-explorer" element={<ClinicalCasesExplorer />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

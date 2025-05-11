@@ -4,6 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarRange, Clock, FileSpreadsheet, ListChecks, Microscope, Presentation } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Tools = () => {
   const tools = [
@@ -12,42 +13,48 @@ const Tools = () => {
       description: "Créez et gérez votre emploi du temps d'études personnalisé",
       icon: CalendarRange,
       color: "bg-blue-100 text-blue-600",
-      action: "Commencer"
+      action: "Commencer",
+      path: "/tools/study-planner"
     },
     {
       title: "Liste de tâches",
       description: "Organisez vos tâches et suivez votre progression",
       icon: ListChecks,
       color: "bg-green-100 text-green-600",
-      action: "Créer une liste"
+      action: "Créer une liste",
+      path: "/tools/task-list"
     },
     {
       title: "Chronomètre d'étude",
       description: "Utilisez la technique Pomodoro pour maximiser votre concentration",
       icon: Clock,
       color: "bg-red-100 text-red-600",
-      action: "Démarrer"
+      action: "Démarrer",
+      path: "/tools/study-timer"
     },
     {
       title: "Générateur de fiches",
       description: "Créez rapidement des fiches de révision efficaces",
       icon: FileSpreadsheet,
       color: "bg-purple-100 text-purple-600",
-      action: "Créer"
+      action: "Créer",
+      path: "/tools/flashcard-generator"
     },
     {
       title: "Présentations interactives",
       description: "Créez des présentations pour expliquer des concepts médicaux",
       icon: Presentation,
       color: "bg-yellow-100 text-yellow-600",
-      action: "Commencer"
+      action: "Commencer",
+      path: "/tools/interactive-presentations"
     },
     {
       title: "Explorateur de cas cliniques",
       description: "Accédez à une bibliothèque de cas cliniques pour votre formation",
       icon: Microscope,
       color: "bg-teal-100 text-teal-600",
-      action: "Explorer"
+      action: "Explorer",
+      path: "/tools/clinical-cases-explorer"
     }
   ];
 
@@ -72,7 +79,9 @@ const Tools = () => {
                 <CardDescription>{tool.description}</CardDescription>
               </CardHeader>
               <CardFooter>
-                <Button className="w-full">{tool.action}</Button>
+                <Button className="w-full" asChild>
+                  <Link to={tool.path}>{tool.action}</Link>
+                </Button>
               </CardFooter>
             </Card>
           ))}
