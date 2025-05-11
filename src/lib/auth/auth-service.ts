@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole } from "./types";
@@ -217,4 +216,29 @@ export const signOut = async (): Promise<void> => {
       description: error.message || "Veuillez réessayer plus tard."
     });
   }
+};
+
+export const createUserProfile = async (user: User) => {
+  // Convert Date to ISO string format for Supabase
+  const createdAt = new Date().toISOString();
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert({
+      id: user.id,
+      display_name: user.displayName,
+      role: user.role,
+      kyc_status: user.kycStatus,
+      created_at: createdAt,
+      profile_image: user.profileImage || null,
+      university: user.university || null,
+      specialty: user.specialty || null,
+    });
+
+  if (error) {
+    console.error('Error creating user profile:', error);
+    throw new Error('Failed to create user profile');
+  }
+
+  return data;
 };

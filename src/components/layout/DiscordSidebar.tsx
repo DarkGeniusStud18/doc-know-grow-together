@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/context/AuthContext';
-import { Home, BookOpen, Users, Calendar, FileText, MessageSquare, Settings } from 'lucide-react';
+import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, MessageSquare, Settings, Tool, TrendingUp, Users } from 'lucide-react';
 
 const DiscordSidebar: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   
   if (!user) return null;
@@ -51,21 +51,26 @@ const DiscordSidebar: React.FC = () => {
 
   // Navigation icons based on user role
   const navItems = [
-    { path: '/dashboard', icon: Home, label: 'Accueil' },
+    { path: '/dashboard', icon: Book, label: 'Accueil' },
     { path: '/resources', icon: BookOpen, label: 'Ressources' },
     { path: '/community', icon: Users, label: 'Communauté' },
     { path: '/calendar', icon: Calendar, label: 'Calendrier' },
   ];
   
   // Add role-specific items
-  const roleSpecificItems = user.role === 'student' 
-    ? [
-        { path: '/notes', icon: FileText, label: 'Mes cours' },
-        { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' },
-      ]
-    : [
-        { path: '/clinical-cases', icon: MessageSquare, label: 'Cas cliniques' },
-      ];
+  const studentItems = [
+    { path: '/notes', icon: FileText, label: 'Mes cours' },
+    { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' },
+    { path: '/tools', icon: Tool, label: 'Outils de productivité' },
+    { path: '/exam-simulator', icon: LayoutGrid, label: 'Simulateur d\'examen' },
+  ];
+  
+  const professionalItems = [
+    { path: '/clinical-cases', icon: MessageSquare, label: 'Cas cliniques' },
+    { path: '/continuing-education', icon: TrendingUp, label: 'Formation continue' },
+  ];
+  
+  const roleSpecificItems = user.role === 'student' ? studentItems : professionalItems;
 
   return (
     <div className="hidden md:flex flex-col items-center w-[72px] bg-gray-100 h-screen py-4 border-r shadow-sm">
@@ -101,6 +106,23 @@ const DiscordSidebar: React.FC = () => {
         
         <NavIcon path="/settings" icon={Settings} label="Paramètres" />
       </div>
+      
+      {/* Logout button */}
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button 
+              onClick={logout}
+              className="w-12 h-12 flex items-center justify-center rounded-full mb-2 transition-all duration-300 bg-gray-200 text-red-500 hover:bg-red-500 hover:text-white hover:rounded-2xl hover:scale-105"
+            >
+              <LogOut size={24} className="transition-transform hover:scale-110" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="bg-gray-800 text-white border-gray-700">
+            Déconnexion
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };

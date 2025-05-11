@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Globe, Search } from 'lucide-react';
+import { Bell, Globe, LogOut, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const DesktopNavbar: React.FC = () => {
@@ -25,6 +25,9 @@ const DesktopNavbar: React.FC = () => {
             {window.location.pathname === '/notes' && 'Mes cours'}
             {window.location.pathname === '/study-groups' && 'Groupes d\'étude'}
             {window.location.pathname === '/clinical-cases' && 'Cas cliniques'}
+            {window.location.pathname === '/tools' && 'Outils de productivité'}
+            {window.location.pathname === '/exam-simulator' && 'Simulateur d\'examen'}
+            {window.location.pathname === '/continuing-education' && 'Formation continue'}
             {window.location.pathname === '/settings' && 'Paramètres'}
           </h1>
         </div>
@@ -55,7 +58,7 @@ const DesktopNavbar: React.FC = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full transition-transform hover:scale-110">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg" alt={user.displayName} />
+                  <AvatarImage src={user.profileImage || "/placeholder.svg"} alt={user.displayName} />
                   <AvatarFallback className="bg-medical-teal text-white">
                     {user.displayName.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
@@ -89,13 +92,25 @@ const DesktopNavbar: React.FC = () => {
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="cursor-pointer text-red-500 focus:text-red-500 hover:bg-red-50 transition-colors"
+                className="cursor-pointer text-red-500 focus:text-red-500 hover:bg-red-50 transition-colors flex items-center"
                 onClick={logout}
               >
+                <LogOut className="h-4 w-4 mr-2" />
                 Déconnexion
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
+          {/* Standalone logout button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            title="Déconnexion" 
+            onClick={logout}
+            className="transition-transform hover:scale-110 text-red-500 hover:text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </header>

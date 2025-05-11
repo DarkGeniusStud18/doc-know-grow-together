@@ -17,6 +17,10 @@ import Calendar from "./pages/Calendar";
 import StudyGroups from "./pages/StudyGroups";
 import ClinicalCases from "./pages/ClinicalCases";
 import Community from "./pages/Community";
+import Settings from "./pages/Settings";
+import Tools from "./pages/Tools";
+import ExamSimulator from "./pages/ExamSimulator";
+import ContinuingEducation from "./pages/ContinuingEducation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +42,10 @@ const App = () => (
             <Route path="/study-groups" element={<StudyGroups />} />
             <Route path="/clinical-cases" element={<ClinicalCases />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/tools" element={<Tools />} />
+            <Route path="/exam-simulator" element={<ExamSimulator />} />
+            <Route path="/continuing-education" element={<ContinuingEducation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

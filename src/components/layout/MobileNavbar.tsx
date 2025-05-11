@@ -1,13 +1,11 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Globe, Menu, Search, User } from 'lucide-react';
+import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, Menu, MessageSquare, Settings, Tool, TrendingUp, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const MobileNavbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -22,26 +20,30 @@ const MobileNavbar: React.FC = () => {
 
   // Navigation items based on user role
   const navItems = [
-    { path: '/dashboard', label: 'Accueil' },
-    { path: '/resources', label: 'Ressources' },
-    { path: '/community', label: 'Communauté' },
-    { path: '/calendar', label: 'Calendrier' },
+    { path: '/dashboard', label: 'Accueil', icon: Book },
+    { path: '/resources', label: 'Ressources', icon: BookOpen },
+    { path: '/community', label: 'Communauté', icon: Users },
+    { path: '/calendar', label: 'Calendrier', icon: Calendar },
   ];
   
   // Add role-specific items
-  const roleSpecificItems = user.role === 'student' 
-    ? [
-        { path: '/notes', label: 'Mes cours' },
-        { path: '/study-groups', label: 'Groupes d\'étude' },
-      ]
-    : [
-        { path: '/clinical-cases', label: 'Cas cliniques' },
-      ];
+  const studentItems = [
+    { path: '/notes', label: 'Mes cours', icon: FileText },
+    { path: '/study-groups', label: 'Groupes d\'étude', icon: Users },
+    { path: '/tools', label: 'Outils de productivité', icon: Tool },
+    { path: '/exam-simulator', label: 'Simulateur d\'examen', icon: LayoutGrid },
+  ];
   
-  const allItems = [...navItems, ...roleSpecificItems, { path: '/settings', label: 'Paramètres' }];
+  const professionalItems = [
+    { path: '/clinical-cases', label: 'Cas cliniques', icon: MessageSquare },
+    { path: '/continuing-education', label: 'Formation continue', icon: TrendingUp },
+  ];
+  
+  const roleSpecificItems = user.role === 'student' ? studentItems : professionalItems;
+  const allItems = [...navItems, ...roleSpecificItems, { path: '/settings', label: 'Paramètres', icon: Settings }];
   
   // Discord-style Nav Item for mobile menu
-  const NavIcon = ({ path, label }: { path: string; label: string }) => {
+  const NavIcon = ({ path, label, icon: Icon }: { path: string; label: string; icon: React.ElementType }) => {
     const active = isActive(path);
     
     return (
@@ -61,7 +63,7 @@ const MobileNavbar: React.FC = () => {
           {active && (
             <div className="absolute -left-2 w-1.5 h-10 bg-white rounded-r-full transition-all duration-300"></div>
           )}
-          <span className="font-semibold">{label.substring(0, 1).toUpperCase()}</span>
+          <Icon size={20} className="transition-transform group-hover:scale-110" />
         </div>
         <p className={cn(
           "text-xs text-center",
@@ -99,76 +101,35 @@ const MobileNavbar: React.FC = () => {
                   {/* Navigation Icons */}
                   <div className="flex flex-col items-center gap-3 flex-1 overflow-y-auto py-2 px-3 w-full">
                     {navItems.map((item) => (
-                      <NavIcon key={item.path} path={item.path} label={item.label} />
+                      <NavIcon key={item.path} path={item.path} label={item.label} icon={item.icon} />
                     ))}
                     
                     <div className="w-8 h-0.5 bg-gray-300 rounded-full my-2"></div>
                     
                     {roleSpecificItems.map((item) => (
-                      <NavIcon key={item.path} path={item.path} label={item.label} />
+                      <NavIcon key={item.path} path={item.path} label={item.label} icon={item.icon} />
                     ))}
                     
                     <div className="w-8 h-0.5 bg-gray-300 rounded-full my-2"></div>
                     
-                    <NavIcon path="/settings" label="Paramètres" />
+                    <NavIcon path="/settings" label="Paramètres" icon={Settings} />
+                    
+                    {/* Logout button */}
+                    <button 
+                      onClick={logout} 
+                      className="w-full"
+                    >
+                      <div className="relative group w-12 h-12 flex items-center justify-center rounded-full mb-2 mx-auto transition-all duration-300 bg-gray-200 text-red-500 hover:bg-red-500 hover:text-white hover:rounded-2xl">
+                        <LogOut size={20} className="transition-transform group-hover:scale-110" />
+                      </div>
+                      <p className="text-xs text-center text-red-500">
+                        Déconnexion
+                      </p>
+                    </button>
                   </div>
                 </div>
 
-                {/* Main content area */}
-                <div className="flex-1 py-4 px-3">
-                  {/* User info */}
-                  <div className="pb-4 border-b">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src="/placeholder.svg" alt={user.displayName} />
-                        <AvatarFallback className="bg-medical-teal text-white">
-                          {user.displayName.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{user.displayName}</p>
-                        <p className="text-sm text-gray-500 capitalize">{user.role}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Navigation links with labels */}
-                  <nav className="pt-3">
-                    <h3 className="text-xs uppercase font-semibold text-gray-500 mb-2 px-1">Menu</h3>
-                    <ul className="space-y-1">
-                      {allItems.map((item) => (
-                        <li key={item.path}>
-                          <Link
-                            to={item.path}
-                            className={cn(
-                              "flex w-full rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
-                              isActive(item.path) 
-                                ? "bg-medical-blue text-white" 
-                                : "text-gray-700 hover:bg-gray-100 hover:translate-x-1"
-                            )}
-                            onClick={() => setOpen(false)}
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
-                  
-                  {/* Logout button */}
-                  <div className="pt-4 border-t mt-6">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      onClick={() => {
-                        logout();
-                        setOpen(false);
-                      }}
-                    >
-                      Déconnexion
-                    </Button>
-                  </div>
-                </div>
+                {/* Main content area - keep this empty as we're only using the discord-style sidebar */}
               </div>
             </SheetContent>
           </Sheet>
@@ -178,17 +139,31 @@ const MobileNavbar: React.FC = () => {
           </Link>
         </div>
         
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="transition-transform hover:scale-110">
-            <Search className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="transition-transform hover:scale-110">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="transition-transform hover:scale-110">
-            <Globe className="h-5 w-5" />
-          </Button>
+        {/* Page title in the center */}
+        <div className="text-center">
+          <h1 className="text-lg font-semibold text-medical-navy">
+            {location.pathname === '/dashboard' && 'Accueil'}
+            {location.pathname === '/resources' && 'Ressources'}
+            {location.pathname === '/community' && 'Communauté'}
+            {location.pathname === '/calendar' && 'Calendrier'}
+            {location.pathname === '/notes' && 'Mes cours'}
+            {location.pathname === '/study-groups' && 'Groupes d\'étude'}
+            {location.pathname === '/tools' && 'Outils'}
+            {location.pathname === '/exam-simulator' && 'Examens'}
+            {location.pathname === '/clinical-cases' && 'Cas cliniques'}
+            {location.pathname === '/continuing-education' && 'Formation'}
+            {location.pathname === '/settings' && 'Paramètres'}
+          </h1>
+        </div>
+        
+        {/* User avatar on the right */}
+        <div className="flex items-center">
+          <Avatar className="h-8 w-8 transition-transform hover:scale-110">
+            <AvatarImage src={user.profileImage || "/placeholder.svg"} alt={user.displayName} />
+            <AvatarFallback className="bg-medical-teal text-white">
+              {user.displayName.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
       </div>
     </header>
