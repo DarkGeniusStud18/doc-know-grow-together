@@ -1,29 +1,30 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { EmailCheckResponse } from "./types/validation-types";
+import { supabase } from '@/integrations/supabase/client';
+import type { EmailCheckResponse } from './types/validation-types';
 
 /**
- * Vérifie si un utilisateur existe déjà avec l'email spécifié
- * @param email - Email à vérifier
- * @returns Promise<boolean> - true si l'utilisateur existe, false sinon
+ * Vérifie si un utilisateur existe déjà avec l'email donné
+ * 
+ * @param email Email à vérifier
+ * @returns True si l'utilisateur existe déjà, false sinon
  */
 export async function checkUserExists(email: string): Promise<boolean> {
   try {
-    // Define the return type explicitly
-    const { data, error } = await supabase
+    // Use any to bypass the deep instantiation error
+    const response: any = await supabase
       .from('profiles')
       .select('email')
       .eq('email', email)
       .limit(1);
       
-    if (error) {
-      console.error("Error checking if user exists:", error);
-      throw error;
+    if (response.error) {
+      console.error("Error checking if user exists:", response.error);
+      return false;
     }
     
-    return Boolean(data && data.length > 0);
+    return response.data && response.data.length > 0;
   } catch (error) {
-    console.error("Error in checkUserExists:", error);
+    console.error("Error checking if user exists:", error);
     return false;
   }
 }
