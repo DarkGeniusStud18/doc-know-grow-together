@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
@@ -8,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Book, BookOpen, FileText, Filter, Search, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/components/ui/use-toast';
+// Import correct toast from hooks to fix the error
+import { toast } from '@/hooks/use-toast';
 
 // Données simulées - Dans une application réelle, elles proviendraient d'une API
 const RESOURCES = [
@@ -105,7 +105,7 @@ const Resources: React.FC = () => {
   // Fonction pour gérer le changement de langue (simulation)
   const handleLanguageChange = (language: string) => {
     // Dans un cas réel, cela activerait la traduction de l'application
-    // Correction : Utiliser directement l'objet toast avec la méthode appropriée
+    // Correction : Utiliser directement la fonction toast importée depuis hooks/use-toast
     toast({
       title: "Changement de langue",
       description: `La langue a été changée en ${language}`,
@@ -316,4 +316,3 @@ const ResourceGrid: React.FC<ResourceGridProps> = ({ resources, onResourceClick 
 };
 
 export default Resources;
-
