@@ -29,6 +29,7 @@ export const toast = {
   // Ajoute une fonction pour afficher des toasts traduits
   translateAndShow: (message: string, language: string = 'fr') => {
     const translatedMessage = translateMessage(message, language);
-    toastOriginal.message(translatedMessage);
+    // Fix: Change toastOriginal.message to use the title property
+    toastOriginal({ title: translatedMessage });
   }
 };

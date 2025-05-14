@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -28,6 +27,7 @@ type Resource = {
   requires_verification: boolean;
   created_at: string;
   updated_at: string;
+  // Ajout des propriétés manquantes qui sont enrichies plus tard
   content?: string;
   related_resources?: RelatedResource[];
   videos?: ResourceVideo[];
@@ -439,29 +439,39 @@ const ResourceDetail = () => {
         
       if (error) throw error;
       
+      // Créer un objet vide de type Resource avec les propriétés optionnelles
+      const emptyResource: Resource = {
+        ...data,
+        content: undefined,
+        videos: undefined,
+        images: undefined,
+        related_resources: undefined
+      };
+      
       // Enrichissement des données avec le contenu personnalisé
       if (ENRICHED_CONTENT[id as string]) {
         return {
-          ...data,
+          ...emptyResource,
           ...ENRICHED_CONTENT[id as string]
         };
       }
       
-      return data;
+      return emptyResource;
     },
     enabled: !!id
   });
   
   // Fonction pour formater le temps de lecture estimé
-  const estimatedReadingTime = (content: string) => {
+  const estimatedReadingTime = (content: string | undefined) => {
+    if (!content) return 0;
     const wordsPerMinute = 200;
-    const words = content?.split(/\s+/).length || 0;
+    const words = content.split(/\s+/).length || 0;
     const minutes = Math.ceil(words / wordsPerMinute);
     return minutes;
   };
   
   // Fonction pour rendre le contenu Markdown en HTML (simplifiée)
-  const renderMarkdown = (content: string) => {
+  const renderMarkdown = (content: string | undefined) => {
     if (!content) return '';
     
     // Transformation basique des titres et paragraphes (en production, utilisez une bibliothèque comme marked)
