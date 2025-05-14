@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
               {user.kycStatus !== 'verified' && ' Complétez la vérification de votre identité pour accéder à toutes nos fonctionnalités.'}
             </p>
             {user.kycStatus !== 'verified' && (
-              <Link to="/kyc">
+              <Link to="/kyc-verification">
                 <Button size="lg" variant="secondary">
                   Vérifier mon identité
                 </Button>
@@ -127,7 +127,7 @@ const Dashboard: React.FC = () => {
                 Certaines fonctionnalités ne sont accessibles qu'après vérification de votre identité. 
                 Soumettez vos documents pour bénéficier d'un accès complet.
               </p>
-              <Link to="/kyc" className="inline-block mt-2">
+              <Link to="/kyc-verification" className="inline-block mt-2">
                 <Button variant="outline" size="sm" className="text-amber-800 border-amber-300 hover:bg-amber-100">
                   Vérifier maintenant
                 </Button>
