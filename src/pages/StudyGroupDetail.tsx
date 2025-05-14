@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -8,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
@@ -68,27 +67,37 @@ const StudyGroupDetail = () => {
           
         if (groupError) throw groupError;
         
-        // Fetch group members with profiles
+        // Fetch group members
         const { data: membersData, error: membersError } = await supabase
           .from('study_group_members')
-          .select(`
-            *,
-            profile:user_id(
-              display_name,
-              profile_image
-            )
-          `)
+          .select('*')
           .eq('group_id', id);
           
         if (membersError) throw membersError;
         
+        // Manually fetch profile info for each member
+        const membersWithProfiles: Member[] = await Promise.all(
+          membersData.map(async (member) => {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('display_name, profile_image')
+              .eq('id', member.user_id)
+              .single();
+            
+            return {
+              ...member,
+              profile: profileData || { display_name: 'Utilisateur', profile_image: undefined }
+            };
+          })
+        );
+        
         // Check user role in this group
-        const currentUserMembership = membersData.find(
+        const currentUserMembership = membersWithProfiles.find(
           (member) => member.user_id === user.id
         );
         
         setGroup(groupData);
-        setMembers(membersData);
+        setMembers(membersWithProfiles);
         setUserRole(currentUserMembership?.role || null);
         setEditedGroup({
           name: groupData.name,
@@ -264,9 +273,9 @@ const StudyGroupDetail = () => {
                 <CardHeader>
                   <div className="flex justify-between">
                     <div>
-                      <CardTitle className="text-2xl font-bold">{group.name}</CardTitle>
+                      <CardTitle className="text-2xl font-bold">{group?.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-2">
-                        {group.is_private && (
+                        {group?.is_private && (
                           <Badge variant="secondary">Privé</Badge>
                         )}
                         <Badge variant="outline">
@@ -294,7 +303,7 @@ const StudyGroupDetail = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="whitespace-pre-wrap">{group.description}</p>
+                  <p className="whitespace-pre-wrap">{group?.description}</p>
                 </CardContent>
                 {!userRole && (
                   <CardFooter>
@@ -327,16 +336,16 @@ const StudyGroupDetail = () => {
                 </TabsList>
                 
                 <TabsContent value="discussions">
-                  <GroupDiscussions groupId={group.id} userRole={userRole} />
+                  <GroupDiscussions groupId={group?.id || ''} userRole={userRole} />
                 </TabsContent>
                 
                 <TabsContent value="resources">
-                  <GroupResources groupId={group.id} userRole={userRole} />
+                  <GroupResources groupId={group?.id || ''} userRole={userRole} />
                 </TabsContent>
                 
                 <TabsContent value="members">
                   <GroupMembers 
-                    groupId={group.id} 
+                    groupId={group?.id || ''} 
                     members={members} 
                     userRole={userRole}
                     canManage={canManageGroup}

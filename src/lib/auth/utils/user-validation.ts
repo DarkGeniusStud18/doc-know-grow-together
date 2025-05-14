@@ -10,8 +10,7 @@ import type { EmailCheckResponse } from './types/validation-types';
  */
 export async function checkUserExists(email: string): Promise<boolean> {
   try {
-    // Use any to bypass the deep instantiation error
-    const response: any = await supabase
+    const response = await supabase
       .from('profiles')
       .select('email')
       .eq('email', email)

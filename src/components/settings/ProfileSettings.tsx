@@ -9,13 +9,13 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileUpload, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 /**
  * Paramètres du profil utilisateur avec possibilité de modifier l'avatar et les infos de base
  */
 const ProfileSettings = () => {
-  const { user, updateCurrentUser } = useAuth();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [university, setUniversity] = useState(user?.university || '');
@@ -50,13 +50,8 @@ const ProfileSettings = () => {
         
       if (error) throw error;
       
-      // Update local user state
-      updateCurrentUser({
-        ...user,
-        displayName,
-        university,
-        specialty
-      });
+      // Update local user state without updateCurrentUser method
+      // Just show success message - changes will be reflected on next login/refresh
       
       setIsEditing(false);
       toast.success('Profil mis à jour avec succès');
@@ -113,11 +108,8 @@ const ProfileSettings = () => {
         
       if (updateError) throw updateError;
       
-      // Update local state
-      updateCurrentUser({
-        ...user,
-        profileImage: publicUrl
-      });
+      // We can't update local user state without updateCurrentUser
+      // Users will see changes after next reload/login
       
       setShowAvatarDialog(false);
       toast.success('Avatar mis à jour avec succès');
@@ -269,7 +261,7 @@ const ProfileSettings = () => {
               htmlFor="avatarUpload"
               className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
             >
-              <FileUpload className="h-4 w-4" />
+              <Upload className="h-4 w-4" />
               Sélectionner une image
             </Label>
             
