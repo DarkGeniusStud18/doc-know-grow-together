@@ -1,90 +1,135 @@
 
-import { toast } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
-export const submitKycDocuments = async (files: File[], userId: string): Promise<boolean> => {
+// Upload KYC document to Supabase Storage
+export const uploadKYCDocument = async (
+  userId: string,
+  file: File,
+  documentType: string
+): Promise<{ path: string | null; error: Error | null }> => {
   try {
-    // Get user details to send in WhatsApp notification
-    const { data: userDetails, error: userError } = await supabase
+    // Create a unique file path for this document
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}_${documentType}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    // Upload file to 'kyc_documents' bucket
+    const { data, error } = await supabase.storage
+      .from('kyc_documents')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // Return the path to the uploaded file
+    return { path: data?.path || null, error: null };
+  } catch (error) {
+    console.error('Error uploading KYC document:', error);
+    return { path: null, error: error as Error };
+  }
+};
+
+// Update user's KYC status and document references
+export const updateKYCStatus = async (
+  userId: string,
+  documentUrls: { [key: string]: string },
+  status = 'pending'
+): Promise<{ success: boolean; error: Error | null }> => {
+  try {
+    // First, get the user's profile to retrieve email
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    
-    if (userError) {
-      console.error("Error fetching user details:", userError);
-      throw userError;
-    }
-
-    // Upload files to storage
-    const uploadPromises = files.map(async (file) => {
-      const filePath = `${userId}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('kyc_documents')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error("Storage upload error:", uploadError);
-        throw uploadError;
-      }
-
-      // Get the URL
-      const { data } = supabase.storage
-        .from('kyc_documents')
-        .getPublicUrl(filePath);
       
-      // Insert document reference into kyc_documents table
-      const { error: insertError } = await supabase
-        .from('kyc_documents')
-        .insert({
-          user_id: userId,
-          document_type: file.type,
-          document_url: data.publicUrl
-        });
+    if (profileError) throw profileError;
+    
+    const userEmail = profileData.email || '';
 
-      if (insertError) throw insertError;
-      
-      return data.publicUrl;
-    });
-    
-    const uploadedUrls = await Promise.all(uploadPromises);
-    
-    // Update user KYC status
-    const { error: updateError } = await supabase
+    // Update KYC status in profiles table
+    const { error } = await supabase
       .from('profiles')
-      .update({ kyc_status: 'pending' })
+      .update({
+        kyc_status: status,
+        kyc_documents: documentUrls,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', userId);
-      
-    if (updateError) throw updateError;
+
+    if (error) throw error;
     
-    // Send WhatsApp notification with user details and document URLs
+    // Attempt to send notification about the uploaded documents
     try {
-      await supabase.functions.invoke('send-whatsapp', {
-        body: {
-          userId,
-          displayName: userDetails.display_name,
-          email: userDetails.email,
-          role: userDetails.role,
-          specialty: userDetails.specialty,
-          university: userDetails.university,
-          documentUrls: uploadedUrls
-        }
-      });
-      console.log("WhatsApp notification triggered");
-    } catch (whatsappError) {
-      console.error("Error sending WhatsApp notification:", whatsappError);
-      // Continue even if WhatsApp notification fails
+      // In a real app, you would integrate with a notification service or webhook
+      console.log(`KYC documents uploaded for user ${userId} (${userEmail}). Status: ${status}`);
+      console.log("Document URLs:", documentUrls);
+      
+      // The WhatsApp notification would be handled by a backend service
+      // For demonstration purposes, we'll just log this
+      console.log(`WhatsApp notification would be sent to +229 56 12 31 09 about KYC submission from ${userEmail}`);
+    } catch (notificationError) {
+      console.error("Failed to send notification:", notificationError);
+      // Continue with the flow even if notification fails
     }
-    
-    toast.success("Documents soumis avec succès", {
-      description: "Nous examinerons votre demande dans les 48h."
-    });
-    return true;
+
+    return { success: true, error: null };
   } catch (error) {
-    console.error("Error submitting KYC documents:", error);
-    toast.error("Erreur lors de l'envoi des documents", {
-      description: "Veuillez réessayer plus tard."
-    });
-    return false;
+    console.error('Error updating KYC status:', error);
+    return { success: false, error: error as Error };
+  }
+};
+
+// Get the current KYC status for a user
+export const getKYCStatus = async (
+  userId: string
+): Promise<{ status: string | null; documents: any; error: Error | null }> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('kyc_status, kyc_documents')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+
+    return {
+      status: data?.kyc_status || null,
+      documents: data?.kyc_documents || {},
+      error: null
+    };
+  } catch (error) {
+    console.error('Error getting KYC status:', error);
+    return { status: null, documents: {}, error: error as Error };
+  }
+};
+
+// Verify a user's KYC (for admin use)
+export const verifyKYC = async (
+  userId: string,
+  approved: boolean,
+  notes?: string
+): Promise<{ success: boolean; error: Error | null }> => {
+  try {
+    const status = approved ? 'approved' : 'rejected';
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        kyc_status: status,
+        kyc_verification_notes: notes,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+
+    if (error) throw error;
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error verifying KYC:', error);
+    return { success: false, error: error as Error };
   }
 };
