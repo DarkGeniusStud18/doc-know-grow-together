@@ -50,9 +50,7 @@ const ProfileSettings = () => {
         
       if (error) throw error;
       
-      // Update local user state without updateCurrentUser method
-      // Just show success message - changes will be reflected on next login/refresh
-      
+      // Show success message - changes will be reflected on next login/refresh
       setIsEditing(false);
       toast.success('Profil mis à jour avec succès');
     } catch (error: any) {
@@ -85,9 +83,15 @@ const ProfileSettings = () => {
     setIsUploadingAvatar(true);
     
     try {
+      // Make sure the avatars bucket exists
+      await supabase.storage.getBucket('avatars').catch(async () => {
+        // Create the bucket if it doesn't exist
+        await supabase.storage.createBucket('avatars', { public: true });
+      });
+      
       // Upload to storage
       const fileExt = avatarFile.name.split('.').pop();
-      const filePath = `avatars/${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}-${Date.now()}.${fileExt}`;
       
       const { error: uploadError, data } = await supabase.storage
         .from('avatars')
@@ -108,9 +112,7 @@ const ProfileSettings = () => {
         
       if (updateError) throw updateError;
       
-      // We can't update local user state without updateCurrentUser
       // Users will see changes after next reload/login
-      
       setShowAvatarDialog(false);
       toast.success('Avatar mis à jour avec succès');
     } catch (error: any) {
@@ -122,7 +124,7 @@ const ProfileSettings = () => {
   };
 
   return (
-    <Card>
+    <Card className="hover-lift">
       <CardHeader>
         <CardTitle>Profil</CardTitle>
         <CardDescription>
@@ -132,13 +134,13 @@ const ProfileSettings = () => {
       <CardContent className="space-y-4">
         <div className="flex flex-col md:flex-row gap-4 items-center md:items-start">
           <div className="flex flex-col items-center gap-2">
-            <Avatar className="w-24 h-24">
+            <Avatar className="w-24 h-24 hover-glow">
               <AvatarImage src={user.profileImage || "/placeholder.svg"} alt={user.displayName} />
               <AvatarFallback className="bg-medical-teal text-xl">
                 {user.displayName?.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <Button variant="outline" size="sm" onClick={() => setShowAvatarDialog(true)}>Changer</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowAvatarDialog(true)} className="hover-scale">Changer</Button>
           </div>
           
           <div className="flex-1 space-y-4">
@@ -151,6 +153,7 @@ const ProfileSettings = () => {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
+                    className="transition-all duration-300 focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
                 
@@ -173,6 +176,7 @@ const ProfileSettings = () => {
                       type="text"
                       value={university}
                       onChange={(e) => setUniversity(e.target.value)}
+                      className="transition-all duration-300 focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                 )}
@@ -184,12 +188,13 @@ const ProfileSettings = () => {
                     type="text"
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
+                    className="transition-all duration-300 focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
                 
                 <div className="md:col-span-2 flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>Annuler</Button>
-                  <Button onClick={handleSaveProfile} disabled={isSaving}>
+                  <Button variant="outline" onClick={() => setIsEditing(false)} className="hover-scale">Annuler</Button>
+                  <Button onClick={handleSaveProfile} disabled={isSaving} className="hover-scale">
                     {isSaving ? 'Enregistrement...' : 'Enregistrer'}
                   </Button>
                 </div>
@@ -222,7 +227,7 @@ const ProfileSettings = () => {
                   )}
                 </div>
                 
-                <Button onClick={() => setIsEditing(true)}>Modifier</Button>
+                <Button onClick={() => setIsEditing(true)} className="hover-scale hover:bg-primary/90 transition-colors duration-300">Modifier</Button>
               </div>
             )}
           </div>
@@ -239,7 +244,7 @@ const ProfileSettings = () => {
           </DialogHeader>
           
           <div className="flex flex-col items-center gap-4 py-4">
-            <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+            <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-primary transition-colors duration-300">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
               ) : (
@@ -259,7 +264,7 @@ const ProfileSettings = () => {
             />
             <Label
               htmlFor="avatarUpload"
-              className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
+              className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50 hover:border-primary transition-all duration-300 hover-scale"
             >
               <Upload className="h-4 w-4" />
               Sélectionner une image
@@ -277,12 +282,13 @@ const ProfileSettings = () => {
               setAvatarFile(null);
               setAvatarPreview(null);
               setShowAvatarDialog(false);
-            }}>
+            }} className="hover-scale">
               Annuler
             </Button>
             <Button 
               onClick={uploadAvatar} 
               disabled={!avatarFile || isUploadingAvatar}
+              className="hover-scale hover:bg-primary/90"
             >
               {isUploadingAvatar ? 'Téléchargement...' : 'Enregistrer l\'avatar'}
             </Button>

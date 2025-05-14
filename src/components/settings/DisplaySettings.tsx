@@ -13,7 +13,7 @@ const DisplaySettings = () => {
   const { theme, font, colorScheme, setTheme, setFont, setColorScheme } = useTheme();
 
   return (
-    <Card>
+    <Card className="hover-lift">
       <CardHeader>
         <CardTitle>Affichage</CardTitle>
         <CardDescription>
@@ -29,7 +29,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="light" id="light" className="sr-only" />
               <Label
                 htmlFor="light"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <Sun className="mb-3 h-6 w-6" />
                 <span className="text-sm font-medium">Clair</span>
@@ -39,7 +39,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="dark" id="dark" className="sr-only" />
               <Label
                 htmlFor="dark"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-gray-900 p-4 hover:opacity-90 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:ring-1 [&:has([data-state=checked])]:ring-primary"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-gray-900 p-4 hover:opacity-90 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:ring-1 [&:has([data-state=checked])]:ring-primary transition-all duration-200 hover-scale"
               >
                 <Moon className="mb-3 h-6 w-6 text-white" />
                 <span className="text-sm font-medium text-white">Sombre</span>
@@ -49,7 +49,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="system" id="system" className="sr-only" />
               <Label
                 htmlFor="system"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-gradient-to-br from-white to-gray-900 p-4 hover:opacity-90 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:ring-1 [&:has([data-state=checked])]:ring-primary"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-gradient-to-br from-white to-gray-900 p-4 hover:opacity-90 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:ring-1 [&:has([data-state=checked])]:ring-primary transition-all duration-200 hover-scale"
               >
                 <Laptop className="mb-3 h-6 w-6" />
                 <span className="text-sm font-medium">Système</span>
@@ -66,7 +66,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="default" id="font-default" className="sr-only" />
               <Label
                 htmlFor="font-default"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="font-sans text-lg mb-2">Aa</div>
                 <span className="text-sm font-medium">Sans Serif</span>
@@ -76,7 +76,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="serif" id="font-serif" className="sr-only" />
               <Label
                 htmlFor="font-serif"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="font-serif text-lg mb-2">Aa</div>
                 <span className="text-sm font-medium">Serif</span>
@@ -86,7 +86,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="mono" id="font-mono" className="sr-only" />
               <Label
                 htmlFor="font-mono"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="font-mono text-lg mb-2">Aa</div>
                 <span className="text-sm font-medium">Monospace</span>
@@ -103,7 +103,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="default" id="color-default" className="sr-only" />
               <Label
                 htmlFor="color-default"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="w-10 h-10 rounded-full bg-medical-teal mb-2"></div>
                 <span className="text-sm font-medium">Défaut</span>
@@ -113,7 +113,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="blue" id="color-blue" className="sr-only" />
               <Label
                 htmlFor="color-blue"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="w-10 h-10 rounded-full bg-blue-500 mb-2"></div>
                 <span className="text-sm font-medium">Bleu</span>
@@ -123,7 +123,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="green" id="color-green" className="sr-only" />
               <Label
                 htmlFor="color-green"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="w-10 h-10 rounded-full bg-green-500 mb-2"></div>
                 <span className="text-sm font-medium">Vert</span>
@@ -133,7 +133,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="purple" id="color-purple" className="sr-only" />
               <Label
                 htmlFor="color-purple"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="w-10 h-10 rounded-full bg-purple-500 mb-2"></div>
                 <span className="text-sm font-medium">Violet</span>
@@ -143,7 +143,7 @@ const DisplaySettings = () => {
               <RadioGroupItem value="orange" id="color-orange" className="sr-only" />
               <Label
                 htmlFor="color-orange"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
               >
                 <div className="w-10 h-10 rounded-full bg-orange-500 mb-2"></div>
                 <span className="text-sm font-medium">Orange</span>
