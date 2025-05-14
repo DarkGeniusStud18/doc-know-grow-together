@@ -105,6 +105,7 @@ const Resources: React.FC = () => {
   // Fonction pour gérer le changement de langue (simulation)
   const handleLanguageChange = (language: string) => {
     // Dans un cas réel, cela activerait la traduction de l'application
+    // Correction : Utiliser directement l'objet toast avec la méthode appropriée
     toast({
       title: "Changement de langue",
       description: `La langue a été changée en ${language}`,
@@ -315,3 +316,4 @@ const ResourceGrid: React.FC<ResourceGridProps> = ({ resources, onResourceClick 
 };
 
 export default Resources;
+
