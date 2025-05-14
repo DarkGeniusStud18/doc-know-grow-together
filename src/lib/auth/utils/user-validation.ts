@@ -9,15 +9,12 @@ import { EmailCheckResponse } from "./types/validation-types";
  */
 export async function checkUserExists(email: string): Promise<boolean> {
   try {
-    // Utilisation du typage explicite pour résoudre l'erreur d'instantiation infinie
-    const response = await supabase
+    // Define the return type explicitly
+    const { data, error } = await supabase
       .from('profiles')
       .select('email')
       .eq('email', email)
       .limit(1);
-      
-    // Cast explicite du résultat pour éviter l'erreur de type
-    const { data, error } = response as EmailCheckResponse;
       
     if (error) {
       console.error("Error checking if user exists:", error);
