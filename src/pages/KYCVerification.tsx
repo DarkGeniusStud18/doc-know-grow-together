@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import MainLayout from '@/components/layout/MainLayout';
@@ -9,13 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
 import { uploadIcon, documentIcon, verifiedIcon } from '@/components/icons/KycIcons';
-import { submitKycDocuments } from '@/lib/auth-utils';
+import { submitKycDocuments } from '@/lib/auth/kyc-service';
 
 const KYCVerification: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   if (!user) return null;
   
@@ -98,6 +99,10 @@ const KYCVerification: React.FC = () => {
     }
   };
 
+  const handleClickUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -108,9 +113,12 @@ const KYCVerification: React.FC = () => {
     
     setIsLoading(true);
     try {
-      await submitKycDocuments(files, user.id);
-      navigate('/dashboard');
+      const success = await submitKycDocuments(files, user.id);
+      if (success) {
+        navigate('/dashboard');
+      }
     } catch (error) {
+      console.error("Error submitting documents:", error);
       toast.error('Erreur lors de l\'envoi des documents', {
         description: 'Veuillez réessayer plus tard.'
       });
@@ -190,7 +198,10 @@ const KYCVerification: React.FC = () => {
               <div className="space-y-6">
                 <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="documents">Documents d'identité</Label>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors">
+                  <div 
+                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={handleClickUpload}
+                  >
                     <div className="mb-4 flex justify-center">
                       {files.length ? documentIcon : uploadIcon}
                     </div>
@@ -207,7 +218,10 @@ const KYCVerification: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           className="mt-2"
-                          onClick={() => setFiles([])}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFiles([]);
+                          }}
                         >
                           Supprimer
                         </Button>
@@ -225,6 +239,7 @@ const KYCVerification: React.FC = () => {
                       type="file"
                       multiple
                       className="hidden"
+                      ref={fileInputRef}
                       accept=".pdf,.jpg,.jpeg,.png,.heic"
                       onChange={handleFileChange}
                       disabled={isLoading}
@@ -236,7 +251,7 @@ const KYCVerification: React.FC = () => {
                   <p>En soumettant ces documents, vous acceptez notre <a href="#" className="text-medical-blue underline">politique de confidentialité</a> et autorisez MedCollab à vérifier votre identité professionnelle ou étudiante.</p>
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isLoading || files.length === 0}>
+                <Button type="submit" className="w-full hover-scale transition-all duration-300" disabled={isLoading || files.length === 0}>
                   {isLoading ? 'Envoi en cours...' : 'Soumettre pour vérification'}
                 </Button>
               </div>

@@ -4,3 +4,6 @@ project_id = "yblwafdsidkuzgzfazpf"
 [storage]
 [storage.buckets.avatars]
 public = true
+
+[storage.buckets.kyc_documents]
+public = true

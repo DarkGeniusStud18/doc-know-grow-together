@@ -4,6 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const submitKycDocuments = async (files: File[], userId: string): Promise<boolean> => {
   try {
+    // Get user details to send in WhatsApp notification
+    const { data: userDetails, error: userError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (userError) {
+      console.error("Error fetching user details:", userError);
+      throw userError;
+    }
+
     // Upload files to storage
     const uploadPromises = files.map(async (file) => {
       const filePath = `${userId}/${Date.now()}_${file.name}`;
@@ -11,7 +23,10 @@ export const submitKycDocuments = async (files: File[], userId: string): Promise
         .from('kyc_documents')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Storage upload error:", uploadError);
+        throw uploadError;
+      }
 
       // Get the URL
       const { data } = supabase.storage
@@ -28,9 +43,11 @@ export const submitKycDocuments = async (files: File[], userId: string): Promise
         });
 
       if (insertError) throw insertError;
+      
+      return data.publicUrl;
     });
     
-    await Promise.all(uploadPromises);
+    const uploadedUrls = await Promise.all(uploadPromises);
     
     // Update user KYC status
     const { error: updateError } = await supabase
@@ -39,6 +56,25 @@ export const submitKycDocuments = async (files: File[], userId: string): Promise
       .eq('id', userId);
       
     if (updateError) throw updateError;
+    
+    // Send WhatsApp notification with user details and document URLs
+    try {
+      await supabase.functions.invoke('send-whatsapp', {
+        body: {
+          userId,
+          displayName: userDetails.display_name,
+          email: userDetails.email,
+          role: userDetails.role,
+          specialty: userDetails.specialty,
+          university: userDetails.university,
+          documentUrls: uploadedUrls
+        }
+      });
+      console.log("WhatsApp notification triggered");
+    } catch (whatsappError) {
+      console.error("Error sending WhatsApp notification:", whatsappError);
+      // Continue even if WhatsApp notification fails
+    }
     
     toast.success("Documents soumis avec succès", {
       description: "Nous examinerons votre demande dans les 48h."
