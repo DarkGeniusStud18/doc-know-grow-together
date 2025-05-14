@@ -1,6 +1,6 @@
 
 // Types for validation functions
 export interface EmailCheckResponse {
-  data: Array<{ email: string }> | null;
+  data: { email: string }[] | null;
   error: Error | null;
 }

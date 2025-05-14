@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -92,7 +91,7 @@ const KYCVerification: React.FC = () => {
       </MainLayout>
     );
   }
-
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFiles(Array.from(e.target.files));

@@ -7,3 +7,4 @@ public = true
 
 [storage.buckets.kyc_documents]
 public = true
+

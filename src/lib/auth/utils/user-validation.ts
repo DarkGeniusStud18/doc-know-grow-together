@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { PostgrestError } from '@supabase/supabase-js';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 // Check if user with given email exists in the database
 export const checkUserExists = async (email: string): Promise<{ exists: boolean, error: PostgrestError | null }> => {
