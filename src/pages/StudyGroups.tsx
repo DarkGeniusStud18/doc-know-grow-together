@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -49,11 +50,12 @@ const StudyGroups: React.FC = () => {
       .order('created_at', { ascending: false });
       
     if (groupsError) {
+      console.error("Error fetching study groups:", groupsError);
       throw new Error(`Error fetching study groups: ${groupsError.message}`);
     }
     
     // Then for each group, fetch the owner's profile and member count
-    const enrichedGroups = await Promise.all(groups.map(async (group) => {
+    const enrichedGroups = await Promise.all((groups || []).map(async (group) => {
       // Get owner profile
       const { data: ownerProfile, error: profileError } = await supabase
         .from('profiles')
@@ -77,7 +79,7 @@ const StudyGroups: React.FC = () => {
     return enrichedGroups;
   };
 
-  const { data: studyGroups = [], isLoading, error } = useQuery({
+  const { data: studyGroups = [], isLoading, error, refetch } = useQuery({
     queryKey: ['studyGroups'],
     queryFn: fetchStudyGroups
   });
@@ -90,7 +92,19 @@ const StudyGroups: React.FC = () => {
   const handleCreateGroup = async () => {
     if (!user) return;
     
+    // Validation
+    if (!newGroup.name.trim()) {
+      toast.error('Le nom du groupe est requis');
+      return;
+    }
+
+    if (!newGroup.description.trim()) {
+      toast.error('La description du groupe est requise');
+      return;
+    }
+
     try {
+      // First, create the study group
       const { data, error } = await supabase
         .from('study_groups')
         .insert({
@@ -103,7 +117,14 @@ const StudyGroups: React.FC = () => {
         .select()
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating study group:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        throw new Error('Failed to create study group: No data returned');
+      }
       
       // Add creator as member with admin role
       const { error: memberError } = await supabase
@@ -114,7 +135,10 @@ const StudyGroups: React.FC = () => {
           role: 'admin'
         });
         
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error("Error adding creator as member:", memberError);
+        throw memberError;
+      }
       
       toast.success('Groupe d\'étude créé avec succès');
       setShowDialog(false);
@@ -126,6 +150,9 @@ const StudyGroups: React.FC = () => {
         isPrivate: false,
         maxParticipants: 50
       });
+      
+      // Refresh the study groups list
+      refetch();
       
     } catch (error) {
       console.error('Error creating study group:', error);
@@ -160,7 +187,7 @@ const StudyGroups: React.FC = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <h1 className="text-2xl font-semibold mb-4">Connexion requise</h1>
           <p className="text-gray-600 mb-6">Veuillez vous connecter pour accéder aux groupes d'étude.</p>
-          <Button onClick={() => navigate('/login')}>Se connecter</Button>
+          <Button onClick={() => navigate('/login')} className="hover-scale hover:bg-primary/90">Se connecter</Button>
         </div>
       </MainLayout>
     );
@@ -182,7 +209,7 @@ const StudyGroups: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Rechercher des groupes..."
-                className="pl-9 w-full sm:w-64"
+                className="pl-9 w-full sm:w-64 transition-all focus:ring-2 focus:ring-primary/30"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -190,7 +217,7 @@ const StudyGroups: React.FC = () => {
             
             <Dialog open={showDialog} onOpenChange={setShowDialog}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="hover-scale hover:bg-primary/90 transition-all duration-300">
                   <Plus className="h-4 w-4 mr-2" />
                   Créer un groupe
                 </Button>
@@ -210,6 +237,7 @@ const StudyGroups: React.FC = () => {
                       placeholder="Ex: Cardiologie avancée"
                       value={newGroup.name}
                       onChange={(e) => setNewGroup({...newGroup, name: e.target.value})}
+                      className="transition-all focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                   <div className="space-y-2">
@@ -219,6 +247,7 @@ const StudyGroups: React.FC = () => {
                       placeholder="Décrivez le but de ce groupe d'étude..."
                       value={newGroup.description}
                       onChange={(e) => setNewGroup({...newGroup, description: e.target.value})}
+                      className="transition-all focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                   <div className="flex items-center space-x-2">
@@ -237,15 +266,17 @@ const StudyGroups: React.FC = () => {
                       min="2"
                       max="100"
                       value={newGroup.maxParticipants}
-                      onChange={(e) => setNewGroup({...newGroup, maxParticipants: parseInt(e.target.value)})}
+                      onChange={(e) => setNewGroup({...newGroup, maxParticipants: parseInt(e.target.value) || 50})}
+                      className="transition-all focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowDialog(false)}>Annuler</Button>
+                  <Button variant="outline" onClick={() => setShowDialog(false)} className="hover-scale">Annuler</Button>
                   <Button 
                     onClick={handleCreateGroup}
                     disabled={!newGroup.name || !newGroup.description}
+                    className="hover-scale hover:bg-primary/90"
                   >
                     Créer
                   </Button>
@@ -260,7 +291,7 @@ const StudyGroups: React.FC = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal"></div>
           </div>
         ) : error ? (
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="text-red-500 mb-4">
                 <svg
@@ -284,14 +315,14 @@ const StudyGroups: React.FC = () => {
             </CardContent>
           </Card>
         ) : filteredGroups.length === 0 ? (
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="bg-gray-100 rounded-full p-6 mb-4">
                 <Users className="h-12 w-12 text-gray-400" />
               </div>
               <h3 className="text-xl font-medium">Aucun groupe d'étude trouvé</h3>
               <p className="text-gray-500 mt-2">Créez votre premier groupe ou modifiez votre recherche</p>
-              <Button className="mt-6" onClick={() => setShowDialog(true)}>
+              <Button className="mt-6 hover-scale hover:bg-primary/90" onClick={() => setShowDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Créer un groupe
               </Button>
@@ -300,7 +331,7 @@ const StudyGroups: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredGroups.map((group) => (
-              <Card key={group.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <Card key={group.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 hover-lift">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     {group.is_private && (
@@ -330,7 +361,7 @@ const StudyGroups: React.FC = () => {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-0">
-                  <Button variant="outline" className="w-full" onClick={() => navigate(`/study-groups/${group.id}`)}>
+                  <Button variant="outline" className="w-full hover-scale" onClick={() => navigate(`/study-groups/${group.id}`)}>
                     Voir le groupe
                   </Button>
                 </CardFooter>

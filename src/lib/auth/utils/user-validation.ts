@@ -10,9 +10,10 @@ import { KycStatus, UserRole } from "../types";
  */
 export async function checkUserExists(email: string): Promise<boolean> {
   try {
+    // Simplifying the type handling to avoid excessive type instantiation
     const { data, error } = await supabase
       .from('profiles')
-      .select('email')
+      .select('id')
       .eq('email', email)
       .limit(1);
       
@@ -21,7 +22,7 @@ export async function checkUserExists(email: string): Promise<boolean> {
       return false;
     }
     
-    return data && data.length > 0;
+    return data !== null && data.length > 0;
   } catch (error) {
     console.error("Error checking if user exists:", error);
     return false;
