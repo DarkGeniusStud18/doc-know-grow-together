@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Book, BookOpen, FileText, Filter, Search, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/components/ui/use-toast';
 
-// Mock data - In a real app this would come from an API
+// Données simulées - Dans une application réelle, elles proviendraient d'une API
 const RESOURCES = [
   {
     id: 1,
@@ -70,7 +72,7 @@ const RESOURCES = [
   },
 ];
 
-// Category options
+// Options de catégories
 const CATEGORIES = [
   { value: "all", label: "Toutes les catégories" },
   { value: "anatomy", label: "Anatomie" },
@@ -80,7 +82,7 @@ const CATEGORIES = [
   { value: "neurology", label: "Neurologie" },
 ];
 
-// Resource type icons
+// Icônes des types de ressources
 const getResourceIcon = (type: string) => {
   switch (type) {
     case 'book':
@@ -93,21 +95,32 @@ const getResourceIcon = (type: string) => {
   }
 };
 
+// Composant principal
 const Resources: React.FC = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeTab, setActiveTab] = useState('all');
   
-  // Filter resources based on search query, category and tab
+  // Fonction pour gérer le changement de langue (simulation)
+  const handleLanguageChange = (language: string) => {
+    // Dans un cas réel, cela activerait la traduction de l'application
+    toast({
+      title: "Changement de langue",
+      description: `La langue a été changée en ${language}`,
+    });
+  };
+  
+  // Filtrer les ressources en fonction des critères
   const filteredResources = RESOURCES.filter(resource => {
-    // Filter by search query
+    // Filtrer par recherche
     const matchesQuery = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          resource.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Filter by category
+    // Filtrer par catégorie
     const matchesCategory = activeCategory === 'all' || resource.category === activeCategory;
     
-    // Filter by tab
+    // Filtrer par onglet
     const matchesTab = activeTab === 'all' || 
                       (activeTab === 'featured' && resource.featured) ||
                       resource.type === activeTab;
@@ -169,20 +182,21 @@ const Resources: React.FC = () => {
                     <Button 
                       variant="ghost"
                       className="w-full justify-start text-sm h-9"
+                      onClick={() => handleLanguageChange('fr')}
                     >
                       Français
                     </Button>
                     <Button 
                       variant="ghost"
                       className="w-full justify-start text-sm h-9"
-                      disabled
+                      onClick={() => handleLanguageChange('en')}
                     >
                       Anglais
                     </Button>
                     <Button 
                       variant="ghost"
                       className="w-full justify-start text-sm h-9"
-                      disabled
+                      onClick={() => handleLanguageChange('es')}
                     >
                       Espagnol
                     </Button>
@@ -209,23 +223,23 @@ const Resources: React.FC = () => {
               </div>
               
               <TabsContent value="all" className="mt-0">
-                <ResourceGrid resources={filteredResources} />
+                <ResourceGrid resources={filteredResources} onResourceClick={(id) => navigate(`/resources/${id}`)} />
               </TabsContent>
               
               <TabsContent value="featured" className="mt-0">
-                <ResourceGrid resources={filteredResources} />
+                <ResourceGrid resources={filteredResources} onResourceClick={(id) => navigate(`/resources/${id}`)} />
               </TabsContent>
               
               <TabsContent value="book" className="mt-0">
-                <ResourceGrid resources={filteredResources} />
+                <ResourceGrid resources={filteredResources} onResourceClick={(id) => navigate(`/resources/${id}`)} />
               </TabsContent>
               
               <TabsContent value="document" className="mt-0">
-                <ResourceGrid resources={filteredResources} />
+                <ResourceGrid resources={filteredResources} onResourceClick={(id) => navigate(`/resources/${id}`)} />
               </TabsContent>
               
               <TabsContent value="video" className="mt-0">
-                <ResourceGrid resources={filteredResources} />
+                <ResourceGrid resources={filteredResources} onResourceClick={(id) => navigate(`/resources/${id}`)} />
               </TabsContent>
             </Tabs>
           </div>
@@ -235,16 +249,19 @@ const Resources: React.FC = () => {
   );
 };
 
+// Interface pour les propriétés de ResourceGrid
 interface ResourceGridProps {
   resources: typeof RESOURCES;
+  onResourceClick: (id: number) => void;
 }
 
-const ResourceGrid: React.FC<ResourceGridProps> = ({ resources }) => {
+// Composant de grille de ressources
+const ResourceGrid: React.FC<ResourceGridProps> = ({ resources, onResourceClick }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {resources.length > 0 ? (
         resources.map(resource => (
-          <Card key={resource.id} className="overflow-hidden h-full flex flex-col">
+          <Card key={resource.id} className="overflow-hidden h-full flex flex-col hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onResourceClick(resource.id)}>
             <div className="h-48 bg-gray-100 relative">
               <img 
                 src={resource.thumbnail}

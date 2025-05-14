@@ -12,16 +12,18 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import KYCVerification from "./pages/KYCVerification";
 import Resources from "./pages/Resources";
+import ResourceDetail from "./pages/ResourceDetail"; // Nouveau composant
 import Notes from "./pages/Notes";
 import Calendar from "./pages/Calendar";
 import StudyGroups from "./pages/StudyGroups";
 import ClinicalCases from "./pages/ClinicalCases";
 import Community from "./pages/Community";
+import CommunityDiscussion from "./pages/CommunityDiscussion"; // Nouveau composant
 import Settings from "./pages/Settings";
 import Tools from "./pages/Tools";
 import ExamSimulator from "./pages/ExamSimulator";
-import ExamHistory from "./pages/ExamHistory"; // Nouvelle page d'historique d'examens
-import Activities from "./pages/Activities"; // Nouvelle page d'activités
+import ExamHistory from "./pages/ExamHistory"; 
+import Activities from "./pages/Activities"; 
 import ContinuingEducation from "./pages/ContinuingEducation";
 import Profile from "./pages/Profile";
 import EmailConfirmation from "./pages/EmailConfirmation";
@@ -31,7 +33,7 @@ import NotFound from "./pages/NotFound";
 import StudyPlanner from "./pages/tools/StudyPlanner";
 import TaskList from "./pages/tools/TaskList";
 import StudyTimer from "./pages/tools/StudyTimer";
-import FlashcardGenerator from "./pages/tools/flashcards/FlashcardGenerator"; // Chemin corrigé
+import FlashcardGenerator from "./pages/tools/flashcards/FlashcardGenerator";
 import InteractivePresentations from "./pages/tools/InteractivePresentations";
 import ClinicalCasesExplorer from "./pages/tools/ClinicalCasesExplorer";
 
@@ -50,11 +52,13 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/kyc" element={<KYCVerification />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/resources/:id" element={<ResourceDetail />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/study-groups" element={<StudyGroups />} />
             <Route path="/clinical-cases" element={<ClinicalCases />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/community/:id" element={<CommunityDiscussion />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/continuing-education" element={<ContinuingEducation />} />
