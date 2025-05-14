@@ -1,140 +1,130 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Theme = "light" | "dark";
-type FontFamily = "sans" | "serif" | "mono";
-type ColorScheme = "default" | "blue" | "green" | "purple" | "orange";
+type Theme = 'light' | 'dark' | 'system';
+type Font = 'default' | 'serif' | 'mono';
+type ColorScheme = 'default' | 'blue' | 'green' | 'purple' | 'orange';
 
-interface ThemeContextProps {
+interface ThemeContextType {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
-  fontFamily: FontFamily;
-  setFontFamily: (fontFamily: FontFamily) => void;
-  reducedMotion: boolean;
-  setReducedMotion: (reducedMotion: boolean) => void;
-  highContrast: boolean;
-  setHighContrast: (highContrast: boolean) => void;
-  largeText: boolean;
-  setLargeText: (largeText: boolean) => void;
+  font: Font;
   colorScheme: ColorScheme;
+  setTheme: (theme: Theme) => void;
+  setFont: (font: Font) => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
 }
 
-const ThemeContext = createContext<ThemeContextProps>({
-  theme: "light",
-  setTheme: () => {},
-  fontFamily: "sans",
-  setFontFamily: () => {},
-  reducedMotion: false,
-  setReducedMotion: () => {},
-  highContrast: false,
-  setHighContrast: () => {},
-  largeText: false,
-  setLargeText: () => {},
-  colorScheme: "default",
-  setColorScheme: () => {},
-});
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const useTheme = () => useContext(ThemeContext);
-
-// Update the ThemeProvider component to disable dark mode
-const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    return savedTheme || "light"; // Default to light theme
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    return savedTheme || 'light'; // Changed default to light
   });
-
-  const [fontFamily, setFontFamily] = useState<FontFamily>(() => {
-    const savedFont = localStorage.getItem("font-family") as FontFamily;
-    return savedFont || "sans";
+  
+  const [font, setFontState] = useState<Font>(() => {
+    const savedFont = localStorage.getItem('font') as Font;
+    return savedFont || 'default';
   });
-
-  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
-    return localStorage.getItem("reduced-motion") === "true";
+  
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
+    const savedColorScheme = localStorage.getItem('colorScheme') as ColorScheme;
+    return savedColorScheme || 'default';
   });
-
-  const [highContrast, setHighContrast] = useState<boolean>(() => {
-    return localStorage.getItem("high-contrast") === "true";
-  });
-
-  const [largeText, setLargeText] = useState<boolean>(() => {
-    return localStorage.getItem("large-text") === "true";
-  });
-
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
-    const savedColorScheme = localStorage.getItem("color-scheme") as ColorScheme;
-    return savedColorScheme || "default";
-  });
-
-  // Comment out dark theme application
+  
+  // Apply theme on component mount and when theme changes
   useEffect(() => {
-    /*
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
+    const root = window.document.documentElement;
+    
+    // Remove all theme classes
+    root.classList.remove('light', 'dark');
+    
+    // Apply selected theme or system preference
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      root.classList.add(systemTheme);
     } else {
-      document.documentElement.classList.remove("dark");
-    }
-    */
-    
-    // Always use light theme for now
-    document.documentElement.classList.remove("dark");
-    localStorage.setItem("theme", "light");
-    
-    localStorage.setItem("font-family", fontFamily);
-    document.documentElement.classList.remove("font-sans", "font-serif", "font-mono");
-    document.documentElement.classList.add(`font-${fontFamily}`);
-    
-    if (reducedMotion) {
-      document.documentElement.classList.add("reduced-motion");
-      localStorage.setItem("reduced-motion", "true");
-    } else {
-      document.documentElement.classList.remove("reduced-motion");
-      localStorage.setItem("reduced-motion", "false");
+      root.classList.add(theme);
     }
     
-    if (highContrast) {
-      document.documentElement.classList.add("high-contrast");
-      localStorage.setItem("high-contrast", "true");
-    } else {
-      document.documentElement.classList.remove("high-contrast");
-      localStorage.setItem("high-contrast", "false");
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+  
+  // Apply font when it changes
+  useEffect(() => {
+    const root = window.document.documentElement;
+    
+    // Remove all font classes
+    root.classList.remove('font-sans', 'font-serif', 'font-mono');
+    
+    // Apply selected font
+    switch (font) {
+      case 'serif':
+        root.classList.add('font-serif');
+        break;
+      case 'mono':
+        root.classList.add('font-mono');
+        break;
+      default:
+        root.classList.add('font-sans');
+        break;
     }
     
-    if (largeText) {
-      document.documentElement.classList.add("large-text");
-      localStorage.setItem("large-text", "true");
-    } else {
-      document.documentElement.classList.remove("large-text");
-      localStorage.setItem("large-text", "false");
-    }
+    localStorage.setItem('font', font);
+  }, [font]);
+  
+  // Apply color scheme when it changes
+  useEffect(() => {
+    const root = window.document.documentElement;
     
-    document.documentElement.classList.remove("color-blue", "color-green", "color-purple", "color-orange");
-    if (colorScheme !== "default") {
-      document.documentElement.classList.add(`color-${colorScheme}`);
-    }
-    localStorage.setItem("color-scheme", colorScheme);
-  }, [theme, fontFamily, reducedMotion, highContrast, largeText, colorScheme]);
-
+    // Remove all color scheme classes
+    root.classList.remove('color-default', 'color-blue', 'color-green', 'color-purple', 'color-orange');
+    
+    // Apply selected color scheme
+    root.classList.add(`color-${colorScheme}`);
+    
+    localStorage.setItem('colorScheme', colorScheme);
+  }, [colorScheme]);
+  
+  // Listen for system theme changes
+  useEffect(() => {
+    if (theme !== 'system') return;
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = () => {
+      const root = window.document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(mediaQuery.matches ? 'dark' : 'light');
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]);
+  
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+  };
+  
+  const setFont = (newFont: Font) => {
+    setFontState(newFont);
+  };
+  
+  const setColorScheme = (newColorScheme: ColorScheme) => {
+    setColorSchemeState(newColorScheme);
+  };
+  
   return (
-    <ThemeContext.Provider
-      value={{
-        theme,
-        setTheme,
-        fontFamily,
-        setFontFamily,
-        reducedMotion,
-        setReducedMotion,
-        highContrast,
-        setHighContrast,
-        largeText,
-        setLargeText,
-        colorScheme,
-        setColorScheme,
-      }}
-    >
+    <ThemeContext.Provider value={{ theme, font, colorScheme, setTheme, setFont, setColorScheme }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-export default ThemeProvider;
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

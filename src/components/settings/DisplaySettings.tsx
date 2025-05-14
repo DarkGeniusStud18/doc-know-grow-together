@@ -10,20 +10,7 @@ import { Moon, Sun, Laptop, PenTool } from 'lucide-react';
  * Paramètres d'apparence et d'affichage de l'application
  */
 const DisplaySettings = () => {
-  const { 
-    theme, 
-    fontFamily, 
-    colorScheme, 
-    setTheme, 
-    setFontFamily, 
-    setColorScheme, 
-    reducedMotion, 
-    setReducedMotion, 
-    highContrast, 
-    setHighContrast, 
-    largeText, 
-    setLargeText 
-  } = useTheme();
+  const { theme, font, colorScheme, setTheme, setFont, setColorScheme } = useTheme();
 
   return (
     <Card className="hover-lift">
@@ -37,7 +24,7 @@ const DisplaySettings = () => {
         {/* Theme Selection */}
         <div>
           <h3 className="font-medium mb-3">Thème</h3>
-          <RadioGroup value={theme} onValueChange={(value) => setTheme(value as 'light' | 'dark')} className="grid grid-cols-3 gap-4">
+          <RadioGroup value={theme} onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')} className="grid grid-cols-3 gap-4">
             <div>
               <RadioGroupItem value="light" id="light" className="sr-only" />
               <Label
@@ -74,9 +61,9 @@ const DisplaySettings = () => {
         {/* Font Selection */}
         <div>
           <h3 className="font-medium mb-3">Police</h3>
-          <RadioGroup value={fontFamily} onValueChange={(value) => setFontFamily(value as 'sans' | 'serif' | 'mono')} className="grid grid-cols-3 gap-4">
+          <RadioGroup value={font} onValueChange={(value) => setFont(value as 'default' | 'serif' | 'mono')} className="grid grid-cols-3 gap-4">
             <div>
-              <RadioGroupItem value="sans" id="font-default" className="sr-only" />
+              <RadioGroupItem value="default" id="font-default" className="sr-only" />
               <Label
                 htmlFor="font-default"
                 className="flex flex-col items-center justify-between rounded-md border-2 border-muted p-4 hover:bg-gray-50 hover:border-primary [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10 transition-all duration-200 hover-scale"
@@ -170,33 +157,15 @@ const DisplaySettings = () => {
           <h3 className="font-medium mb-3">Accessibilité</h3>
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <input 
-                id="reduceMotion" 
-                type="checkbox" 
-                checked={reducedMotion}
-                onChange={(e) => setReducedMotion(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300" 
-              />
+              <input id="reduceMotion" type="checkbox" className="h-4 w-4 rounded border-gray-300" />
               <Label htmlFor="reduceMotion">Réduire les animations</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <input 
-                id="highContrast" 
-                type="checkbox" 
-                checked={highContrast}
-                onChange={(e) => setHighContrast(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300" 
-              />
+              <input id="highContrast" type="checkbox" className="h-4 w-4 rounded border-gray-300" />
               <Label htmlFor="highContrast">Contraste élevé</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <input 
-                id="largeText" 
-                type="checkbox" 
-                checked={largeText}
-                onChange={(e) => setLargeText(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300" 
-              />
+              <input id="largeText" type="checkbox" className="h-4 w-4 rounded border-gray-300" />
               <Label htmlFor="largeText">Texte plus grand</Label>
             </div>
           </div>
