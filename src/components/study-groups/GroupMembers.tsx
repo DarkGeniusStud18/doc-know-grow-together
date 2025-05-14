@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,16 +9,18 @@ import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Mail, Search, Shield, UserMinus } from 'lucide-react';
 
+interface Profile {
+  display_name: string;
+  profile_image?: string;
+}
+
 type Member = {
   id: string;
   user_id: string;
   group_id: string;
   role: string;
   joined_at: string;
-  profile?: {
-    display_name: string;
-    profile_image?: string;
-  };
+  profile?: Profile;
 };
 
 type GroupMembersProps = {

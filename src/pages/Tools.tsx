@@ -19,7 +19,7 @@ const Tools = () => {
     },
     {
       title: "Liste de tâches",
-      description: "Organisez vos tâches et suivez votre progression",
+      description: "Organisez vos tâches et suivez votre progression tout le long de votre apprentissage",
       icon: ListChecks,
       color: "bg-green-100 text-green-600",
       action: "Créer une liste",
@@ -35,7 +35,7 @@ const Tools = () => {
     },
     {
       title: "Générateur de fiches",
-      description: "Créez rapidement des fiches de révision efficaces",
+      description: "Créez rapidement des fiches de révision efficaces et personnalisées",
       icon: FileSpreadsheet,
       color: "bg-purple-100 text-purple-600",
       action: "Créer",

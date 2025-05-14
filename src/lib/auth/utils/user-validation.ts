@@ -1,89 +1,24 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { KycStatus, UserRole } from "../types";
+import { supabase } from '@/integrations/supabase/client';
+import { EmailCheckResponse } from './types/validation-types';
 
-/**
- * Vérifie si un utilisateur existe déjà avec l'email donné
- * 
- * @param email Email à vérifier
- * @returns True si l'utilisateur existe déjà, false sinon
- */
-export async function checkUserExists(email: string): Promise<boolean> {
+export const checkEmail = async (email: string): Promise<EmailCheckResponse> => {
   try {
+    // Check if the email exists in profiles
     const { data, error } = await supabase
       .from('profiles')
       .select('id')
-      .eq('email', email)
-      .limit(1);
+      .eq('email', email);
       
-    if (error) {
-      console.error("Error checking if user exists:", error);
-      return false;
-    }
-    
-    return data !== null && data.length > 0;
+    return { data, error };
   } catch (error) {
-    console.error("Error checking if user exists:", error);
-    return false;
-  }
-}
-
-export const isUserValid = async (userId: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .single();
-      
-    return !!data && !error;
-  } catch (error) {
-    console.error('Error checking user validity:', error);
-    return false;
+    return { data: null, error: error as Error };
   }
 };
 
-export const isUserVerified = async (userId: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('kyc_status')
-      .eq('id', userId)
-      .single();
-      
-    return !!data && !error && data.kyc_status === 'verified';
-  } catch (error) {
-    console.error('Error checking user verification:', error);
-    return false;
-  }
-};
-
-export const getUserRole = async (userId: string): Promise<UserRole | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-      
-    return data && !error ? data.role as UserRole : null;
-  } catch (error) {
-    console.error('Error getting user role:', error);
-    return null;
-  }
-};
-
-export const getKycStatus = async (userId: string): Promise<KycStatus | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('kyc_status')
-      .eq('id', userId)
-      .single();
-      
-    return data && !error ? data.kyc_status as KycStatus : null;
-  } catch (error) {
-    console.error('Error getting KYC status:', error);
-    return null;
-  }
+// Update checkUserExists function to use the correct function name
+export const checkUserExistsByEmail = async (email: string) => {
+  const { data, error } = await checkEmail(email);
+  if (error) throw error;
+  return data && data.length > 0;
 };

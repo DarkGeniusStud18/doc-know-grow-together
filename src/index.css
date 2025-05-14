@@ -47,11 +47,11 @@
   }
 
   /* Dark Theme - Updated with darker text and smoother contrast */
-  .dark {
+  /*.dark {
     --background: 222.2 45% 7%;
-    --foreground: 210 40% 90%; /* Darker title text (90% instead of 98%) */
+    --foreground: 210 40% 90%;*/ /* Darker title text (90% instead of 98%) */
 
-    --card: 222.2 45% 9%;
+    /*--card: 222.2 45% 9%;
     --card-foreground: 210 40% 90%;
 
     --popover: 222.2 45% 9%;
@@ -84,7 +84,7 @@
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 240 12% 18%;
     --sidebar-ring: 212.7 26.8% 70%;
-  }
+  }*/
 
   /* Color Schemes - Updated for smoother transitions */
   :root.color-blue {

@@ -1,7 +1,9 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { User, UserRole, getCurrentUser, signIn, signOut, signUp } from '@/lib/auth';
+import { User, UserRole } from '@/lib/auth/types';
+import { getCurrentUser, signIn, signOut } from '@/lib/auth';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
@@ -78,8 +80,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (email: string, password: string, role: UserRole, displayName: string) => {
     try {
       setLoading(true);
-      const success = await signUp(email, password, role, displayName);
-      return success;
+      
+      // Check if user exists
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email);
+        
+      if (data && data.length > 0) {
+        toast.error('Un compte avec cette adresse email existe déjà');
+        return false;
+      }
+      
+      // Register the new user
+      const { data: authData, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+            role,
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Inscription réussie! Vérifiez votre email pour confirmer votre compte.');
+      return true;
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error('Erreur d\'inscription', {

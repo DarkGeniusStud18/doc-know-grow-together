@@ -158,6 +158,41 @@ export type Database = {
         }
         Relationships: []
       }
+      group_messages: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -222,6 +257,7 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string
+          email: string | null
           id: string
           kyc_status: string
           profile_image: string | null
@@ -233,6 +269,7 @@ export type Database = {
         Insert: {
           created_at?: string
           display_name: string
+          email?: string | null
           id: string
           kyc_status?: string
           profile_image?: string | null
@@ -244,6 +281,7 @@ export type Database = {
         Update: {
           created_at?: string
           display_name?: string
+          email?: string | null
           id?: string
           kyc_status?: string
           profile_image?: string | null
@@ -375,7 +413,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_group_message: {
+        Args: { p_message_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      get_group_messages: {
+        Args: { p_group_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      insert_group_message: {
+        Args: { p_content: string; p_user_id: string; p_group_id: string }
+        Returns: string
+      }
+      update_group_message: {
+        Args: { p_message_id: string; p_content: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

@@ -39,44 +39,72 @@ const StudyGroups: React.FC = () => {
     isPrivate: false,
     maxParticipants: 50
   });
+  const [isCreating, setIsCreating] = useState(false);
 
   const fetchStudyGroups = async () => {
     if (!user) return [];
     
-    // First fetch the study groups
-    const { data: groups, error: groupsError } = await supabase
-      .from('study_groups')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (groupsError) {
-      console.error("Error fetching study groups:", groupsError);
-      throw new Error(`Error fetching study groups: ${groupsError.message}`);
-    }
+    console.log("Fetching study groups...");
     
-    // Then for each group, fetch the owner's profile and member count
-    const enrichedGroups = await Promise.all((groups || []).map(async (group) => {
-      // Get owner profile
-      const { data: ownerProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('id', group.owner_id)
-        .single();
-      
-      // Get member count
-      const { data: members, error: membersError } = await supabase
-        .from('study_group_members')
-        .select('id', { count: 'exact' })
-        .eq('group_id', group.id);
+    try {
+      // First fetch the study groups
+      const { data: groups, error: groupsError } = await supabase
+        .from('study_groups')
+        .select('*')
+        .order('created_at', { ascending: false });
         
-      return {
-        ...group,
-        owner_name: profileError ? 'Unknown' : ownerProfile?.display_name,
-        member_count: membersError ? 0 : (members?.length || 0)
-      };
-    }));
-    
-    return enrichedGroups;
+      if (groupsError) {
+        console.error("Error fetching study groups:", groupsError);
+        throw new Error(`Error fetching study groups: ${groupsError.message}`);
+      }
+      
+      console.log("Fetched groups:", groups);
+      
+      // Then for each group, fetch the owner's profile and member count
+      const enrichedGroups = await Promise.all((groups || []).map(async (group) => {
+        try {
+          // Get owner profile
+          const { data: ownerProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('id', group.owner_id)
+            .single();
+          
+          if (profileError) {
+            console.error("Error fetching owner profile:", profileError);
+          }
+          
+          // Get member count
+          const { data: members, error: membersError } = await supabase
+            .from('study_group_members')
+            .select('id');
+            
+          if (membersError) {
+            console.error("Error fetching members:", membersError);
+          }
+          
+          return {
+            ...group,
+            owner_name: profileError ? 'Unknown' : ownerProfile?.display_name,
+            member_count: membersError ? 0 : (members?.length || 0)
+          };
+        } catch (err) {
+          console.error("Error enriching group:", err);
+          return {
+            ...group,
+            owner_name: 'Unknown',
+            member_count: 0
+          };
+        }
+      }));
+      
+      console.log("Enriched groups:", enrichedGroups);
+      return enrichedGroups;
+    } catch (error) {
+      console.error("Error in fetchStudyGroups:", error);
+      toast.error("Erreur lors du chargement des groupes d'étude");
+      return [];
+    }
   };
 
   const { data: studyGroups = [], isLoading, error, refetch } = useQuery({
@@ -90,7 +118,10 @@ const StudyGroups: React.FC = () => {
   );
 
   const handleCreateGroup = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Vous devez être connecté pour créer un groupe');
+      return;
+    }
     
     // Validation
     if (!newGroup.name.trim()) {
@@ -103,7 +134,17 @@ const StudyGroups: React.FC = () => {
       return;
     }
 
+    setIsCreating(true);
+    
     try {
+      console.log("Creating study group with data:", {
+        name: newGroup.name,
+        description: newGroup.description,
+        owner_id: user.id,
+        is_private: newGroup.isPrivate,
+        max_participants: newGroup.maxParticipants
+      });
+      
       // First, create the study group
       const { data, error } = await supabase
         .from('study_groups')
@@ -114,23 +155,25 @@ const StudyGroups: React.FC = () => {
           is_private: newGroup.isPrivate,
           max_participants: newGroup.maxParticipants
         })
-        .select()
-        .single();
+        .select();
         
       if (error) {
         console.error("Error creating study group:", error);
         throw error;
       }
       
-      if (!data) {
+      if (!data || data.length === 0) {
         throw new Error('Failed to create study group: No data returned');
       }
+      
+      const newGroupId = data[0].id;
+      console.log("Study group created with ID:", newGroupId);
       
       // Add creator as member with admin role
       const { error: memberError } = await supabase
         .from('study_group_members')
         .insert({
-          group_id: data.id,
+          group_id: newGroupId,
           user_id: user.id,
           role: 'admin'
         });
@@ -154,9 +197,14 @@ const StudyGroups: React.FC = () => {
       // Refresh the study groups list
       refetch();
       
+      // Navigate to the new group
+      navigate(`/study-groups/${newGroupId}`);
+      
     } catch (error) {
       console.error('Error creating study group:', error);
       toast.error('Erreur lors de la création du groupe');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -175,6 +223,7 @@ const StudyGroups: React.FC = () => {
       if (error) throw error;
       
       toast.success('Vous avez rejoint le groupe d\'étude');
+      refetch();
     } catch (error) {
       console.error('Error joining study group:', error);
       toast.error('Erreur lors de l\'ajout au groupe');
@@ -275,10 +324,10 @@ const StudyGroups: React.FC = () => {
                   <Button variant="outline" onClick={() => setShowDialog(false)} className="hover-scale">Annuler</Button>
                   <Button 
                     onClick={handleCreateGroup}
-                    disabled={!newGroup.name || !newGroup.description}
+                    disabled={!newGroup.name || !newGroup.description || isCreating}
                     className="hover-scale hover:bg-primary/90"
                   >
-                    Créer
+                    {isCreating ? 'Création...' : 'Créer'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -312,6 +361,7 @@ const StudyGroups: React.FC = () => {
               </div>
               <h3 className="text-xl font-medium">Erreur lors du chargement des groupes</h3>
               <p className="text-gray-500 mt-2">Veuillez réessayer plus tard</p>
+              <Button className="mt-4 hover-scale" onClick={() => refetch()}>Réessayer</Button>
             </CardContent>
           </Card>
         ) : filteredGroups.length === 0 ? (
@@ -329,7 +379,7 @@ const StudyGroups: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
             {filteredGroups.map((group) => (
               <Card key={group.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 hover-lift">
                 <CardHeader className="pb-3">
@@ -360,10 +410,18 @@ const StudyGroups: React.FC = () => {
                     <span className="font-medium">{group.owner_name || 'Utilisateur'}</span>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-0">
+                <CardFooter className="pt-0 flex gap-2">
                   <Button variant="outline" className="w-full hover-scale" onClick={() => navigate(`/study-groups/${group.id}`)}>
                     Voir le groupe
                   </Button>
+                  {group.owner_id !== user.id && !studyGroups.some(g => g.id === group.id && g.member_count && g.member_count > 0) && (
+                    <Button 
+                      className="hover-scale" 
+                      onClick={() => joinGroup(group.id)}
+                    >
+                      Rejoindre
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}
