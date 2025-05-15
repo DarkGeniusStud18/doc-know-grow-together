@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/lib/auth/types';
+import { User, UserRole, KycStatus } from '@/lib/auth/types';
 import { toast } from '@/components/ui/sonner';
 
 /**
@@ -105,8 +105,8 @@ export const getUserFullProfile = async (userId: string): Promise<User | null> =
       id: data.id,
       email: data.email || '',
       displayName: data.display_name,
-      role: data.role,
-      kycStatus: data.kyc_status,
+      role: data.role as UserRole,
+      kycStatus: data.kyc_status as KycStatus,
       profileImage: data.profile_image,
       university: data.university,
       specialty: data.specialty,

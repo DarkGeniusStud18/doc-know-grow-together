@@ -12,10 +12,11 @@ export interface MusicTrack {
   artist: string;
   album?: string;
   coverImage: string;
-  audioUrl: string;
-  duration: string;
+  url: string;  // Changed from audioUrl to url to match actual usage
+  duration?: string;  // Made optional as it's not always used
   bpm?: number;
-  tags: string[];
+  tags?: string[];  // Made optional as it's not always used
+  category?: string; // Added category property
 }
 
 export interface MusicCategory {

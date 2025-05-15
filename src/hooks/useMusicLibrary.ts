@@ -37,7 +37,6 @@ export const useMusicLibrary = () => {
               id: track.id,
               title: track.title,
               artist: track.artist,
-              category: track.category,
               url: track.file_url,
               coverImage: track.cover_image || ''
             });

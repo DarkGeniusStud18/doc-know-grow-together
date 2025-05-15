@@ -1,6 +1,35 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { EnrichedGroupMessage } from '@/lib/auth/utils/types/validation-types';
+import { format, formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
+/**
+ * Formate la date d'un message pour l'affichage
+ * @param dateString Date au format ISO
+ * @returns Date formatée
+ */
+export const formatMessageDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    
+    if (isToday) {
+      // Si le message a été envoyé aujourd'hui, afficher l'heure
+      return format(date, 'HH:mm');
+    } else if (now.getTime() - date.getTime() < 7 * 24 * 60 * 60 * 1000) {
+      // Si moins d'une semaine, afficher il y a combien de temps
+      return formatDistanceToNow(date, { addSuffix: true, locale: fr });
+    } else {
+      // Sinon afficher la date complète
+      return format(date, 'dd/MM/yyyy');
+    }
+  } catch (error) {
+    console.error('Erreur lors du formatage de la date:', error);
+    return 'Date inconnue';
+  }
+};
 
 /**
  * Récupère les messages d'un groupe d'étude

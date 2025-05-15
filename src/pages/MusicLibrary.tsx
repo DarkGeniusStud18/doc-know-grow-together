@@ -104,7 +104,6 @@ const MusicLibrary = () => {
                         id: track.id,
                         title: track.title,
                         artist: track.artist,
-                        category: track.category,
                         url: track.file_url,
                         coverImage: track.cover_image
                       }}
@@ -113,7 +112,6 @@ const MusicLibrary = () => {
                         id: track.id,
                         title: track.title,
                         artist: track.artist,
-                        category: track.category,
                         url: track.file_url,
                         coverImage: track.cover_image
                       })}
