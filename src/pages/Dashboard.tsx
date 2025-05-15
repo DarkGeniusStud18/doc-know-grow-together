@@ -69,14 +69,14 @@ const Dashboard: React.FC = () => {
       link: "/study-groups",
       color: "bg-orange-50",
     },
-    /*{
+    {
       title: "Bibliothèque musicale",
       description:
         "Améliorer la concentration pendant les études ou le travail",
       icon: <LucideAudioLines className="h-8 w-8 text-cyan-500" />,
       link: "/music-library",
       color: "bg-cyan-50",
-    },*/
+    },
     {
       title: "Simulateurs d'examen",
       description:
