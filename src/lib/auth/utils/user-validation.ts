@@ -1,102 +1,81 @@
 
-// Utilitaires de validation des utilisateurs
-
 /**
- * Vérifie si un utilisateur a fourni un email valide
- * @param user Objet utilisateur à vérifier
- * @returns true si l'email est valide, false sinon
+ * user-validation.ts
+ *
+ * Utilitaires pour la validation des utilisateurs
+ * Contient des fonctions pour vérifier l'existence et la validité des utilisateurs
  */
-export function hasValidEmail(user: any): boolean {
-  if (!user) return false;
-  
-  // Vérifier si la propriété email existe sur l'objet user
-  if (!user || typeof user !== 'object' || !('email' in user)) {
+
+import { supabase } from "../../auth";
+
+// Fonction simplifiée pour vérifier l'existence d'un utilisateur
+export const checkUserExists = async (email: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .single();
+
+    if (error) {
+      console.error("Erreur lors de la vérification de l'utilisateur:", error);
+      return false;
+    }
+
+    return !!data; // Retourne true si l'utilisateur existe, sinon false
+  } catch (err) {
+    console.error("Exception lors de la vérification de l'utilisateur:", err);
     return false;
   }
-  
-  const email = user.email;
-  
-  // Vérifier si l'email est une chaîne non vide
-  if (typeof email !== 'string' || !email) {
-    return false;
+};
+
+// Validation du formulaire d'inscription
+export const validateSignupForm = (
+  email: string,
+  password: string,
+  confirmPassword: string
+): string[] => {
+  const errors: string[] = [];
+
+  // Validation de l'email
+  if (!email) {
+    errors.push("L'email est requis");
+  } else if (!/\S+@\S+\.\S+/.test(email)) {
+    errors.push("Veuillez entrer une adresse email valide");
   }
-  
-  // Validation simple du format d'email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
 
-/**
- * Vérifie si un mot de passe respecte les critères de sécurité
- * @param password Mot de passe à vérifier
- * @returns Objet indiquant la validité et les règles respectées
- */
-export function validatePassword(password: string): { 
-  isValid: boolean; 
-  hasMinLength: boolean;
-  hasUpperCase: boolean;
-  hasLowerCase: boolean;
-  hasDigit: boolean;
-  hasSpecialChar: boolean;
-} {
-  const hasMinLength = password.length >= 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasDigit = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-  
-  const isValid = hasMinLength && hasUpperCase && hasLowerCase && hasDigit;
-  
-  return {
-    isValid,
-    hasMinLength,
-    hasUpperCase,
-    hasLowerCase,
-    hasDigit,
-    hasSpecialChar
-  };
-}
-
-/**
- * Vérifie si un utilisateur a complété son profil
- * @param user Objet utilisateur à vérifier
- * @returns true si le profil est complet, false sinon
- */
-export function hasCompletedProfile(user: any): boolean {
-  if (!user) return false;
-  
-  // Vérifications de base
-  if (!user.displayName) return false;
-  
-  // Vérifications spécifiques au rôle
-  if (user.role === 'student') {
-    return Boolean(user.university);
-  } else if (user.role === 'professional') {
-    return Boolean(user.specialty);
+  // Validation du mot de passe
+  if (!password) {
+    errors.push("Le mot de passe est requis");
+  } else if (password.length < 8) {
+    errors.push("Le mot de passe doit contenir au moins 8 caractères");
+  } else if (!/(?=.*[a-z])/.test(password)) {
+    errors.push("Le mot de passe doit contenir au moins une lettre minuscule");
+  } else if (!/(?=.*[A-Z])/.test(password)) {
+    errors.push("Le mot de passe doit contenir au moins une lettre majuscule");
+  } else if (!/(?=.*\d)/.test(password)) {
+    errors.push("Le mot de passe doit contenir au moins un chiffre");
   }
-  
-  return true;
-}
 
-/**
- * Génère un message convivial pour l'utilisateur
- * @param user Objet utilisateur
- * @returns Message personnalisé en français
- */
-export function generateWelcomeMessage(user: any): string {
-  if (!user) return "Bienvenue sur MedCollab !";
-  
-  const timeOfDay = new Date().getHours();
-  let greeting = "";
-  
-  if (timeOfDay < 12) {
-    greeting = "Bonjour";
-  } else if (timeOfDay < 18) {
-    greeting = "Bon après-midi";
-  } else {
-    greeting = "Bonsoir";
+  // Validation de la confirmation du mot de passe
+  if (password !== confirmPassword) {
+    errors.push("Les mots de passe ne correspondent pas");
   }
-  
-  return `${greeting}, ${user.displayName || 'cher utilisateur'} !`;
-}
 
+  return errors;
+};
+
+// Validation du formulaire de connexion
+export const validateLoginForm = (email: string, password: string): string[] => {
+  const errors: string[] = [];
+
+  if (!email) {
+    errors.push("L'email est requis");
+  }
+
+  if (!password) {
+    errors.push("Le mot de passe est requis");
+  }
+
+  return errors;
+};

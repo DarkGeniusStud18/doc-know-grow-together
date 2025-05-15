@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
@@ -28,6 +27,7 @@ import Tools from './pages/Tools';
 import ExamSimulator from './pages/ExamSimulator';
 import KYCVerification from './pages/KYCVerification';
 import ContinuingEducation from './pages/ContinuingEducation';
+import MusicLibrary from './pages/MusicLibrary';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -71,6 +71,7 @@ function App() {
               <Route path="/kyc-verification" element={<KYCVerification />} />
               <Route path="/continuing-education" element={<ContinuingEducation />} />
               <Route path="/my-courses" element={<MyCourses />} /> 
+              <Route path="/music-library" element={<MusicLibrary />} /> {/* Nouvelle route pour la bibliothèque musicale */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,7 @@ const DesktopNavbar: React.FC = () => {
   return (
     <header className="hidden md:block sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
       <div className="container px-6 py-3 flex justify-between items-center">
-        {/* Channel/Page title */}
+        {/* Titre de la page/chaîne */}
         <div>
           <h1 className="text-xl font-semibold text-medical-navy">
             {window.location.pathname === '/dashboard' && 'Accueil'}
@@ -46,6 +45,7 @@ const DesktopNavbar: React.FC = () => {
             {window.location.pathname === '/continuing-education' && 'Formation continue'}
             {window.location.pathname === '/settings' && 'Paramètres'}
             {window.location.pathname === '/profile' && 'Mon Profil'}
+            {window.location.pathname === '/music-library' && 'Bibliothèque Musicale'} {/* Nouveau titre pour la page musicale */}
           </h1>
         </div>
 
