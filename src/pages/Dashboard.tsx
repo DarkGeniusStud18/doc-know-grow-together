@@ -1,12 +1,28 @@
-
 // Tableau de bord principal - Page d'accueil après connexion
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Book, Calendar, Clock, FileText, MessageSquare, Search, User, Users, Video } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import MainLayout from "@/components/layout/MainLayout";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Book,
+  Calendar,
+  Clock,
+  FileText,
+  LucideAudioLines,
+  MessageSquare,
+  Search,
+  User,
+  Users,
+  Video,
+} from "lucide-react";
 
 /**
  * Tableau de bord personnalisé qui affiche des fonctionnalités adaptées
@@ -14,84 +30,97 @@ import { Book, Calendar, Clock, FileText, MessageSquare, Search, User, Users, Vi
  */
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  
+
   if (!user) return null;
-  
+
   // Cartes de fonctionnalités communes à tous les utilisateurs
   const commonFeatureCards = [
     {
-      title: 'Base de connaissances médicales',
-      description: 'Accédez à des milliers de ressources validées par des experts.',
+      title: "Base de connaissances médicales",
+      description:
+        "Accédez à des milliers de ressources validées par des experts.",
       icon: <Book className="h-8 w-8 text-medical-blue" />,
-      link: '/resources',
-      color: 'bg-blue-50',
+      link: "/resources",
+      color: "bg-blue-50",
     },
     {
-      title: 'Outils de productivité',
-      description: 'Améliorez votre efficacité avec nos outils spécialisés.',
+      title: "Outils de productivité",
+      description: "Améliorez votre efficacité avec nos outils spécialisés.",
       icon: <Clock className="h-8 w-8 text-green-500" />,
-      link: '/tools',
-      color: 'bg-green-50',
+      link: "/tools",
+      color: "bg-green-50",
     },
     {
-      title: 'Communauté médicale',
-      description: 'Échangez avec d\'autres étudiants et professionnels de santé.',
+      title: "Communauté médicale",
+      description:
+        "Échangez avec d'autres étudiants et professionnels de santé.",
       icon: <Users className="h-8 w-8 text-violet-500" />,
-      link: '/community',
-      color: 'bg-violet-50',
+      link: "/community",
+      color: "bg-violet-50",
     },
   ];
 
   // Fonctionnalités spécifiques aux étudiants
   const studentFeatureCards = [
     {
-      title: 'Groupes d\'étude',
-      description: 'Rejoignez ou créez des groupes d\'étude collaboratifs.',
+      title: "Groupes d'étude",
+      description: "Rejoignez ou créez des groupes d'étude collaboratifs.",
       icon: <Video className="h-8 w-8 text-orange-500" />,
-      link: '/study-groups',
-      color: 'bg-orange-50',
+      link: "/study-groups",
+      color: "bg-orange-50",
     },
+    /*{
+      title: "Bibliothèque musicale",
+      description:
+        "Améliorer la concentration pendant les études ou le travail",
+      icon: <LucideAudioLines className="h-8 w-8 text-cyan-500" />,
+      link: "/music-library",
+      color: "bg-cyan-50",
+    },*/
     {
-      title: 'Simulateurs d\'examen',
-      description: 'Préparez-vous aux examens avec des QCM et des cas cliniques.',
+      title: "Simulateurs d'examen",
+      description:
+        "Préparez-vous aux examens avec des QCM et des cas cliniques.",
       icon: <FileText className="h-8 w-8 text-red-500" />,
-      link: '/exam-simulator', // URL corrigée
-      color: 'bg-red-50',
+      link: "/exam-simulator", // URL corrigée
+      color: "bg-red-50",
     },
   ];
 
   // Fonctionnalités spécifiques aux professionnels
   const professionalFeatureCards = [
     {
-      title: 'Cas cliniques',
-      description: 'Partagez et consultez des cas cliniques anonymisés.',
+      title: "Cas cliniques",
+      description: "Partagez et consultez des cas cliniques anonymisés.",
       icon: <MessageSquare className="h-8 w-8 text-amber-500" />,
-      link: '/clinical-cases',
-      color: 'bg-amber-50',
+      link: "/clinical-cases",
+      color: "bg-amber-50",
     },
     {
-      title: 'Formation continue',
-      description: 'Suivez votre formation continue et accédez à des ressources experts.',
+      title: "Formation continue",
+      description:
+        "Suivez votre formation continue et accédez à des ressources experts.",
       icon: <FileText className="h-8 w-8 text-teal-500" />,
-      link: '/continuing-education',
-      color: 'bg-teal-50',
+      link: "/continuing-education",
+      color: "bg-teal-50",
     },
     // Adding Study Groups feature for professional users as requested
     {
-      title: 'Groupes d\'étude',
-      description: 'Rejoignez ou créez des groupes d\'étude collaboratifs.',
+      title: "Groupes d'étude",
+      description: "Rejoignez ou créez des groupes d'étude collaboratifs.",
       icon: <Video className="h-8 w-8 text-orange-500" />,
-      link: '/study-groups',
-      color: 'bg-orange-50',
+      link: "/study-groups",
+      color: "bg-orange-50",
     },
   ];
 
   // Déterminer quelles cartes spécifiques afficher en fonction du rôle de l'utilisateur
-  const roleSpecificFeatureCards = user.role === 'student' ? studentFeatureCards : professionalFeatureCards;
-  
+  const roleSpecificFeatureCards =
+    user.role === "student" ? studentFeatureCards : professionalFeatureCards;
+
   // Combiner les cartes communes et spécifiques au rôle
   const featureCards = [...commonFeatureCards, ...roleSpecificFeatureCards];
-  
+
   return (
     <MainLayout requireAuth={true}>
       <div className="space-y-8">
@@ -102,10 +131,12 @@ const Dashboard: React.FC = () => {
               Bonjour, {user.displayName}!
             </h1>
             <p className="md:text-lg mb-6 opacity-90">
-              Bienvenue sur MedCollab, votre plateforme de collaboration médicale.
-              {user.kycStatus !== 'verified' && ' Complétez la vérification de votre identité pour accéder à toutes nos fonctionnalités.'}
+              Bienvenue sur MedCollab, votre plateforme de collaboration
+              médicale.
+              {user.kycStatus !== "verified" &&
+                " Complétez la vérification de votre identité pour accéder à toutes nos fonctionnalités."}
             </p>
-            {user.kycStatus !== 'verified' && (
+            {user.kycStatus !== "verified" && (
               <Link to="/kyc">
                 <Button size="lg" variant="secondary">
                   Vérifier mon identité
@@ -114,58 +145,67 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </section>
-        
+
         {/* KYC Status banner if not verified */}
-        {user.kycStatus !== 'verified' && user.kycStatus !== 'pending' && (
+        {user.kycStatus !== "verified" && user.kycStatus !== "pending" && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
             <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
               <User className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <h3 className="font-medium text-amber-800">Vérification requise</h3>
+              <h3 className="font-medium text-amber-800">
+                Vérification requise
+              </h3>
               <p className="text-sm text-amber-700 mt-1">
-                Certaines fonctionnalités ne sont accessibles qu'après vérification de votre identité. 
-                Soumettez vos documents pour bénéficier d'un accès complet.
+                Certaines fonctionnalités ne sont accessibles qu'après
+                vérification de votre identité. Soumettez vos documents pour
+                bénéficier d'un accès complet.
               </p>
               <Link to="/kyc" className="inline-block mt-2">
-                <Button variant="outline" size="sm" className="text-amber-800 border-amber-300 hover:bg-amber-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-amber-800 border-amber-300 hover:bg-amber-100"
+                >
                   Vérifier maintenant
                 </Button>
               </Link>
             </div>
           </div>
         )}
-        
+
         {/* KYC Status banner if pending */}
-        {user.kycStatus === 'pending' && (
+        {user.kycStatus === "pending" && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
             <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
               <User className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-medium text-blue-800">Vérification en cours</h3>
+              <h3 className="font-medium text-blue-800">
+                Vérification en cours
+              </h3>
               <p className="text-sm text-blue-700 mt-1">
-                Vos documents sont en cours d'examen. Vous recevrez une notification par email 
-                lorsque votre identité sera vérifiée.
+                Vos documents sont en cours d'examen. Vous recevrez une
+                notification par email lorsque votre identité sera vérifiée.
               </p>
             </div>
           </div>
         )}
-        
+
         {/* Search section */}
         <section className="relative">
           <div className="flex items-center max-w-2xl mx-auto">
             <div className="relative flex-grow">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full rounded-full border border-gray-300 py-3 px-12 focus:outline-none focus:ring-2 focus:ring-medical-teal focus:border-transparent"
-                placeholder="Rechercher des ressources, cours, ou groupes" 
+                placeholder="Rechercher des ressources, cours, ou groupes"
               />
             </div>
           </div>
         </section>
-        
+
         {/* Features section */}
         <section>
           <h2 className="text-2xl font-semibold mb-5">Fonctionnalités</h2>
@@ -202,7 +242,7 @@ const Dashboard: React.FC = () => {
             ))}
           </div>
         </section>
-        
+
         {/* Recent Activity section */}
         <section>
           <h2 className="text-2xl font-semibold mb-5">Activité récente</h2>
@@ -219,18 +259,25 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-medium">Nouvelles ressources ajoutées</p>
-                    <p className="text-sm text-gray-500">10 nouveaux documents ont été ajoutés à la base de connaissances</p>
-                    <p className="text-xs text-gray-400 mt-1">Il y a 2 heures</p>
+                    <p className="text-sm text-gray-500">
+                      10 nouveaux documents ont été ajoutés à la base de
+                      connaissances
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Il y a 2 heures
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3">
                   <div className="h-9 w-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                     <Calendar className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
                     <p className="font-medium">Événement à venir</p>
-                    <p className="text-sm text-gray-500">Webinaire: Les avancées en médecine d'urgence</p>
+                    <p className="text-sm text-gray-500">
+                      Webinaire: Les avancées en médecine d'urgence
+                    </p>
                     <p className="text-xs text-gray-400 mt-1">Demain, 18:00</p>
                   </div>
                 </div>
