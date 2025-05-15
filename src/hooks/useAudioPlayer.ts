@@ -56,7 +56,7 @@ export const useAudioPlayer = (track: MusicCategory['tracks'][0], initialIsPlayi
     if (audioRef.current) {
       // Si c'est une nouvelle piste, changer la source
       if (currentTrackId !== track.id) {
-        audioRef.current.src = track.audioUrl;
+        audioRef.current.src = track.url;
         currentTrackId = track.id;
         
         // Montrer une notification toast
