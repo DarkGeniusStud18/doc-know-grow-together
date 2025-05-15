@@ -35,13 +35,14 @@ const Profile = () => {
   return (
     <MainLayout>
       <div className="container max-w-4xl py-8">
+        <h1 className="text-3xl font-bold mb-6">Mon Profil</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left column - User info card */}
+          {/* Colonne gauche - Carte d'information utilisateur */}
           <div className="md:col-span-1">
             <ProfileCard />
           </div>
           
-          {/* Right column - Edit profile and other information */}
+          {/* Colonne droite - Modifier le profil et autres informations */}
           <div className="md:col-span-2">
             <ProfileEditor />
             <DangerZone />

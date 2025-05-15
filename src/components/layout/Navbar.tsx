@@ -14,6 +14,12 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ simplified = false }) => {
   const { user, logout } = useAuth();
 
+  // Handler for logout button
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    logout('/dashboard');
+  };
+
   // Public navbar (not logged in or simplified mode)
   if (simplified) {
     return (
@@ -49,7 +55,7 @@ const Navbar: React.FC<NavbarProps> = ({ simplified = false }) => {
           </Link>
         </div>
 
-        {/* Search bar */}
+        {/* Barre de recherche */}
         <div className="hidden md:flex items-center max-w-md w-full relative">
           <Search className="absolute left-3 h-4 w-4 text-gray-400" />
           <input
@@ -59,12 +65,12 @@ const Navbar: React.FC<NavbarProps> = ({ simplified = false }) => {
           />
         </div>
 
-        {/* Mobile search icon */}
+        {/* Icône de recherche mobile */}
         <Button variant="ghost" size="icon" className="md:hidden">
           <Search className="h-5 w-5" />
         </Button>
 
-        {/* Right side - user menu & notifications */}
+        {/* Côté droit - menu utilisateur & notifications */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" title="Traduction">
             <Globe className="h-5 w-5" />
@@ -114,7 +120,7 @@ const Navbar: React.FC<NavbarProps> = ({ simplified = false }) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer text-red-500 focus:text-red-500"
-                  onClick={logout}
+                  onClick={handleLogout}
                 >
                   Déconnexion
                 </DropdownMenuItem>

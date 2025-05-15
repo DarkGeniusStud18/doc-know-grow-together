@@ -27,6 +27,8 @@ export const signIn = async (
         createdAt: new Date(),
       };
       toast.success("Connexion réussie avec le compte démo étudiant!");
+      // Store demo user in localStorage for persistence
+      localStorage.setItem('demoUser', 'student');
       return user;
     } else if (email === "doctor@example.com" && password === "password") {
       const user: User = {
@@ -39,6 +41,8 @@ export const signIn = async (
         createdAt: new Date(),
       };
       toast.success("Connexion réussie avec le compte démo professionnel!");
+      // Store demo user in localStorage for persistence
+      localStorage.setItem('demoUser', 'professional');
       return user;
     }
     

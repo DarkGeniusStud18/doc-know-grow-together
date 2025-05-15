@@ -21,6 +21,12 @@ const DesktopNavbar: React.FC = () => {
     // For now, just log the search query
   };
 
+  // Handler to logout and redirect to dashboard
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    logout('/dashboard');
+  };
+
   return (
     <header className="hidden md:block sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
       <div className="container px-6 py-3 flex justify-between items-center">
@@ -31,7 +37,8 @@ const DesktopNavbar: React.FC = () => {
             {window.location.pathname === '/resources' && 'Ressources'}
             {window.location.pathname === '/community' && 'Communauté'}
             {window.location.pathname === '/calendar' && 'Calendrier'}
-            {window.location.pathname === '/notes' && 'Mes cours'}
+            {window.location.pathname === '/notes' && 'Mes notes'}
+            {window.location.pathname === '/my-courses' && 'Mes cours'}
             {window.location.pathname === '/study-groups' && 'Groupes d\'étude'}
             {window.location.pathname === '/clinical-cases' && 'Cas cliniques'}
             {window.location.pathname === '/tools' && 'Outils de productivité'}
@@ -107,7 +114,7 @@ const DesktopNavbar: React.FC = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer text-red-500 focus:text-red-500 hover:bg-red-50 transition-colors flex items-center"
-                onClick={logout}
+                onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Déconnexion

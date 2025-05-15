@@ -21,9 +21,13 @@ import ClinicalCases from './pages/ClinicalCases';
 import Community from './pages/Community';
 import Calendar from './pages/Calendar';
 import Notes from './pages/Notes';
+import MyCourses from './pages/MyCourses';
 import Settings from './pages/Settings';
-import KYCVerification from './pages/KYCVerification';
 import NotFound from './pages/NotFound';
+import Tools from './pages/Tools';
+import ExamSimulator from './pages/ExamSimulator';
+import KYCVerification from './pages/KYCVerification';
+import ContinuingEducation from './pages/ContinuingEducation';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -62,8 +66,11 @@ function App() {
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/notes" element={<Notes />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/tools" element={<Tools />} />
+              <Route path="/exam-simulator" element={<ExamSimulator />} />
               <Route path="/kyc-verification" element={<KYCVerification />} />
-              {/* Catch-all route for 404 Not Found */}
+              <Route path="/continuing-education" element={<ContinuingEducation />} />
+              <Route path="/my-courses" element={<MyCourses />} /> 
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

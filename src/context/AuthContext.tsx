@@ -1,7 +1,8 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { User, UserRole } from '@/lib/auth/types';
-import { getCurrentUser, signIn, signOut } from '@/lib/auth';
+import { getCurrentUser, signIn } from '@/lib/auth';
+import { signOut } from '@/lib/auth/services/auth-signout';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -9,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => Promise<void>;
+  logout: (redirectUrl?: string) => Promise<void>;
   register: (email: string, password: string, role: UserRole, displayName: string) => Promise<boolean>;
   updateCurrentUser: (updatedUser: User) => void;
 }
@@ -20,8 +21,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Set up auth state listener FIRST
   useEffect(() => {
-    // Check if user is already logged in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          // When signed in or token refreshed, update user
+          getCurrentUser().then(setUser);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          localStorage.removeItem('demoUser');
+        }
+      }
+    );
+
+    // Check for existing session
     const checkUser = async () => {
       try {
         const currentUser = await getCurrentUser();
@@ -34,6 +48,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     checkUser();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -64,12 +82,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = async (redirectUrl?: string) => {
     try {
       setLoading(true);
-      await signOut();
-      localStorage.removeItem('demoUser');
-      setUser(null);
+      await signOut(redirectUrl);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -100,7 +116,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             display_name: displayName,
             role,
-          }
+          },
+          // Configure session persistence
+          emailRedirectTo: `${window.location.origin}/email-confirmation`
         }
       });
       

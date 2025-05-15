@@ -4,13 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useTheme } from "@/context/ThemeContext";
-import { Moon, Sun, Laptop, PenTool } from 'lucide-react';
+import { Moon, Sun, Laptop } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
 
 /**
  * Paramètres d'apparence et d'affichage de l'application
  */
 const DisplaySettings = () => {
   const { theme, font, colorScheme, setTheme, setFont, setColorScheme } = useTheme();
+  const [reduceMotion, setReduceMotion] = React.useState(false);
+  const [highContrast, setHighContrast] = React.useState(false);
+  const [largeText, setLargeText] = React.useState(false);
 
   return (
     <Card className="hover-lift">
@@ -156,17 +160,29 @@ const DisplaySettings = () => {
         <div>
           <h3 className="font-medium mb-3">Accessibilité</h3>
           <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <input id="reduceMotion" type="checkbox" className="h-4 w-4 rounded border-gray-300" />
+            <div className="flex items-center space-x-2 justify-between">
               <Label htmlFor="reduceMotion">Réduire les animations</Label>
+              <Switch 
+                id="reduceMotion" 
+                checked={reduceMotion}
+                onCheckedChange={setReduceMotion}
+              />
             </div>
-            <div className="flex items-center space-x-2">
-              <input id="highContrast" type="checkbox" className="h-4 w-4 rounded border-gray-300" />
+            <div className="flex items-center space-x-2 justify-between">
               <Label htmlFor="highContrast">Contraste élevé</Label>
+              <Switch 
+                id="highContrast" 
+                checked={highContrast}
+                onCheckedChange={setHighContrast}
+              />
             </div>
-            <div className="flex items-center space-x-2">
-              <input id="largeText" type="checkbox" className="h-4 w-4 rounded border-gray-300" />
+            <div className="flex items-center space-x-2 justify-between">
               <Label htmlFor="largeText">Texte plus grand</Label>
+              <Switch 
+                id="largeText" 
+                checked={largeText}
+                onCheckedChange={setLargeText}
+              />
             </div>
           </div>
         </div>

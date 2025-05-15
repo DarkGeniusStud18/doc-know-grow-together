@@ -13,6 +13,12 @@ import { LogOut } from 'lucide-react';
 const DangerZone = () => {
   const { logout } = useAuth();
   
+  // Handler for logout button with redirect to dashboard
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    logout('/dashboard');
+  };
+  
   return (
     <Card className="shadow-md">
       <CardHeader>
@@ -36,7 +42,7 @@ const DangerZone = () => {
         <Button 
           variant="destructive" 
           className="w-full flex items-center gap-2"
-          onClick={logout}
+          onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" />
           Déconnexion

@@ -18,6 +18,12 @@ const DiscordSidebar: React.FC = () => {
     return location.pathname === path;
   };
 
+  // Handler for logout button
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    logout('/dashboard');
+  };
+
   // Base server/workspace icon
   const NavIcon = ({ path, icon: Icon, label }: { path: string; icon: React.ElementType; label: string }) => {
     const active = isActive(path);
@@ -60,7 +66,8 @@ const DiscordSidebar: React.FC = () => {
   
   // Add role-specific items
   const studentItems = [
-    { path: '/notes', icon: FileText, label: 'Mes cours' },
+    { path: '/my-courses', icon: Book, label: 'Mes cours' },
+    { path: '/notes', icon: FileText, label: 'Mes notes' },
     { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' },
     { path: '/tools', icon: Wrench, label: 'Outils de productivité' },
     { path: '/exam-simulator', icon: LayoutGrid, label: 'Simulateur d\'examen' },
@@ -116,7 +123,7 @@ const DiscordSidebar: React.FC = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <button 
-              onClick={logout}
+              onClick={handleLogout}
               className="w-12 h-12 flex items-center justify-center rounded-full mb-4 mt-auto transition-all duration-300 bg-gray-200 text-red-500 hover:bg-red-500 hover:text-white hover:rounded-2xl hover:scale-105"
             >
               <LogOut size={24} className="transition-transform hover:scale-110" />

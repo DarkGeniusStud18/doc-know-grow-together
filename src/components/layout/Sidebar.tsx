@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -12,7 +13,7 @@ const Sidebar: React.FC = () => {
     return location.pathname === path;
   };
 
-  // Common menu items for all users
+  // Éléments de menu communs pour tous les utilisateurs
   const commonMenuItems = [
     {
       icon: Home,
@@ -36,12 +37,17 @@ const Sidebar: React.FC = () => {
     }
   ];
 
-  // Student-specific menu items
+  // Éléments de menu spécifiques aux étudiants
   const studentMenuItems = [
     {
-      icon: FileText,
+      icon: Book,
       label: 'Mes cours',
       path: '/my-courses',
+    },
+    {
+      icon: FileText,
+      label: 'Mes notes',
+      path: '/notes',
     },
     {
       icon: Video,
@@ -50,7 +56,7 @@ const Sidebar: React.FC = () => {
     },
   ];
 
-  // Professional-specific menu items
+  // Éléments de menu spécifiques aux professionnels
   const professionalMenuItems = [
     {
       icon: MessageSquare,
@@ -69,7 +75,7 @@ const Sidebar: React.FC = () => {
     },
   ];
 
-  // Determine which specific menu items to use based on user role
+  // Déterminer quels éléments de menu spécifiques utiliser en fonction du rôle de l'utilisateur
   let roleSpecificMenuItems = [];
   if (user?.role === 'student') {
     roleSpecificMenuItems = studentMenuItems;
@@ -77,7 +83,7 @@ const Sidebar: React.FC = () => {
     roleSpecificMenuItems = professionalMenuItems;
   }
 
-  // Combine common and role-specific menu items
+  // Combiner les éléments de menu communs et spécifiques au rôle
   const menuItems = [...commonMenuItems, ...roleSpecificMenuItems, {
     icon: Settings,
     label: 'Paramètres',
@@ -94,7 +100,7 @@ const Sidebar: React.FC = () => {
         </Link>
       </div>
 
-      {/* User info */}
+      {/* Infos utilisateur */}
       <div className="px-6 pb-6 border-b border-gray-200">
         <div className="flex flex-col">
           <span className="font-medium text-medical-navy">{user?.displayName}</span>

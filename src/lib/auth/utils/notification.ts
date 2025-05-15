@@ -1,23 +1,41 @@
 
-import { toast } from "@/components/ui/sonner";
+import { toast } from '@/components/ui/sonner';
 
 /**
- * Affiche un message toast de succès pour l'inscription
+ * Affiche une notification de succès avec fallback sur console.log
+ * @param message Message à afficher
  */
-export function showSignupSuccessMessage(): void {
-  toast.success("Inscription réussie!", {
-    description: "Un email de confirmation a été envoyé. Veuillez vérifier votre boîte mail et cliquer sur le lien de vérification pour activer votre compte.",
-    duration: 8000, // Afficher plus longtemps pour que l'utilisateur le voie
-  });
-}
+export const showSuccessNotification = (message: string): void => {
+  try {
+    toast.success(message);
+  } catch (e) {
+    console.log(`✅ ${message}`);
+  }
+};
 
 /**
- * Affiche un message toast d'erreur
- * @param message - Message d'erreur principal
- * @param description - Description détaillée de l'erreur
+ * Affiche une notification d'erreur avec fallback sur console.error
+ * @param message Message principal
+ * @param details Détails optionnels de l'erreur
  */
-export function showErrorMessage(message: string, description?: string): void {
-  toast.error(message, {
-    description: description || "Veuillez réessayer plus tard."
-  });
-}
+export const showErrorNotification = (message: string, details?: string): void => {
+  try {
+    toast.error(message, {
+      description: details
+    });
+  } catch (e) {
+    console.error(`❌ ${message}${details ? `: ${details}` : ''}`);
+  }
+};
+
+/**
+ * Affiche une notification d'information avec fallback sur console.info
+ * @param message Message à afficher
+ */
+export const showInfoNotification = (message: string): void => {
+  try {
+    toast.info(message);
+  } catch (e) {
+    console.info(`ℹ️ ${message}`);
+  }
+};

@@ -4,32 +4,34 @@ import { User, UserRole, KycStatus } from "./types";
 
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
+    // First check for demo users in localStorage for persistence
+    const demoUser = localStorage.getItem('demoUser');
+    if (demoUser === 'student') {
+      return {
+        id: "student-1",
+        email: "student@example.com",
+        displayName: "Alex Dupont",
+        role: "student",
+        kycStatus: "verified",
+        university: "Université Paris Descartes",
+        createdAt: new Date(),
+      };
+    } else if (demoUser === 'professional') {
+      return {
+        id: "professional-1",
+        email: "doctor@example.com",
+        displayName: "Dr. Marie Lambert",
+        role: "professional",
+        kycStatus: "verified",
+        specialty: "Cardiologie",
+        createdAt: new Date(),
+      };
+    }
+
+    // Get session with autoRefreshToken enabled
     const { data } = await supabase.auth.getSession();
     
     if (!data.session) {
-      // Check for demo users in localStorage
-      const demoUser = localStorage.getItem('demoUser');
-      if (demoUser === 'student') {
-        return {
-          id: "student-1",
-          email: "student@example.com",
-          displayName: "Alex Dupont",
-          role: "student",
-          kycStatus: "verified",
-          university: "Université Paris Descartes",
-          createdAt: new Date(),
-        };
-      } else if (demoUser === 'professional') {
-        return {
-          id: "professional-1",
-          email: "doctor@example.com",
-          displayName: "Dr. Marie Lambert",
-          role: "professional",
-          kycStatus: "verified",
-          specialty: "Cardiologie",
-          createdAt: new Date(),
-        };
-      }
       return null;
     }
     

@@ -1,3 +1,4 @@
+
 /* eslint-disable react-refresh/only-export-components */
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -20,23 +21,35 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  // Using functional initialization to prevent repeated execution
   const [theme, setThemeState] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    return savedTheme || "light"; // Changed default to light
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem("theme") as Theme;
+      return savedTheme || "light";
+    }
+    return "light"; // Default fallback
   });
 
   const [font, setFontState] = useState<Font>(() => {
-    const savedFont = localStorage.getItem("font") as Font;
-    return savedFont || "default";
+    if (typeof window !== 'undefined') {
+      const savedFont = localStorage.getItem("font") as Font;
+      return savedFont || "default";
+    }
+    return "default"; // Default fallback
   });
 
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
-    const savedColorScheme = localStorage.getItem("colorScheme") as ColorScheme;
-    return savedColorScheme || "default";
+    if (typeof window !== 'undefined') {
+      const savedColorScheme = localStorage.getItem("colorScheme") as ColorScheme;
+      return savedColorScheme || "default";
+    }
+    return "default"; // Default fallback
   });
 
   // Apply theme on component mount and when theme changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const root = window.document.documentElement;
 
     // Remove all theme classes
@@ -58,6 +71,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Apply font when it changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const root = window.document.documentElement;
 
     // Remove all font classes
@@ -81,6 +96,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Apply color scheme when it changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const root = window.document.documentElement;
 
     // Remove all color scheme classes
@@ -100,6 +117,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Listen for system theme changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (theme !== "system") return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
