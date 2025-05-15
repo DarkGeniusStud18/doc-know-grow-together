@@ -93,7 +93,7 @@ const Dashboard: React.FC = () => {
   const featureCards = [...commonFeatureCards, ...roleSpecificFeatureCards];
   
   return (
-    <MainLayout>
+    <MainLayout requireAuth={true}>
       <div className="space-y-8">
         {/* Section de bienvenue */}
         <section className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-lg p-6 md:p-8 shadow-md">

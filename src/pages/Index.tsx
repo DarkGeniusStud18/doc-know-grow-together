@@ -82,7 +82,7 @@ const Index = () => {
   ];
 
   return (
-    <MainLayout>
+    <MainLayout requireAuth={false}>
       <SEOHead 
         title="MedCollab - Plateforme collaborative pour étudiants et professionnels de santé"
         description="MedCollab est une plateforme numérique qui facilite la collaboration et l'apprentissage pour les étudiants en médecine et les professionnels de santé."

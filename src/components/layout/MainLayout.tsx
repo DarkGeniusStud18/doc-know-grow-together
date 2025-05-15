@@ -15,7 +15,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
-  requireAuth = true 
+  requireAuth = false // Changed default to false
 }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     }
   }, [user, loading, navigate, requireAuth]);
   
-  if (loading) {
+  if (loading && requireAuth) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-4">
