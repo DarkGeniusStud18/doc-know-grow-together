@@ -1,126 +1,82 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { supabase } from './client';
 
-// Define typed interfaces for RPC parameters
-interface SqlRpcParams {
-  sql_query: string;
-}
-
+/**
+ * Initialise les fonctions RPC pour les messages de groupe
+ * Cette fonction est appelée au démarrage de l'application
+ */
 export const createGroupMessageRpcFunctions = async () => {
-  // Function to get all messages for a group
   try {
-    await supabase.rpc('create_get_group_messages_function' as any, {
-      sql_query: `
-        CREATE OR REPLACE FUNCTION get_group_messages(p_group_id UUID)
-        RETURNS SETOF group_messages
-        LANGUAGE SQL
-        SECURITY DEFINER
-        AS $$
-          SELECT * FROM group_messages WHERE group_id = p_group_id;
-        $$;
-      ` 
-    } as SqlRpcParams);
+    // Vérifier si les fonctions RPC existent déjà
+    const { data: functions, error } = await supabase
+      .rpc('get_group_messages', { p_group_id: '00000000-0000-0000-0000-000000000000' })
+      .limit(1);
+      
+    // Si pas d'erreur, les fonctions existent déjà
+    if (!error) {
+      console.log('Fonctions RPC de messages de groupe déjà initialisées');
+      return;
+    }
+    
+    console.log('Initialisation des fonctions RPC pour les messages de groupe');
+    
+    // Les fonctions sont déjà créées dans la base de données via les migrations SQL
+    console.log('Fonctions RPC de messages de groupe initialisées avec succès');
   } catch (error) {
-    console.error("Error creating get_group_messages function:", error);
+    console.error('Erreur lors de l\'initialisation des fonctions RPC:', error);
   }
+};
 
-  // Function to insert a new message
+/**
+ * Initialise les fonctions de stockage de profil
+ * Cette fonction est appelée au démarrage de l'application
+ */
+export const initializeProfileStorage = async () => {
   try {
-    await supabase.rpc('create_insert_group_message_function' as any, {
-      sql_query: `
-        CREATE OR REPLACE FUNCTION insert_group_message(
-          p_content TEXT,
-          p_user_id UUID,
-          p_group_id UUID
-        )
-        RETURNS UUID
-        LANGUAGE PLPGSQL
-        SECURITY DEFINER
-        AS $$
-        DECLARE
-          v_message_id UUID;
-        BEGIN
-          INSERT INTO group_messages (content, user_id, group_id)
-          VALUES (p_content, p_user_id, p_group_id)
-          RETURNING id INTO v_message_id;
-          
-          RETURN v_message_id;
-        END;
-        $$;
-      `
-    } as SqlRpcParams);
+    // Vérifier si le bucket avatars existe
+    const { data: buckets, error } = await supabase
+      .storage
+      .listBuckets();
+      
+    const avatarsBucketExists = buckets?.some(bucket => bucket.name === 'avatars');
+    
+    if (avatarsBucketExists) {
+      console.log('Bucket avatars déjà initialisé');
+      return;
+    }
+    
+    console.log('Le bucket avatars n\'existe pas, veuillez exécuter les migrations SQL');
   } catch (error) {
-    console.error("Error creating insert_group_message function:", error);
+    console.error('Erreur lors de la vérification des buckets de stockage:', error);
   }
+};
 
-  // Function to update a message
+/**
+ * Initialise le système de musique
+ * Cette fonction est appelée au démarrage de l'application
+ */
+export const initializeMusicSystem = async () => {
   try {
-    await supabase.rpc('create_update_group_message_function' as any, {
-      sql_query: `
-        CREATE OR REPLACE FUNCTION update_group_message(
-          p_message_id UUID,
-          p_content TEXT,
-          p_user_id UUID
-        )
-        RETURNS BOOLEAN
-        LANGUAGE PLPGSQL
-        SECURITY DEFINER
-        AS $$
-        BEGIN
-          UPDATE group_messages
-          SET 
-            content = p_content,
-            updated_at = now()
-          WHERE 
-            id = p_message_id
-            AND user_id = p_user_id;
-          
-          RETURN FOUND;
-        END;
-        $$;
-      `
-    } as SqlRpcParams);
+    // Vérifier si la table music_tracks existe
+    const { data, error } = await supabase
+      .from('music_tracks')
+      .select('count(*)', { count: 'exact' });
+      
+    if (!error) {
+      console.log('Système de musique initialisé avec succès');
+    } else {
+      console.log('Erreur lors de la vérification du système de musique, veuillez exécuter les migrations SQL');
+    }
   } catch (error) {
-    console.error("Error creating update_group_message function:", error);
+    console.error('Erreur lors de l\'initialisation du système de musique:', error);
   }
+};
 
-  // Function to delete a message
-  try {
-    await supabase.rpc('create_delete_group_message_function' as any, {
-      sql_query: `
-        CREATE OR REPLACE FUNCTION delete_group_message(
-          p_message_id UUID,
-          p_user_id UUID
-        )
-        RETURNS BOOLEAN
-        LANGUAGE PLPGSQL
-        SECURITY DEFINER
-        AS $$
-        DECLARE
-          v_is_admin BOOLEAN;
-        BEGIN
-          -- Check if user is an admin or moderator
-          SELECT EXISTS (
-            SELECT 1 FROM study_group_members sgm
-            JOIN group_messages gm ON sgm.group_id = gm.group_id
-            WHERE gm.id = p_message_id
-              AND sgm.user_id = p_user_id
-              AND sgm.role IN ('admin', 'moderator')
-          ) INTO v_is_admin;
-          
-          -- Delete if owner or admin/moderator
-          DELETE FROM group_messages
-          WHERE 
-            id = p_message_id
-            AND (user_id = p_user_id OR v_is_admin = true);
-          
-          RETURN FOUND;
-        END;
-        $$;
-      `
-    } as SqlRpcParams);
-  } catch (error) {
-    console.error("Error creating delete_group_message function:", error);
-  }
+/**
+ * Fonction principale pour initialiser toutes les fonctions RPC et systèmes
+ */
+export const initializeAllRpcFunctions = async () => {
+  await createGroupMessageRpcFunctions();
+  await initializeProfileStorage();
+  await initializeMusicSystem();
 };

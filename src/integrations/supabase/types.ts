@@ -232,6 +232,50 @@ export type Database = {
           },
         ]
       }
+      group_resources: {
+        Row: {
+          created_at: string
+          file_type: string | null
+          group_id: string
+          id: string
+          title: string
+          type: string
+          updated_at: string
+          uploaded_by: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          file_type?: string | null
+          group_id: string
+          id?: string
+          title: string
+          type: string
+          updated_at?: string
+          uploaded_by: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          file_type?: string | null
+          group_id?: string
+          id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          uploaded_by?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_resources_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -262,6 +306,42 @@ export type Database = {
         }
         Relationships: []
       }
+      music_tracks: {
+        Row: {
+          artist: string
+          category: string
+          cover_image: string | null
+          created_at: string
+          duration: number | null
+          file_url: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artist: string
+          category: string
+          cover_image?: string | null
+          created_at?: string
+          duration?: number | null
+          file_url: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artist?: string
+          category?: string
+          cover_image?: string | null
+          created_at?: string
+          duration?: number | null
+          file_url?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           category: string | null
@@ -287,6 +367,72 @@ export type Database = {
           created_at?: string
           id?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      playlist_tracks: {
+        Row: {
+          created_at: string
+          id: string
+          playlist_id: string
+          position: number
+          track_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          playlist_id: string
+          position: number
+          track_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          playlist_id?: string
+          position?: number
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_tracks_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_tracks_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "music_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name?: string
           updated_at?: string
           user_id?: string
         }
@@ -446,6 +592,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_music_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          last_played_track: string | null
+          updated_at: string
+          user_id: string
+          volume: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_played_track?: string | null
+          updated_at?: string
+          user_id: string
+          volume?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_played_track?: string | null
+          updated_at?: string
+          user_id?: string
+          volume?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_music_preferences_last_played_track_fkey"
+            columns: ["last_played_track"]
+            isOneToOne: false
+            referencedRelation: "music_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
@@ -5,6 +6,7 @@ import {ThemeProvider} from './context/ThemeContext';
 import { Toaster } from './components/ui/sonner';
 import { useEffect } from 'react';
 import { createGroupMessageRpcFunctions } from './integrations/supabase/rpc-functions';
+import MusicNotification from './components/music/MusicNotification';
 
 // Pages
 import Index from './pages/Index';
@@ -71,11 +73,12 @@ function App() {
               <Route path="/kyc-verification" element={<KYCVerification />} />
               <Route path="/continuing-education" element={<ContinuingEducation />} />
               <Route path="/my-courses" element={<MyCourses />} /> 
-              <Route path="/music-library" element={<MusicLibrary />} /> {/* Nouvelle route pour la bibliothèque musicale */}
+              <Route path="/music-library" element={<MusicLibrary />} /> 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Toaster position="top-center" />
+            <MusicNotification />
           </BrowserRouter>
-          <Toaster position="top-center" />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

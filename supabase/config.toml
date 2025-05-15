@@ -7,3 +7,9 @@ public = true
 
 [storage.buckets.kyc_documents]
 public = true
+
+[storage.buckets.group_resources]
+public = true
+
+[storage.buckets.community_attachments]
+public = true

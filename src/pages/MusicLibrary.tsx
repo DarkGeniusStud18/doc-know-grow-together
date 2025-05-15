@@ -7,29 +7,41 @@
  * adaptées pour améliorer la concentration pendant les études ou le travail
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MusicTrack } from '@/components/music/MusicTrack';
 import { MusicPlayer } from '@/components/music/MusicPlayer';
-import { MusicCategory } from '@/types/music';
-import { musicCategories } from '@/data/music-data';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getAllMusicTracks } from '@/lib/utils/music-utils';
+import { useMusicLibrary } from '@/hooks/useMusicLibrary';
+import { MusicCategory as MusicCategoryType, MusicTrack as MusicTrackType } from '@/types/music';
+import { BookOpen, PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const MusicLibrary = () => {
-  // État pour suivre la piste en cours de lecture
-  const [currentTrack, setCurrentTrack] = useState<MusicCategory['tracks'][0] | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { currentTrack, isPlaying, playTrack, togglePlayPause } = useMusicLibrary();
   
-  // Gestionnaire pour jouer une piste
-  const handlePlayTrack = (track: MusicCategory['tracks'][0]) => {
-    setCurrentTrack(track);
-    setIsPlaying(true);
-    
-    // Envoyer l'information à l'audio service pour la lecture persistante
-    const musicEvent = new CustomEvent('music-play', { 
-      detail: { track, shouldPlay: true } 
-    });
-    window.dispatchEvent(musicEvent);
+  // Utiliser React Query pour charger et mettre en cache les données musicales
+  const { data: tracksByCategory, isLoading } = useQuery({
+    queryKey: ['music-tracks'],
+    queryFn: getAllMusicTracks,
+  });
+  
+  const [categories, setCategories] = useState<string[]>([]);
+  
+  // Extraire les catégories une fois les données chargées
+  useEffect(() => {
+    if (tracksByCategory) {
+      setCategories(Object.keys(tracksByCategory));
+    }
+  }, [tracksByCategory]);
+  
+  // Gérer la lecture d'une piste
+  const handlePlayTrack = (track: MusicTrackType) => {
+    playTrack(track);
   };
 
   return (
@@ -46,40 +58,91 @@ const MusicLibrary = () => {
         </p>
         
         {/* Onglets des catégories musicales */}
-        <Tabs defaultValue="lofi" className="w-full">
-          <TabsList className="mb-8 flex flex-wrap gap-2">
-            {musicCategories.map(category => (
-              <TabsTrigger 
-                key={category.id} 
-                value={category.id}
-                className="px-4 py-2 text-sm"
-              >
-                {category.name}
-              </TabsTrigger>
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full max-w-md" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Skeleton key={i} className="h-40" />
+              ))}
+            </div>
+          </div>
+        ) : categories.length > 0 ? (
+          <Tabs defaultValue={categories[0]} className="w-full">
+            <TabsList className="mb-8 flex flex-wrap gap-2">
+              {categories.map(category => (
+                <TabsTrigger 
+                  key={category} 
+                  value={category}
+                  className="px-4 py-2 text-sm"
+                >
+                  {category}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            {/* Contenu des onglets */}
+            {categories.map(category => (
+              <TabsContent key={category} value={category} className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-semibold mb-2">{category}</h2>
+                  <p className="text-gray-600 mb-4">
+                    {category === 'Lofi' && 'Beats relaxants parfaits pour étudier et se concentrer.'}
+                    {category === 'Classique' && 'Musique classique pour stimuler votre concentration et productivité.'}
+                    {category === 'Ambient' && 'Sons ambiants apaisants pour créer un environnement de travail serein.'}
+                    {category === 'Nature' && 'Sons de la nature pour vous aider à vous détendre et à vous concentrer.'}
+                    {category === 'Méditation' && 'Musique méditative pour calmer votre esprit avant ou pendant vos études.'}
+                    {category === 'Instrumentale' && 'Mélodies instrumentales pour accompagner vos sessions de travail.'}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {tracksByCategory && tracksByCategory[category]?.map((track: any) => (
+                    <MusicTrack
+                      key={track.id}
+                      track={{
+                        id: track.id,
+                        title: track.title,
+                        artist: track.artist,
+                        category: track.category,
+                        url: track.file_url,
+                        coverImage: track.cover_image
+                      }}
+                      isPlaying={isPlaying && currentTrack?.id === track.id}
+                      onPlay={() => handlePlayTrack({
+                        id: track.id,
+                        title: track.title,
+                        artist: track.artist,
+                        category: track.category,
+                        url: track.file_url,
+                        coverImage: track.cover_image
+                      })}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
             ))}
-          </TabsList>
-          
-          {/* Contenu des onglets */}
-          {musicCategories.map(category => (
-            <TabsContent key={category.id} value={category.id} className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold mb-2">{category.name}</h2>
-                <p className="text-gray-600 mb-4">{category.description}</p>
+          </Tabs>
+        ) : (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <h3 className="text-xl font-semibold mb-2">Pas encore de musique disponible</h3>
+              <p className="text-gray-500 mb-6">
+                La bibliothèque musicale sera bientôt disponible avec une sélection de pistes pour améliorer votre concentration.
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button className="flex items-center gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Suggestion de musique
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  En savoir plus
+                </Button>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {category.tracks.map(track => (
-                  <MusicTrack
-                    key={track.id}
-                    track={track}
-                    isPlaying={isPlaying && currentTrack?.id === track.id}
-                    onPlay={() => handlePlayTrack(track)}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+            </CardContent>
+          </Card>
+        )}
       </div>
       
       {/* Lecteur de musique flottant */}
@@ -87,7 +150,7 @@ const MusicLibrary = () => {
         <MusicPlayer 
           track={currentTrack} 
           isPlaying={isPlaying}
-          onPlayPause={() => setIsPlaying(!isPlaying)}
+          onPlayPause={togglePlayPause}
         />
       )}
     </MainLayout>
