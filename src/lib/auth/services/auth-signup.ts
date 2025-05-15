@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import { z } from 'zod';
-import { checkUserExistsByEmail } from '../utils/user-validation';
+import { checkUserExists } from '../utils/user-validation';
 
 // Define SignUpSchema directly here since we can't import it without circular dependency
 const SignUpSchema = z.object({
@@ -19,7 +19,7 @@ type SignUpInput = z.infer<typeof SignUpSchema>;
 export const signUp = async (formData: SignUpInput) => {
   try {
     // Check if user exists already
-    const userExists = await checkUserExistsByEmail(formData.email);
+    const userExists = await checkUserExists(formData.email);
     if (userExists) {
       toast.error('Un compte avec cette adresse email existe déjà.');
       return null;

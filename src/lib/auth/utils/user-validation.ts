@@ -6,7 +6,7 @@
  * Contient des fonctions pour vérifier l'existence et la validité des utilisateurs
  */
 
-import { supabase } from "../../auth";
+import { supabase } from "@/integrations/supabase/client";
 
 // Fonction simplifiée pour vérifier l'existence d'un utilisateur
 export const checkUserExists = async (email: string): Promise<boolean> => {

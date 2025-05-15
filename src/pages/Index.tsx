@@ -1,4 +1,3 @@
-
 /**
  * Index.tsx
  * 
@@ -11,7 +10,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import MainLayout from '@/components/layout/MainLayout';
 import { useAuth } from '@/context/AuthContext';
-import { Book, Calendar, CheckCircle, FileText, Globe, MessageSquare, Shield, Video, Users, Music, Brain, FileCheck, BookOpen, Award, GraduationCap, Stethoscope, Certificate, HeartPulse } from 'lucide-react';
+import { Book, Calendar, CheckCircle, FileText, Globe, MessageSquare, Shield, Video, Users, Music, Brain, FileCheck, BookOpen, Award, GraduationCap, Stethoscope, HeartPulse } from 'lucide-react';
+
+// Replacement for Certificate icon
+import { Award as Certificate } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();

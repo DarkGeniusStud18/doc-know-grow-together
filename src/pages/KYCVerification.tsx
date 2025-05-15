@@ -112,7 +112,8 @@ const KYCVerification: React.FC = () => {
     
     setIsLoading(true);
     try {
-      const success = await submitKycDocuments(files, user.id);
+      // Fix: Pass files array, user ID, and document type
+      const success = await submitKycDocuments(files, user.id, 'id_card');
       if (success) {
         navigate('/dashboard');
       }
