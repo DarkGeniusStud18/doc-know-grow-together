@@ -153,9 +153,11 @@ const Resources: React.FC = () => {
           <div className="md:w-64 space-y-6">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filtres
+                <CardTitle>
+                  <div className="text-lg flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filtres
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
@@ -287,7 +289,7 @@ const ResourceGrid: React.FC<ResourceGridProps> = ({ resources, onResourceClick 
                 <span>•</span>
                 <span className="capitalize">{CATEGORIES.find(cat => cat.value === resource.category)?.label}</span>
               </div>
-              <CardTitle>{resource.title}</CardTitle>
+              <CardTitle className="text-lg leading-tight">{resource.title}</CardTitle>
             </CardHeader>
             <CardContent className="pb-0">
               <CardDescription className="line-clamp-2">{resource.description}</CardDescription>
