@@ -104,10 +104,12 @@ const Resources: React.FC = () => {
   // Fonction pour gérer le changement de langue (simulation)
   const handleLanguageChange = (language: string) => {
     // Dans un cas réel, cela activerait la traduction de l'application
-    toast({
-      title: "Changement de langue",
-      description: `La langue a été changée en ${language}`,
-    });
+    toast(
+      <>
+        <div className="font-semibold">Changement de langue</div>
+        <div className="text-sm text-gray-600">La langue a été changée en {language}</div>
+      </>
+    );
   };
   
   // Filtrer les ressources en fonction des critères
