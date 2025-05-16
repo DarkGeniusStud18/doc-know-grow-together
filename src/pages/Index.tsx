@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SEOHead from '@/components/seo/SEOHead';
@@ -107,6 +106,9 @@ const Index = () => {
                 </Button>
                 <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
                   <Link to="/login">Se connecter</Link>
+                </Button>
+                <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
+                  <Link to="/functionalities">Découvrir les fonctionnalités</Link>
                 </Button>
               </div>
             </div>

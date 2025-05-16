@@ -2,7 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
-import {ThemeProvider} from './context/ThemeContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Toaster } from './components/ui/sonner';
 import { useEffect } from 'react';
 import { createGroupMessageRpcFunctions } from './integrations/supabase/rpc-functions';
@@ -32,6 +32,7 @@ import ExamSimulator from './pages/ExamSimulator';
 import KYCVerification from './pages/KYCVerification';
 import ContinuingEducation from './pages/ContinuingEducation';
 import MusicLibrary from './pages/MusicLibrary';
+import Functionalities from './pages/Functionalities';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -87,7 +88,8 @@ function App() {
               <Route path="/kyc-verification" element={<KYCVerification />} />
               <Route path="/continuing-education" element={<ContinuingEducation />} />
               <Route path="/my-courses" element={<MyCourses />} /> 
-              <Route path="/music-library" element={<MusicLibrary />} /> 
+              <Route path="/music-library" element={<MusicLibrary />} />
+              <Route path="/functionalities" element={<Functionalities />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster position="top-center" />
