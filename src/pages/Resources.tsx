@@ -287,7 +287,7 @@ const ResourceGrid: React.FC<ResourceGridProps> = ({ resources, onResourceClick 
                 <span>•</span>
                 <span className="capitalize">{CATEGORIES.find(cat => cat.value === resource.category)?.label}</span>
               </div>
-              <CardTitle className="text-lg leading-tight">{resource.title}</CardTitle>
+              <CardTitle>{resource.title}</CardTitle>
             </CardHeader>
             <CardContent className="pb-0">
               <CardDescription className="line-clamp-2">{resource.description}</CardDescription>
