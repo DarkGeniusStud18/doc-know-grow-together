@@ -14,8 +14,8 @@ export interface Resource {
   featured: boolean;
   requires_verification: boolean;
   is_premium: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export async function getResources(
