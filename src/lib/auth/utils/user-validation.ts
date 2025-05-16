@@ -29,6 +29,9 @@ export const checkUserExists = async (email: string): Promise<boolean> => {
   }
 };
 
+// Ajouter alias pour maintenir la compatibilité avec le code existant
+export const checkUserExistsByEmail = checkUserExists;
+
 // Validation du formulaire d'inscription
 export const validateSignupForm = (
   email: string,

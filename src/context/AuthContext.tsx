@@ -5,6 +5,7 @@ import { getCurrentUser, signIn } from '@/lib/auth';
 import { signOut } from '@/lib/auth/services/auth-signout';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { checkPremiumStatus } from '@/lib/auth/services/subscription-service';
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +14,7 @@ interface AuthContextType {
   logout: (redirectUrl?: string) => Promise<void>;
   register: (email: string, password: string, role: UserRole, displayName: string) => Promise<boolean>;
   updateCurrentUser: (updatedUser: User) => void;
+  checkPremiumAccess: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -143,8 +145,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(updatedUser);
   };
 
+  // Check if the user has premium access
+  const checkPremiumAccess = async (): Promise<boolean> => {
+    if (!user) return false;
+    return checkPremiumStatus(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register, updateCurrentUser }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      register, 
+      updateCurrentUser,
+      checkPremiumAccess 
+    }}>
       {children}
     </AuthContext.Provider>
   );

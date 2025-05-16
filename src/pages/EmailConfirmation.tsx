@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,8 +45,8 @@ const EmailConfirmation: React.FC = () => {
           }
         }
 
-        // Si le type est signup_email_confirmation, l'email a été vérifié avec succès
-        if (type === 'signup') {
+        // Si le type est signup, l'email a été vérifié avec succès
+        if (type === 'signup' || type === 'signup_email_confirmation') {
           setVerificationStatus('success');
           toast.success("Email vérifié avec succès!", {
             description: "Votre compte est maintenant activé. Vous pouvez vous connecter."

@@ -32,6 +32,9 @@ import ExamSimulator from './pages/ExamSimulator';
 import KYCVerification from './pages/KYCVerification';
 import ContinuingEducation from './pages/ContinuingEducation';
 import MusicLibrary from './pages/MusicLibrary';
+import Subscription from './pages/Subscription';
+import ForgotPassword from './pages/ForgotPassword';
+import PasswordRecovery from './pages/PasswordRecovery';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -72,6 +75,8 @@ function App() {
               <Route path="/profile/:id" element={<Profile />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/email-confirmation" element={<EmailConfirmation />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/password-recovery" element={<PasswordRecovery />} />
               <Route path="/study-groups" element={<StudyGroups />} />
               <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
               <Route path="/resources" element={<Resources />} />
@@ -88,6 +93,7 @@ function App() {
               <Route path="/continuing-education" element={<ContinuingEducation />} />
               <Route path="/my-courses" element={<MyCourses />} /> 
               <Route path="/music-library" element={<MusicLibrary />} />
+              <Route path="/subscription" element={<Subscription />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster position="top-center" />

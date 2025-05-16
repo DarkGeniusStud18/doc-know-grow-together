@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -112,9 +113,12 @@ const KYCVerification: React.FC = () => {
     
     setIsLoading(true);
     try {
-      // Fix: Pass files array, user ID, and document type
+      // Fixed: Pass correct arguments - files, userId, documentType
       const success = await submitKycDocuments(files, user.id, 'id_card');
       if (success) {
+        toast.success('Documents soumis avec succès', {
+          description: 'Vos documents sont en cours de vérification'
+        });
         navigate('/dashboard');
       }
     } catch (error) {

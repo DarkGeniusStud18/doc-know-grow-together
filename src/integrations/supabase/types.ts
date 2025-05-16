@@ -59,6 +59,7 @@ export type Database = {
           description: string
           id: string
           is_anonymized: boolean
+          is_premium: boolean
           specialty: string
           title: string
           updated_at: string
@@ -70,6 +71,7 @@ export type Database = {
           description: string
           id?: string
           is_anonymized?: boolean
+          is_premium?: boolean
           specialty: string
           title: string
           updated_at?: string
@@ -81,6 +83,7 @@ export type Database = {
           description?: string
           id?: string
           is_anonymized?: boolean
+          is_premium?: boolean
           specialty?: string
           title?: string
           updated_at?: string
@@ -192,6 +195,78 @@ export type Database = {
           progress?: number
           status?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exam_results: {
+        Row: {
+          answers: Json
+          completed_at: string
+          duration: number
+          exam_id: string
+          id: string
+          max_score: number
+          score: number
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          completed_at?: string
+          duration: number
+          exam_id: string
+          id?: string
+          max_score: number
+          score: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string
+          duration?: number
+          exam_id?: string
+          id?: string
+          max_score?: number
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          back_content: string
+          category: string
+          created_at: string
+          front_content: string
+          id: string
+          last_reviewed: string | null
+          proficiency_level: number
+          review_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back_content: string
+          category: string
+          created_at?: string
+          front_content: string
+          id?: string
+          last_reviewed?: string | null
+          proficiency_level?: number
+          review_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back_content?: string
+          category?: string
+          created_at?: string
+          front_content?: string
+          id?: string
+          last_reviewed?: string | null
+          proficiency_level?: number
+          review_count?: number
           updated_at?: string
           user_id?: string
         }
@@ -448,6 +523,8 @@ export type Database = {
           profile_image: string | null
           role: string
           specialty: string | null
+          subscription_expiry: string | null
+          subscription_status: string
           university: string | null
           updated_at: string
         }
@@ -460,6 +537,8 @@ export type Database = {
           profile_image?: string | null
           role: string
           specialty?: string | null
+          subscription_expiry?: string | null
+          subscription_status?: string
           university?: string | null
           updated_at?: string
         }
@@ -472,6 +551,8 @@ export type Database = {
           profile_image?: string | null
           role?: string
           specialty?: string | null
+          subscription_expiry?: string | null
+          subscription_status?: string
           university?: string | null
           updated_at?: string
         }
@@ -593,6 +674,54 @@ export type Database = {
         }
         Relationships: []
       }
+      switch_credentials: {
+        Row: {
+          created_at: string
+          id: string
+          password: string
+          pin_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password: string
+          pin_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password?: string
+          pin_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_activities: {
+        Row: {
+          activity_data: Json
+          activity_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_data: Json
+          activity_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json
+          activity_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_music_preferences: {
         Row: {
           created_at: string
@@ -647,6 +776,10 @@ export type Database = {
           updated_at: string
           user_id: string
         }[]
+      }
+      has_premium_access: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       insert_group_message: {
         Args: { p_content: string; p_user_id: string; p_group_id: string }

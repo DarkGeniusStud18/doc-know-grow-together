@@ -35,6 +35,7 @@ export const signUp = async (formData: SignUpInput) => {
           university: formData.university,
           specialty: formData.specialty
         },
+        emailRedirectTo: `${window.location.origin}/email-confirmation`
       },
     });
 
