@@ -29,7 +29,7 @@ const NotFound = () => {
         canonicalUrl="/404"
       />
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md p-6 rounded-lg shadow-lg bg-white">
+        <div className="text-center p-6 rounded-lg shadow-lg bg-white">
           <h1 className="text-6xl font-bold mb-4 text-medical-blue">404</h1>
           <p className="text-xl text-gray-600 mb-4">
             Oups ! Page non trouvée
