@@ -7,8 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Book, BookOpen, FileText, Filter, Search, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-// Import correct toast from hooks to fix the error
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // Données simulées - Dans une application réelle, elles proviendraient d'une API
 const RESOURCES = [
@@ -105,7 +104,6 @@ const Resources: React.FC = () => {
   // Fonction pour gérer le changement de langue (simulation)
   const handleLanguageChange = (language: string) => {
     // Dans un cas réel, cela activerait la traduction de l'application
-    // Correction : Utiliser directement la fonction toast importée depuis hooks/use-toast
     toast({
       title: "Changement de langue",
       description: `La langue a été changée en ${language}`,
@@ -155,9 +153,11 @@ const Resources: React.FC = () => {
           <div className="md:w-64 space-y-6">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filtres
+                <CardTitle>
+                  <div className="text-lg flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filtres
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
@@ -289,7 +289,7 @@ const ResourceGrid: React.FC<ResourceGridProps> = ({ resources, onResourceClick 
                 <span>•</span>
                 <span className="capitalize">{CATEGORIES.find(cat => cat.value === resource.category)?.label}</span>
               </div>
-              <CardTitle className="text-lg leading-tight">{resource.title}</CardTitle>
+              <CardTitle>{resource.title}</CardTitle>
             </CardHeader>
             <CardContent className="pb-0">
               <CardDescription className="line-clamp-2">{resource.description}</CardDescription>

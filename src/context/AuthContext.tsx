@@ -24,10 +24,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Set up auth state listener FIRST
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           // When signed in or token refreshed, update user
-          getCurrentUser().then(setUser);
+          const currentUser = await getCurrentUser();
+          setUser(currentUser);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           localStorage.removeItem('demoUser');
@@ -86,6 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       await signOut(redirectUrl);
+      setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
