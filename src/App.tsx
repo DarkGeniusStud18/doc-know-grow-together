@@ -32,7 +32,6 @@ import ExamSimulator from './pages/ExamSimulator';
 import KYCVerification from './pages/KYCVerification';
 import ContinuingEducation from './pages/ContinuingEducation';
 import MusicLibrary from './pages/MusicLibrary';
-import Functionalities from './pages/Functionalities';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -89,7 +88,6 @@ function App() {
               <Route path="/continuing-education" element={<ContinuingEducation />} />
               <Route path="/my-courses" element={<MyCourses />} /> 
               <Route path="/music-library" element={<MusicLibrary />} />
-              <Route path="/functionalities" element={<Functionalities />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster position="top-center" />

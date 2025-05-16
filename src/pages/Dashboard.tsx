@@ -1,3 +1,4 @@
+
 // Tableau de bord principal - Page d'accueil après connexion
 import React from "react";
 import { Link } from "react-router-dom";
@@ -21,7 +22,10 @@ import {
   Search,
   User,
   Users,
-  Video,
+  Stethoscope,
+  GraduationCap,
+  BookOpen,
+  Microscope,
 } from "lucide-react";
 
 /**
@@ -33,57 +37,53 @@ const Dashboard: React.FC = () => {
 
   if (!user) return null;
 
-  // Cartes de fonctionnalités communes à tous les utilisateurs
-  const commonFeatureCards = [
+  // Cartes de fonctionnalités pour les étudiants
+  const studentFeatureCards = [
     {
-      title: "Base de connaissances médicales",
+      title: "Fiches de révision",
       description:
-        "Accédez à des milliers de ressources validées par des experts.",
-      icon: <Book className="h-8 w-8 text-medical-blue" />,
-      link: "/resources",
+        "Créez et partagez des fiches pour optimiser vos révisions.",
+      icon: <GraduationCap className="h-8 w-8 text-blue-500" />,
+      link: "/notes",
       color: "bg-blue-50",
     },
     {
-      title: "Outils de productivité",
-      description: "Améliorez votre efficacité avec nos outils spécialisés.",
+      title: "Groupes d'étude",
+      description: "Rejoignez ou créez des groupes d'étude collaboratifs.",
+      icon: <Users className="h-8 w-8 text-orange-500" />,
+      link: "/study-groups",
+      color: "bg-orange-50",
+    },
+    {
+      title: "Simulateur d'examens",
+      description:
+        "Entraînez-vous aux examens avec des QCM et des cas cliniques.",
+      icon: <FileText className="h-8 w-8 text-red-500" />,
+      link: "/exam-simulator",
+      color: "bg-red-50",
+    },
+    {
+      title: "Pomodoro & focus",
+      description:
+        "Techniques de concentration et timer pour optimiser votre temps.",
       icon: <Clock className="h-8 w-8 text-green-500" />,
       link: "/tools",
       color: "bg-green-50",
     },
     {
-      title: "Communauté médicale",
-      description:
-        "Échangez avec d'autres étudiants et professionnels de santé.",
-      icon: <Users className="h-8 w-8 text-violet-500" />,
-      link: "/community",
-      color: "bg-violet-50",
-    },
-  ];
-
-  // Fonctionnalités spécifiques aux étudiants
-  const studentFeatureCards = [
-    {
-      title: "Groupes d'étude",
-      description: "Rejoignez ou créez des groupes d'étude collaboratifs.",
-      icon: <Video className="h-8 w-8 text-orange-500" />,
-      link: "/study-groups",
-      color: "bg-orange-50",
+      title: "Planificateur d'études",
+      description: "Organisez votre emploi du temps et vos révisions efficacement.",
+      icon: <Calendar className="h-8 w-8 text-purple-500" />,
+      link: "/calendar",
+      color: "bg-purple-50",
     },
     {
-      title: "Bibliothèque musicale",
+      title: "Musique d'ambiance",
       description:
-        "Améliorer la concentration pendant les études ou le travail",
+        "Bibliothèque musicale pour améliorer votre concentration.",
       icon: <LucideAudioLines className="h-8 w-8 text-cyan-500" />,
       link: "/music-library",
       color: "bg-cyan-50",
-    },
-    {
-      title: "Simulateurs d'examen",
-      description:
-        "Préparez-vous aux examens avec des QCM et des cas cliniques.",
-      icon: <FileText className="h-8 w-8 text-red-500" />,
-      link: "/exam-simulator", // URL corrigée
-      color: "bg-red-50",
     },
   ];
 
@@ -91,35 +91,51 @@ const Dashboard: React.FC = () => {
   const professionalFeatureCards = [
     {
       title: "Cas cliniques",
-      description: "Partagez et consultez des cas cliniques anonymisés.",
-      icon: <MessageSquare className="h-8 w-8 text-amber-500" />,
+      description: "Accédez à une base de données de cas cliniques pour la formation.",
+      icon: <Stethoscope className="h-8 w-8 text-amber-500" />,
       link: "/clinical-cases",
       color: "bg-amber-50",
     },
     {
       title: "Formation continue",
       description:
-        "Suivez votre formation continue et accédez à des ressources experts.",
-      icon: <FileText className="h-8 w-8 text-teal-500" />,
+        "Modules de DPC et ressources pour maintenir vos compétences.",
+      icon: <BookOpen className="h-8 w-8 text-teal-500" />,
       link: "/continuing-education",
       color: "bg-teal-50",
     },
-    // Adding Study Groups feature for professional users as requested
     {
-      title: "Groupes d'étude",
-      description: "Rejoignez ou créez des groupes d'étude collaboratifs.",
-      icon: <Video className="h-8 w-8 text-orange-500" />,
-      link: "/study-groups",
+      title: "Bibliothèque médicale",
+      description: "Accédez aux dernières recherches et publications scientifiques.",
+      icon: <Book className="h-8 w-8 text-blue-500" />,
+      link: "/resources",
+      color: "bg-blue-50",
+    },
+    {
+      title: "Outils cliniques",
+      description: "Calculateurs médicaux et aides à la décision clinique.",
+      icon: <Microscope className="h-8 w-8 text-violet-500" />,
+      link: "/tools",
+      color: "bg-violet-50",
+    },
+    {
+      title: "Échanges entre pairs",
+      description: "Communauté de professionnels pour partager expertise et conseils.",
+      icon: <MessageSquare className="h-8 w-8 text-green-500" />,
+      link: "/community",
+      color: "bg-green-50",
+    },
+    {
+      title: "Gestion documentaire",
+      description: "Organisez vos documents professionnels et vos présentations.",
+      icon: <FileText className="h-8 w-8 text-orange-500" />,
+      link: "/notes",
       color: "bg-orange-50",
     },
   ];
 
   // Déterminer quelles cartes spécifiques afficher en fonction du rôle de l'utilisateur
-  const roleSpecificFeatureCards =
-    user.role === "student" ? studentFeatureCards : professionalFeatureCards;
-
-  // Combiner les cartes communes et spécifiques au rôle
-  const featureCards = [...commonFeatureCards, ...roleSpecificFeatureCards];
+  const featureCards = user.role === "student" ? studentFeatureCards : professionalFeatureCards;
 
   return (
     <MainLayout requireAuth={true}>
@@ -132,7 +148,7 @@ const Dashboard: React.FC = () => {
             </h1>
             <p className="md:text-lg mb-6 opacity-90">
               Bienvenue sur MedCollab, votre plateforme de collaboration
-              médicale.
+              médicale{user.role === "student" ? " pour étudiants." : " pour professionnels de santé."}
               {user.kycStatus !== "verified" &&
                 " Complétez la vérification de votre identité pour accéder à toutes nos fonctionnalités."}
             </p>
@@ -200,7 +216,9 @@ const Dashboard: React.FC = () => {
               <input
                 type="text"
                 className="w-full rounded-full border border-gray-300 py-3 px-12 focus:outline-none focus:ring-2 focus:ring-medical-teal focus:border-transparent"
-                placeholder="Rechercher des ressources, cours, ou groupes"
+                placeholder={user.role === "student" 
+                  ? "Rechercher des fiches, groupes d'étude ou outils..." 
+                  : "Rechercher des ressources, cas cliniques ou outils..."}
               />
             </div>
           </div>
@@ -208,7 +226,11 @@ const Dashboard: React.FC = () => {
 
         {/* Features section */}
         <section>
-          <h2 className="text-2xl font-semibold mb-5">Fonctionnalités</h2>
+          <h2 className="text-2xl font-semibold mb-5">
+            {user.role === "student" 
+              ? "Fonctionnalités pour étudiants" 
+              : "Fonctionnalités pour professionnels"}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featureCards.map((card, index) => (
               <Link to={card.link} key={index}>
