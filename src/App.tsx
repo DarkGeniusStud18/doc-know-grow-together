@@ -7,6 +7,7 @@ import { Toaster } from './components/ui/sonner';
 import { useEffect } from 'react';
 import { createGroupMessageRpcFunctions } from './integrations/supabase/rpc-functions';
 import MusicNotification from './components/music/MusicNotification';
+import { MusicSync } from './components/music/MusicSync';
 
 // Pages
 import Index from './pages/Index';
@@ -42,6 +43,15 @@ const queryClient = new QueryClient({
   }
 });
 
+// Component to scroll to top on route change
+const ScrollToTop = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [window.location.pathname]);
+  
+  return null;
+};
+
 function App() {
   useEffect(() => {
     // Initialize custom RPC functions
@@ -53,6 +63,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -81,6 +92,7 @@ function App() {
             </Routes>
             <Toaster position="top-center" />
             <MusicNotification />
+            <MusicSync />
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>

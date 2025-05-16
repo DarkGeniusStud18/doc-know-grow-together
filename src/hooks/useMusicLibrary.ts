@@ -2,8 +2,20 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { getUserMusicPreferences, updateLastPlayedTrack } from '@/lib/utils/music-utils';
 import { MusicTrack } from '@/types/music';
+import { toast } from 'sonner';
+
+interface UserMusicPreferences {
+  volume?: number;
+  last_played_track?: {
+    id: string;
+    title: string;
+    artist: string;
+    file_url: string;
+    cover_image?: string;
+    category?: string;
+  };
+}
 
 export const useMusicLibrary = () => {
   const { user } = useAuth();
@@ -12,7 +24,7 @@ export const useMusicLibrary = () => {
   const [volume, setVolume] = useState(80);
   const [loading, setLoading] = useState(true);
   
-  // Charger les préférences de l'utilisateur au démarrage
+  // Load user preferences on startup
   useEffect(() => {
     const loadUserPreferences = async () => {
       if (!user) {
@@ -22,15 +34,21 @@ export const useMusicLibrary = () => {
       
       try {
         setLoading(true);
-        const preferences = await getUserMusicPreferences(user.id);
+        const { data: preferences, error } = await supabase
+          .from('user_music_preferences')
+          .select('*, last_played_track:music_tracks!last_played_track(*)')
+          .eq('user_id', user.id)
+          .maybeSingle();
+          
+        if (error) throw error;
         
         if (preferences) {
-          // Pour le volume
+          // Set volume
           if (preferences.volume) {
             setVolume(preferences.volume);
           }
           
-          // Pour la dernière piste jouée
+          // Set last played track
           if (preferences.last_played_track) {
             const track = preferences.last_played_track as any;
             setCurrentTrack({
@@ -38,7 +56,8 @@ export const useMusicLibrary = () => {
               title: track.title,
               artist: track.artist,
               url: track.file_url,
-              coverImage: track.cover_image || ''
+              coverImage: track.cover_image || '',
+              category: track.category
             });
           }
         }
@@ -51,8 +70,8 @@ export const useMusicLibrary = () => {
     
     loadUserPreferences();
     
-    // Écouter les événements de musique depuis d'autres onglets/composants
-    const handleMusicEvent = (event: any) => {
+    // Listen for music events from other tabs/components
+    const handleMusicEvent = (event: CustomEvent<{ track: MusicTrack, shouldPlay?: boolean }>) => {
       const { track, shouldPlay } = event.detail;
       if (track) {
         setCurrentTrack(track);
@@ -60,25 +79,65 @@ export const useMusicLibrary = () => {
       }
     };
     
-    window.addEventListener('music-play', handleMusicEvent);
+    window.addEventListener('music-play', handleMusicEvent as EventListener);
     
     return () => {
-      window.removeEventListener('music-play', handleMusicEvent);
+      window.removeEventListener('music-play', handleMusicEvent as EventListener);
     };
   }, [user]);
   
-  // Mettre à jour les préférences de l'utilisateur lorsque la piste change
+  // Update user preferences when track changes
   useEffect(() => {
-    if (user && currentTrack) {
-      updateLastPlayedTrack(user.id, currentTrack.id, volume);
-    }
+    const updatePreferences = async () => {
+      if (user && currentTrack) {
+        try {
+          // Check if user has preferences
+          const { data: existingPrefs, error: checkError } = await supabase
+            .from('user_music_preferences')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+            
+          if (checkError) throw checkError;
+          
+          if (existingPrefs) {
+            // Update existing preferences
+            const { error: updateError } = await supabase
+              .from('user_music_preferences')
+              .update({
+                last_played_track: currentTrack.id,
+                volume,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', user.id);
+              
+            if (updateError) throw updateError;
+          } else {
+            // Create new preferences
+            const { error: insertError } = await supabase
+              .from('user_music_preferences')
+              .insert({
+                user_id: user.id,
+                last_played_track: currentTrack.id,
+                volume: volume
+              });
+              
+            if (insertError) throw insertError;
+          }
+        } catch (error) {
+          console.error("Error updating user preferences:", error);
+        }
+      }
+    };
+    
+    updatePreferences();
   }, [currentTrack, user, volume]);
   
   const playTrack = (track: MusicTrack) => {
     setCurrentTrack(track);
     setIsPlaying(true);
     
-    // Envoyer un événement pour les autres composants qui écoutent
+    // Send an event for other components that are listening
     const musicEvent = new CustomEvent('music-play', { 
       detail: { track, shouldPlay: true } 
     });
@@ -98,9 +157,7 @@ export const useMusicLibrary = () => {
   
   const changeVolume = (newVolume: number) => {
     setVolume(newVolume);
-    if (user && currentTrack) {
-      updateLastPlayedTrack(user.id, currentTrack.id, newVolume);
-    }
+    // Volume preference is updated in the useEffect that watches currentTrack, user, and volume
   };
   
   return {
