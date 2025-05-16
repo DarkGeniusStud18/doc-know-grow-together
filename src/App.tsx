@@ -18,6 +18,7 @@ import EmailConfirmation from './pages/EmailConfirmation';
 import StudyGroups from './pages/StudyGroups';
 import StudyGroupDetail from './pages/StudyGroupDetail';
 import Resources from './pages/Resources';
+import ResourceArticle from './pages/ResourceArticle';
 import ClinicalCases from './pages/ClinicalCases';
 import Community from './pages/Community';
 import Calendar from './pages/Calendar';
@@ -63,6 +64,7 @@ function App() {
               <Route path="/study-groups" element={<StudyGroups />} />
               <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/resources/:resourceId" element={<ResourceArticle />} />
               <Route path="/clinical-cases" element={<ClinicalCases />} />
               <Route path="/community" element={<Community />} />
               <Route path="/calendar" element={<Calendar />} />
@@ -70,6 +72,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/tools" element={<Tools />} />
               <Route path="/exam-simulator" element={<ExamSimulator />} />
+              <Route path="/kyc" element={<KYCVerification />} />
               <Route path="/kyc-verification" element={<KYCVerification />} />
               <Route path="/continuing-education" element={<ContinuingEducation />} />
               <Route path="/my-courses" element={<MyCourses />} /> 

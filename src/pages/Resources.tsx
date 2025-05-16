@@ -7,8 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Book, BookOpen, FileText, Filter, Search, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-// Import correct toast from hooks to fix the error
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // Données simulées - Dans une application réelle, elles proviendraient d'une API
 const RESOURCES = [
@@ -105,7 +104,6 @@ const Resources: React.FC = () => {
   // Fonction pour gérer le changement de langue (simulation)
   const handleLanguageChange = (language: string) => {
     // Dans un cas réel, cela activerait la traduction de l'application
-    // Correction : Utiliser directement la fonction toast importée depuis hooks/use-toast
     toast({
       title: "Changement de langue",
       description: `La langue a été changée en ${language}`,
