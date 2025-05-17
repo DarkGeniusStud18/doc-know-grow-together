@@ -25,6 +25,9 @@ export const signUp = async (formData: SignUpInput) => {
       return null;
     }
 
+    const redirectUrl = `${window.location.origin}/email-confirmation`;
+    console.log("Email redirect URL:", redirectUrl);
+
     const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
@@ -35,7 +38,7 @@ export const signUp = async (formData: SignUpInput) => {
           university: formData.university,
           specialty: formData.specialty
         },
-        emailRedirectTo: `${window.location.origin}/email-confirmation`
+        emailRedirectTo: redirectUrl
       },
     });
 
@@ -45,6 +48,7 @@ export const signUp = async (formData: SignUpInput) => {
       return null;
     }
 
+    console.log("Signup successful, email confirmation sent");
     return data;
   } catch (error) {
     console.error('Unexpected error during sign up:', error);

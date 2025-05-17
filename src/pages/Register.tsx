@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/components/ui/sonner';
-import { UserRole } from '@/lib/auth-utils';
+import { UserRole } from '@/lib/auth/types';
 import { Loader2, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -59,6 +59,7 @@ const Register: React.FC = () => {
       if (success) {
         setShowVerifyAlert(true);
         // No automatic navigation - let user read the verification alert
+        form.reset();
       }
     } catch (error: any) {
       toast.error('Erreur d\'inscription', { 

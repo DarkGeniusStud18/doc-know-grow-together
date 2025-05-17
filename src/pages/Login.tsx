@@ -1,7 +1,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
 import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * Schéma de validation du formulaire de connexion
@@ -31,9 +32,21 @@ type LoginFormValues = z.infer<typeof loginSchema>;
  * Page de connexion avec formulaire et options de connexion rapide (démo)
  */
 const Login: React.FC = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = React.useState(false);
+  
+  // Check for query parameters like verified=true
+  const searchParams = new URLSearchParams(location.search);
+  const verified = searchParams.get('verified') === 'true';
+  
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -48,6 +61,7 @@ const Login: React.FC = () => {
     try {
       const success = await login(data.email, data.password);
       if (success) {
+        toast.success('Connexion réussie');
         navigate('/dashboard');
       }
     } catch (error: any) {
@@ -92,6 +106,14 @@ const Login: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {verified && (
+              <Alert className="mb-4 bg-green-50 border-green-200">
+                <AlertDescription className="text-green-700">
+                  Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -157,7 +179,7 @@ const Login: React.FC = () => {
             </Form>
             
             <div className="mt-6">
-              {/*<div className="relative">
+              <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
@@ -191,7 +213,7 @@ const Login: React.FC = () => {
                     'Démo Médecin'
                   )}
                 </Button>
-              </div>*/}
+              </div>
               
               <div className="mt-6 text-center text-sm">
                 <span className="text-gray-500">Vous n'avez pas de compte?</span>{' '}
