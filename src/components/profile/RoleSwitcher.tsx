@@ -15,16 +15,18 @@ interface RoleSwitcherProps {
   inSettings?: boolean;
 }
 
+interface SwitchCredentials {
+  pin_code: string;
+  password: string;
+}
+
 const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
   const { user, updateCurrentUser } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [pinCode, setPinCode] = useState('123456');
   const [password, setPassword] = useState('Byron@2025');
   const [isLoading, setIsLoading] = useState(false);
-  const [credentials, setCredentials] = useState<{
-    pin_code: string;
-    password: string;
-  } | null>(null);
+  const [credentials, setCredentials] = useState<SwitchCredentials | null>(null);
 
   useEffect(() => {
     // Fetch the credentials when component mounts
@@ -38,7 +40,13 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
           .single();
           
         if (error) throw error;
-        setCredentials(data);
+        
+        if (data) {
+          setCredentials({
+            pin_code: data.pin_code,
+            password: data.password
+          });
+        }
       } catch (error) {
         console.error('Error fetching credentials:', error);
       }
@@ -63,9 +71,15 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
       // Switch the role
       const newRole = user.role === 'student' ? 'professional' : 'student';
       
+      // Create an update object
+      const updateData = {
+        role: newRole,
+        updated_at: new Date().toISOString()
+      };
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
+        .update(updateData)
         .eq('id', user.id);
       
       if (error) throw error;

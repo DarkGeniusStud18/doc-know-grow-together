@@ -33,5 +33,37 @@ export interface UserProfile {
   updated_at: string;
   university?: string;
   specialty?: string;
-  profile_image_url?: string;
+  profile_image?: string;
+}
+
+// Interface for Database Types with Supabase
+export interface ProfilesTable {
+  id: string;
+  email?: string;
+  display_name: string;
+  role: UserRole;
+  kyc_status: KycStatus;
+  university?: string;
+  specialty?: string;
+  profile_image?: string;
+  created_at: string;
+  updated_at: string;
+  subscription_status?: string;
+  subscription_expiry?: string;
+}
+
+export interface StudyGroupMembersTable {
+  id: string;
+  group_id: string;
+  user_id: string;
+  role: string;
+  joined_at: string;
+}
+
+export interface SwitchCredentialsTable {
+  id: string;
+  pin_code: string;
+  password: string;
+  created_at: string;
+  updated_at: string;
 }

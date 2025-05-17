@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,10 +53,11 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     try {
       // In a real application, this would send an invitation to the user
       // For now, we'll just add them directly if they exist
+      // Perform a case-insensitive search for the email
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('id, display_name, profile_image')
-        .eq('email', emailToInvite)
+        .ilike('email', emailToInvite)
         .single();
         
       if (userError || !userData) {
@@ -70,13 +72,16 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         return;
       }
       
+      // Create new member object to insert
+      const newMemberData = {
+        group_id: groupId,
+        user_id: userData.id,
+        role: 'member'
+      };
+      
       const { data: memberData, error: memberError } = await supabase
         .from('study_group_members')
-        .insert({
-          group_id: groupId,
-          user_id: userData.id,
-          role: 'member'
-        })
+        .insert(newMemberData)
         .select()
         .single();
         
@@ -105,9 +110,12 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     if (!selectedMember || !newRole) return;
     
     try {
+      // Create update object
+      const updateData = { role: newRole };
+      
       const { error } = await supabase
         .from('study_group_members')
-        .update({ role: newRole })
+        .update(updateData)
         .eq('id', selectedMember.id);
         
       if (error) throw error;

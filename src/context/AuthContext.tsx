@@ -23,49 +23,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to fetch current user with error handling
+  const fetchCurrentUser = async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      console.log('Fetched current user:', currentUser);
+      setUser(currentUser);
+      return currentUser;
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+      return null;
+    }
+  };
+
   // Set up auth state listener FIRST
   useEffect(() => {
     console.log('Setting up auth state listener');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state change event:', event, 'Session:', !!session);
+      async (event, session) => {
+        console.log('Auth state change event:', event, 'Session exists:', !!session);
         
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          // When signed in or token refreshed, update user
-          // We use setTimeout to prevent auth deadlocks
-          setTimeout(async () => {
-            try {
-              const currentUser = await getCurrentUser();
-              setUser(currentUser);
-              console.log('User signed in:', currentUser);
-            } catch (error) {
-              console.error('Error getting current user:', error);
-            }
-          }, 0);
+        if (event === 'SIGNED_IN') {
+          // Use a timeout to prevent auth deadlocks
+          setTimeout(fetchCurrentUser, 0);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed, updating user data');
+          setTimeout(fetchCurrentUser, 0);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           localStorage.removeItem('demoUser');
           console.log('User signed out');
         } else if (event === 'USER_UPDATED') {
-          // We use setTimeout to prevent auth deadlocks
-          setTimeout(async () => {
-            try {
-              const currentUser = await getCurrentUser();
-              setUser(currentUser);
-              console.log('User updated:', currentUser);
-            } catch (error) {
-              console.error('Error getting updated user:', error);
-            }
-          }, 0);
+          setTimeout(fetchCurrentUser, 0);
         } else if (event === 'PASSWORD_RECOVERY') {
-          // Pass the token to the password recovery page
-          window.location.href = `/password-recovery${window.location.search}`;
+          // Handle password recovery
+          const url = new URL(window.location.href);
+          const token = url.searchParams.get('token');
+          const type = url.searchParams.get('type');
+          
+          if (token && type === 'recovery') {
+            console.log('Password recovery flow detected');
+            window.location.href = `/password-recovery?token=${token}&type=${type}`;
+          }
         }
       }
     );
 
-    // Check for existing session
-    const checkUser = async () => {
+    // Initial session check
+    const checkSession = async () => {
       try {
         console.log('Initial session check...');
         const { data, error } = await supabase.auth.getSession();
@@ -76,32 +82,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
+        console.log('Session check result:', data);
+        
         if (data.session) {
-          console.log('Session found, fetching user data');
-          const currentUser = await getCurrentUser();
-          setUser(currentUser);
-          console.log('Initial user check:', currentUser);
+          console.log('Valid session found, fetching user data');
+          await fetchCurrentUser();
         } else {
-          // Check if we have a demo user in localStorage
+          // Check for demo user
           const demoUser = localStorage.getItem('demoUser');
           if (demoUser) {
-            const currentUser = await getCurrentUser();
-            setUser(currentUser);
-            console.log('Demo user found:', currentUser);
+            await fetchCurrentUser();
           } else {
-            console.log('No valid session found');
+            console.log('No valid session or demo user found');
+            setUser(null);
           }
         }
       } catch (error) {
-        console.error('Error checking user:', error);
+        console.error('Error in session check:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkUser();
+    // Run initial check after subscription is set up
+    checkSession();
 
+    // Cleanup function
     return () => {
+      console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, []);
@@ -109,6 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting login for:', email);
       
       // Handle demo accounts
       if (email === "student@example.com" && password === "password") {
@@ -118,10 +127,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       const user = await signIn(email, password);
+      
       if (user) {
+        console.log('Login successful for:', user.email);
         setUser(user);
         return true;
       }
+      
+      console.log('Login failed');
       return false;
     } catch (error: any) {
       console.error('Login error:', error);
@@ -151,16 +164,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       
       // Check if user exists
-      const userExists = await supabase
+      const { data: existingUser } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
         .maybeSingle();
         
-      if (userExists.data) {
+      if (existingUser) {
         toast.error('Un compte avec cette adresse email existe déjà');
         return false;
       }
+      
+      // Define the redirect URL based on environment
+      const siteUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://doc-know-grow-together.netlify.app' 
+        : window.location.origin;
       
       // Register the new user
       const { data: authData, error } = await supabase.auth.signUp({
@@ -171,11 +189,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             display_name: displayName,
             role,
           },
-          emailRedirectTo: `${window.location.origin}/email-confirmation`
+          emailRedirectTo: `${siteUrl}/email-confirmation`
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Registration error:', error);
+        throw error;
+      }
       
       toast.success('Inscription réussie! Vérifiez votre email pour confirmer votre compte.');
       return true;
@@ -200,16 +221,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return checkPremiumStatus(user.id);
   };
 
+  const contextValue = {
+    user, 
+    loading, 
+    login, 
+    logout, 
+    register, 
+    updateCurrentUser,
+    checkPremiumAccess
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      login, 
-      logout, 
-      register, 
-      updateCurrentUser,
-      checkPremiumAccess 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

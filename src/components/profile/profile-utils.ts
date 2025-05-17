@@ -65,12 +65,19 @@ export const updateUserProfile = async (
   }
 ): Promise<boolean> => {
   try {
+    const updateData: Record<string, any> = {};
+    
+    if (updates.display_name !== undefined) updateData.display_name = updates.display_name;
+    if (updates.university !== undefined) updateData.university = updates.university;
+    if (updates.specialty !== undefined) updateData.specialty = updates.specialty;
+    if (updates.profile_image !== undefined) updateData.profile_image = updates.profile_image;
+    
+    // Add updated_at field
+    updateData.updated_at = new Date().toISOString();
+    
     const { error } = await supabase
       .from('profiles')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', userId);
     
     if (error) throw error;
