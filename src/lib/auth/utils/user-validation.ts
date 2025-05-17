@@ -11,21 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 // Fonction pour vérifier l'existence d'un utilisateur par email
 export const checkUserExists = async (email: string): Promise<boolean> => {
   try {
-    // First check auth table
-    const { data: authData, error: authError } = await supabase.auth.admin
-      .listUsers()
-      .catch(() => {
-        // Fallback if admin privileges are not available
-        return { data: null, error: new Error('Admin API not available') };
-      });
-    
-    if (!authError && authData) {
-      // Check if user exists in the returned users array
-      const userExists = authData.users.some(user => user.email === email);
-      if (userExists) return true;
-    }
-    
-    // Then check profiles table
+    // Note: We don't have direct access to auth.users via the client
+    // So we just check profiles table
     const { data, error } = await supabase
       .from("profiles")
       .select("id")

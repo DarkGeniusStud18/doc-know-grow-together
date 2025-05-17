@@ -25,7 +25,12 @@ export const signUp = async (formData: SignUpInput) => {
       return null;
     }
 
-    const redirectUrl = `${window.location.origin}/email-confirmation`;
+    // Define the redirect URL based on environment
+    const siteUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://doc-know-grow-together.netlify.app' 
+      : window.location.origin;
+    
+    const redirectUrl = `${siteUrl}/email-confirmation`;
     console.log("Email redirect URL:", redirectUrl);
 
     const { data, error } = await supabase.auth.signUp({

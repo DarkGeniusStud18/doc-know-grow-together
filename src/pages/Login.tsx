@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -13,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
 import { Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Mail } from 'lucide-react';
 
 /**
  * Schéma de validation du formulaire de connexion
@@ -112,6 +112,16 @@ const Login: React.FC = () => {
   return (
     <MainLayout requireAuth={false}>
       <div className="min-h-[calc(100vh-120px)] md:min-h-[80vh] flex flex-col items-center justify-center p-4 overflow-hidden">
+        {verified && (
+          <Alert className="max-w-md w-full mb-4 bg-green-50 border-green-200" variant="default">
+            <Mail className="h-5 w-5 text-green-500" />
+            <AlertTitle className="text-green-700">Email vérifié</AlertTitle>
+            <AlertDescription className="text-green-600">
+              Votre email a été vérifié. Vous pouvez maintenant vous connecter.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <Card className="w-full max-w-md animate-fade-in shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">Connexion</CardTitle>
@@ -120,14 +130,6 @@ const Login: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {verified && (
-              <Alert className="mb-4 bg-green-50 border-green-200">
-                <AlertDescription className="text-green-700">
-                  Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.
-                </AlertDescription>
-              </Alert>
-            )}
-            
             {loginError && (
               <Alert className="mb-4 bg-red-50 border-red-200" variant="destructive">
                 <AlertDescription className="text-red-700">
