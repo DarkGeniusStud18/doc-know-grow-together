@@ -20,34 +20,30 @@ const EmailConfirmation: React.FC = () => {
   useEffect(() => {
     const confirmEmail = async () => {
       try {
-        // Récupération des paramètres de requête depuis l'URL
-        const queryParams = new URLSearchParams(location.search);
-        const access_token = queryParams.get('access_token');
-        const refresh_token = queryParams.get('refresh_token');
-        const type = queryParams.get('type');
-
-        if (!access_token || !type) {
+        console.log("Email confirmation path:", location.pathname);
+        console.log("Email confirmation search:", location.search);
+        console.log("Email confirmation hash:", location.hash);
+        
+        // For email confirmations, Supabase adds a hash fragment that contains the tokens
+        // Supabase client will automatically handle this when we check the session
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
           setVerificationStatus('error');
           return;
         }
-
-        // Configuration de la session si disponible
-        if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
-
-          if (error) {
-            console.error('Error setting session:', error);
-            setVerificationStatus('error');
-            return;
-          }
-        }
-
-        // Si le type est signup, l'email a été vérifié avec succès
-        if (type === 'signup' || type === 'signup_email_confirmation') {
+        
+        if (data.session) {
+          console.log('Session found, email verified successfully');
           setVerificationStatus('success');
+          
+          // Store the session for the app
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+          
           toast.success("Email vérifié avec succès!", {
             description: "Votre compte est maintenant activé. Vous pouvez vous connecter."
           });
@@ -57,7 +53,17 @@ const EmailConfirmation: React.FC = () => {
             navigate('/login?verified=true');
           }, 5000);
         } else {
-          setVerificationStatus('error');
+          // If no session, look for confirmation type in URL
+          const queryParams = new URLSearchParams(location.search);
+          const type = queryParams.get('type');
+          
+          if (type === 'signup' || type === 'signup_email_confirmation') {
+            console.log('Found signup confirmation type in URL');
+            setVerificationStatus('success');
+          } else {
+            console.error('No valid session or confirmation type found');
+            setVerificationStatus('error');
+          }
         }
       } catch (error) {
         console.error('Error confirming email:', error);

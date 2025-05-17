@@ -8,21 +8,38 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Fonction simplifiée pour vérifier l'existence d'un utilisateur
+// Fonction pour vérifier l'existence d'un utilisateur par email
 export const checkUserExists = async (email: string): Promise<boolean> => {
   try {
+    // First check auth table
+    const { data: authData, error: authError } = await supabase.auth.admin
+      .listUsers({
+        filters: {
+          email: email
+        }
+      })
+      .catch(() => {
+        // Fallback if admin privileges are not available
+        return { data: null, error: new Error('Admin API not available') };
+      });
+    
+    if (!authError && authData && authData.users.length > 0) {
+      return true;
+    }
+    
+    // Then check profiles table
     const { data, error } = await supabase
       .from("profiles")
       .select("id")
       .eq("email", email)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Erreur lors de la vérification de l'utilisateur:", error);
       return false;
     }
 
-    return !!data; // Retourne true si l'utilisateur existe, sinon false
+    return !!data;
   } catch (err) {
     console.error("Exception lors de la vérification de l'utilisateur:", err);
     return false;

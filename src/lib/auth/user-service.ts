@@ -29,20 +29,27 @@ export const getCurrentUser = async (): Promise<User | null> => {
     }
 
     // Get session with autoRefreshToken enabled
-    const { data } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
     
+    if (error) {
+      console.error("Error getting session:", error);
+      return null;
+    }
+
     if (!data.session) {
       return null;
     }
     
-    const { data: profileData, error } = await supabase
+    console.log("Current session:", data.session);
+    
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', data.session.user.id)
       .maybeSingle();
       
-    if (error) {
-      console.error("Error fetching user profile:", error);
+    if (profileError) {
+      console.error("Error fetching user profile:", profileError);
       return null;
     }
       
@@ -58,9 +65,39 @@ export const getCurrentUser = async (): Promise<User | null> => {
         specialty: profileData.specialty,
         createdAt: new Date(profileData.created_at),
       };
+    } else {
+      // If profile doesn't exist for some reason, create it
+      const displayName = data.session.user.user_metadata.display_name || 
+                          data.session.user.email?.split('@')[0] || 
+                          'User';
+      const role = data.session.user.user_metadata.role || 'student';
+        
+      const { error: createProfileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.session.user.id,
+          display_name: displayName,
+          role: role,
+          kyc_status: 'not_submitted' as KycStatus,
+          email: data.session.user.email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+          
+      if (createProfileError) {
+        console.error("Error creating missing profile:", createProfileError);
+        return null;
+      }
+      
+      return {
+        id: data.session.user.id,
+        email: data.session.user.email || '',
+        displayName: displayName,
+        role: role as UserRole,
+        kycStatus: 'not_submitted' as KycStatus,
+        createdAt: new Date(),
+      };
     }
-    
-    return null;
   } catch (error) {
     console.error("Error getting current user:", error);
     return null;

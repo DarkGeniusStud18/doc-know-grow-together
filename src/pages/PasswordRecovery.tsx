@@ -39,31 +39,33 @@ const PasswordRecovery: React.FC = () => {
     const verifyRecoveryToken = async () => {
       try {
         // Get token from URL
-        const queryParams = new URLSearchParams(location.search);
-        const access_token = queryParams.get('access_token');
-        const refresh_token = queryParams.get('refresh_token');
-        const type = queryParams.get('type');
+        const hash = window.location.hash;
+        const searchParams = new URLSearchParams(location.search);
+        const type = searchParams.get('type');
 
-        if (!access_token || !type || type !== 'recovery') {
+        console.log("Recovery params:", { hash, type, search: location.search });
+
+        // Check if we have the required parameters for password recovery
+        if (!hash && (type !== 'recovery' && type !== 'signup')) {
+          console.error("Missing recovery parameters");
           setRecoveryStatus('error');
           return;
         }
 
-        // Set session if tokens are present
-        if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
-
-          if (error) {
-            console.error('Error setting session:', error);
-            setRecoveryStatus('error');
-            return;
-          }
-          
+        // Supabase handles the token parsing from the URL
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setRecoveryStatus('error');
+          return;
+        }
+        
+        if (data.session) {
+          console.log('Recovery session found:', data.session);
           setRecoveryStatus('ready');
         } else {
+          console.error('No valid session found for recovery');
           setRecoveryStatus('error');
         }
       } catch (error) {

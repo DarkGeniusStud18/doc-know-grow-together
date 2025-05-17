@@ -34,8 +34,11 @@ const ForgotPassword: React.FC = () => {
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsLoading(true);
     try {
+      const redirectUrl = `${window.location.origin}/password-recovery`;
+      console.log("Password reset redirect URL:", redirectUrl);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: `${window.location.origin}/password-recovery`,
+        redirectTo: redirectUrl,
       });
       
       if (error) {
@@ -43,6 +46,9 @@ const ForgotPassword: React.FC = () => {
       }
       
       setEmailSent(true);
+      toast.success("Email envoyé avec succès", {
+        description: "Si un compte existe avec cet email, vous recevrez un lien pour réinitialiser votre mot de passe."
+      });
     } catch (error: any) {
       console.error('Error requesting password reset:', error);
       toast.error('Erreur lors de la demande de réinitialisation', {

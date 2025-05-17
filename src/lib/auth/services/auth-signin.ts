@@ -59,6 +59,8 @@ export const signIn = async (
     }
     
     if (data.user) {
+      console.log("User signed in:", data.user);
+      
       // Récupération du profil utilisateur de notre base de données
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')

@@ -27,13 +27,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change event:', event);
+        
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           // When signed in or token refreshed, update user
-          const currentUser = await getCurrentUser();
-          setUser(currentUser);
+          try {
+            const currentUser = await getCurrentUser();
+            setUser(currentUser);
+            console.log('User signed in:', currentUser);
+          } catch (error) {
+            console.error('Error getting current user:', error);
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           localStorage.removeItem('demoUser');
+          console.log('User signed out');
+        } else if (event === 'USER_UPDATED') {
+          try {
+            const currentUser = await getCurrentUser();
+            setUser(currentUser);
+            console.log('User updated:', currentUser);
+          } catch (error) {
+            console.error('Error getting updated user:', error);
+          }
+        } else if (event === 'PASSWORD_RECOVERY') {
+          // Pass the token to the password recovery page
+          window.location.href = `/password-recovery${window.location.search}`;
         }
       }
     );
@@ -43,6 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
+        console.log('Initial user check:', currentUser);
       } catch (error) {
         console.error('Error checking user:', error);
       } finally {
@@ -121,7 +141,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             display_name: displayName,
             role,
           },
-          // Configure session persistence
           emailRedirectTo: `${window.location.origin}/email-confirmation`
         }
       });
