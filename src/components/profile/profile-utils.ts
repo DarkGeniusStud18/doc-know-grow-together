@@ -2,6 +2,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole, KycStatus } from '@/lib/auth/types';
 import { toast } from '@/components/ui/sonner';
+import { Database } from '@/integrations/supabase/types';
+
+type ProfilesUpdate = Database['public']['Tables']['profiles']['Update'];
+type ProfilesRow = Database['public']['Tables']['profiles']['Row'];
 
 /**
  * Télécharge une image de profil vers Supabase Storage
@@ -65,7 +69,7 @@ export const updateUserProfile = async (
   }
 ): Promise<boolean> => {
   try {
-    const updateData: Record<string, any> = {};
+    const updateData: ProfilesUpdate = {};
     
     if (updates.display_name !== undefined) updateData.display_name = updates.display_name;
     if (updates.university !== undefined) updateData.university = updates.university;
@@ -78,7 +82,7 @@ export const updateUserProfile = async (
     const { error } = await supabase
       .from('profiles')
       .update(updateData)
-      .eq('id', userId);
+      .eq('id', userId as string);
     
     if (error) throw error;
     
@@ -101,23 +105,26 @@ export const getUserFullProfile = async (userId: string): Promise<User | null> =
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)
+      .eq('id', userId as string)
       .maybeSingle();
       
     if (error) throw error;
     
     if (!data) return null;
+
+    // Explicitly cast data to ProfilesRow type for type safety
+    const profile = data as ProfilesRow;
     
     return {
-      id: data.id,
-      email: data.email || '',
-      displayName: data.display_name,
-      role: data.role as UserRole,
-      kycStatus: data.kyc_status as KycStatus,
-      profileImage: data.profile_image,
-      university: data.university,
-      specialty: data.specialty,
-      createdAt: new Date(data.created_at)
+      id: profile.id,
+      email: profile.email || '',
+      displayName: profile.display_name,
+      role: profile.role as UserRole,
+      kycStatus: profile.kyc_status as KycStatus,
+      profileImage: profile.profile_image,
+      university: profile.university,
+      specialty: profile.specialty,
+      createdAt: new Date(profile.created_at)
     };
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error);

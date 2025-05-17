@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -11,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/context/AuthContext';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
 // Type for form data
 interface ProfileFormData {
@@ -62,7 +62,7 @@ const ProfileSettings = () => {
 
       if (data) {
         // Update user profile in database
-        const updateData = {
+        const updateData: ProfilesUpdate = {
           profile_image: data.publicUrl,
           updated_at: new Date().toISOString()
         };
@@ -70,7 +70,7 @@ const ProfileSettings = () => {
         const { error: updateError } = await supabase
           .from('profiles')
           .update(updateData)
-          .eq('id', user.id);
+          .eq('id', user.id as string);
         
         if (updateError) throw updateError;
         
@@ -100,7 +100,7 @@ const ProfileSettings = () => {
     
     try {
       // Update profile in database
-      const updateData = {
+      const updateData: ProfilesUpdate = {
         display_name: data.displayName,
         university: data.university || null,
         specialty: data.specialty || null,
@@ -110,7 +110,7 @@ const ProfileSettings = () => {
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('id', user.id);
+        .eq('id', user.id as string);
       
       if (error) throw error;
       

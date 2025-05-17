@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Mail, Search, Shield, UserMinus } from 'lucide-react';
+import { Database } from '@/integrations/supabase/types';
 
 interface Profile {
   display_name: string;
@@ -31,6 +31,8 @@ type GroupMembersProps = {
   canManage: boolean;
   onMembersChange: (members: Member[]) => void;
 };
+
+type StudyGroupMembersInsert = Database['public']['Tables']['study_group_members']['Insert'];
 
 const GroupMembers: React.FC<GroupMembersProps> = ({ 
   groupId, 
@@ -72,8 +74,8 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         return;
       }
       
-      // Create new member object to insert
-      const newMemberData = {
+      // Create new member object to insert with proper typing
+      const newMemberData: StudyGroupMembersInsert = {
         group_id: groupId,
         user_id: userData.id,
         role: 'member'

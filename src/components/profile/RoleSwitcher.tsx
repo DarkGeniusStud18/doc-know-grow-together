@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
+import { Database } from '@/integrations/supabase/types';
 
 interface RoleSwitcherProps {
   inSettings?: boolean;
@@ -19,6 +19,8 @@ interface SwitchCredentials {
   pin_code: string;
   password: string;
 }
+
+type ProfilesUpdate = Database['public']['Tables']['profiles']['Update'];
 
 const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
   const { user, updateCurrentUser } = useAuth();
@@ -72,7 +74,7 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
       const newRole = user.role === 'student' ? 'professional' : 'student';
       
       // Create an update object
-      const updateData = {
+      const updateData: ProfilesUpdate = {
         role: newRole,
         updated_at: new Date().toISOString()
       };
@@ -80,7 +82,7 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('id', user.id);
+        .eq('id', user.id as string);
       
       if (error) throw error;
       
