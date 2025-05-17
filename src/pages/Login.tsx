@@ -107,7 +107,7 @@ const Login: React.FC = () => {
           </CardHeader>
           <CardContent>
             {verified && (
-              <Alert variant="success" className="mb-4 bg-green-50 border-green-200">
+              <Alert className="mb-4 bg-green-50 border-green-200">
                 <AlertDescription className="text-green-700">
                   Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.
                 </AlertDescription>

@@ -13,18 +13,16 @@ export const checkUserExists = async (email: string): Promise<boolean> => {
   try {
     // First check auth table
     const { data: authData, error: authError } = await supabase.auth.admin
-      .listUsers({
-        filters: {
-          email: email
-        }
-      })
+      .listUsers()
       .catch(() => {
         // Fallback if admin privileges are not available
         return { data: null, error: new Error('Admin API not available') };
       });
     
-    if (!authError && authData && authData.users.length > 0) {
-      return true;
+    if (!authError && authData) {
+      // Check if user exists in the returned users array
+      const userExists = authData.users.some(user => user.email === email);
+      if (userExists) return true;
     }
     
     // Then check profiles table
