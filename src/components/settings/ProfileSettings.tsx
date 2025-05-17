@@ -62,9 +62,14 @@ const ProfileSettings = () => {
 
       if (data) {
         // Update user profile in database
+        const updateData = {
+          profile_image: data.publicUrl,
+          updated_at: new Date().toISOString()
+        };
+
         const { error: updateError } = await supabase
           .from('profiles')
-          .update({ profile_image: data.publicUrl })
+          .update(updateData)
           .eq('id', user.id);
         
         if (updateError) throw updateError;
@@ -95,14 +100,16 @@ const ProfileSettings = () => {
     
     try {
       // Update profile in database
+      const updateData = {
+        display_name: data.displayName,
+        university: data.university || null,
+        specialty: data.specialty || null,
+        updated_at: new Date().toISOString()
+      };
+      
       const { error } = await supabase
         .from('profiles')
-        .update({
-          display_name: data.displayName,
-          university: data.university,
-          specialty: data.specialty,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', user.id);
       
       if (error) throw error;

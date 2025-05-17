@@ -17,7 +17,7 @@ export const checkUserExists = async (email: string): Promise<boolean> => {
       .from("profiles")
       .select("id")
       .eq("email", email)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Erreur lors de la vérification de l'utilisateur:", error);
