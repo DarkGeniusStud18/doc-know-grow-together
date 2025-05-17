@@ -18,7 +18,15 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       storageKey: 'medcollab-auth-token',
       storage: localStorage,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      flowType: 'pkce'
     }
   }
 );
+
+// Add a listener to log auth events during debugging
+if (process.env.NODE_ENV === 'development') {
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Supabase Auth Event:', event, session ? 'Session exists' : 'No session');
+  });
+}

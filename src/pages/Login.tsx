@@ -1,6 +1,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -35,7 +35,8 @@ const Login: React.FC = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   // Check for query parameters like verified=true
   const searchParams = new URLSearchParams(location.search);
@@ -58,15 +59,21 @@ const Login: React.FC = () => {
   
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
+    setLoginError(null);
+    
     try {
       const success = await login(data.email, data.password);
       if (success) {
         toast.success('Connexion réussie');
         navigate('/dashboard');
+      } else {
+        setLoginError('Échec de la connexion. Vérifiez vos identifiants et réessayez.');
       }
     } catch (error: any) {
+      console.error('Login error:', error);
+      setLoginError(error.message || 'Une erreur s\'est produite lors de la connexion');
       toast.error('Erreur de connexion', { 
-        description: error.message || 'Veuillez vérifier vos identifiants et réessayer.' 
+        description: error.message || 'Veuillez vérifier vos identifiants et réessayer.'
       });
     } finally {
       setIsLoading(false);
@@ -75,6 +82,8 @@ const Login: React.FC = () => {
   
   const handleDemo = async (type: 'student' | 'professional') => {
     setIsLoading(true);
+    setLoginError(null);
+    
     try {
       let success;
       if (type === 'student') {
@@ -84,9 +93,14 @@ const Login: React.FC = () => {
       }
       
       if (success) {
+        toast.success('Connexion démo réussie');
         navigate('/dashboard');
+      } else {
+        setLoginError('Échec de la connexion démo. Veuillez réessayer.');
       }
     } catch (error: any) {
+      console.error('Demo login error:', error);
+      setLoginError(error.message || 'Une erreur s\'est produite lors de la connexion');
       toast.error('Erreur de connexion', { 
         description: error.message || 'Veuillez réessayer plus tard.' 
       });
@@ -110,6 +124,14 @@ const Login: React.FC = () => {
               <Alert className="mb-4 bg-green-50 border-green-200">
                 <AlertDescription className="text-green-700">
                   Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {loginError && (
+              <Alert className="mb-4 bg-red-50 border-red-200" variant="destructive">
+                <AlertDescription className="text-red-700">
+                  {loginError}
                 </AlertDescription>
               </Alert>
             )}
