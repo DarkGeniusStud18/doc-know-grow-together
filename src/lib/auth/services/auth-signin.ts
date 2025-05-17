@@ -15,6 +15,8 @@ export const signIn = async (
   password: string
 ): Promise<User | null> => {
   try {
+    console.log('Attempting sign in for:', email);
+    
     // Gestion des comptes de démonstration
     if (email === "student@example.com" && password === "password") {
       const user: User = {
@@ -26,7 +28,7 @@ export const signIn = async (
         university: "Université Paris Descartes",
         createdAt: new Date(),
       };
-      toast.success("Connexion réussie avec le compte démo étudiant!");
+      console.log('Demo student login successful');
       // Store demo user in localStorage for persistence
       localStorage.setItem('demoUser', 'student');
       return user;
@@ -40,7 +42,7 @@ export const signIn = async (
         specialty: "Cardiologie",
         createdAt: new Date(),
       };
-      toast.success("Connexion réussie avec le compte démo professionnel!");
+      console.log('Demo professional login successful');
       // Store demo user in localStorage for persistence
       localStorage.setItem('demoUser', 'professional');
       return user;
@@ -54,8 +56,7 @@ export const signIn = async (
     
     if (error) {
       console.error("Error signing in:", error);
-      toast.error(error.message || "Email ou mot de passe incorrect");
-      return null;
+      throw new Error(error.message || "Email ou mot de passe incorrect");
     }
     
     if (data.user) {
@@ -70,8 +71,7 @@ export const signIn = async (
       
       if (profileError) {
         console.error("Error fetching profile:", profileError);
-        toast.error("Erreur lors de la récupération du profil");
-        return null;
+        throw new Error("Erreur lors de la récupération du profil");
       }
       
       if (profileData) {
@@ -87,10 +87,11 @@ export const signIn = async (
           createdAt: new Date(profileData.created_at),
         };
         
-        toast.success("Connexion réussie!");
+        console.log("User profile found:", user);
         return user;
       } else {
         // Si aucun profil n'est trouvé, en créer un
+        console.log("No profile found, creating one...");
         const displayName = data.user.user_metadata.display_name || email.split('@')[0];
         const role = data.user.user_metadata.role || 'student';
         
@@ -119,18 +120,14 @@ export const signIn = async (
           createdAt: new Date(),
         };
         
-        toast.success("Connexion réussie!");
+        console.log("Created new profile:", user);
         return user;
       }
     }
     
-    toast.error("Email ou mot de passe incorrect");
-    return null;
+    throw new Error("Email ou mot de passe incorrect");
   } catch (error: any) {
     console.error("Error signing in:", error);
-    toast.error("Erreur lors de la connexion", {
-      description: error.message || "Veuillez réessayer plus tard."
-    });
-    return null;
+    throw error;
   }
 };
