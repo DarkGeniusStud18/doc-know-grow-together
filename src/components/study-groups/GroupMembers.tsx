@@ -1,3 +1,10 @@
+
+/**
+ * Composant GroupMembers
+ * 
+ * Ce composant affiche et gère les membres d'un groupe d'étude.
+ * Il permet d'ajouter, supprimer et modifier les rôles des membres.
+ */
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +15,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Mail, Search, Shield, UserMinus } from 'lucide-react';
-import { Database } from '@/integrations/supabase/types';
+import { StudyGroupMembersInsert, StudyGroupMembersUpdate } from '@/lib/auth/types';
 
+/**
+ * Interface pour le profil d'un membre
+ */
 interface Profile {
   display_name: string;
   profile_image?: string;
 }
 
+/**
+ * Interface pour un membre du groupe
+ */
 type Member = {
   id: string;
   user_id: string;
@@ -24,16 +37,25 @@ type Member = {
   profile?: Profile;
 };
 
+/**
+ * Props du composant GroupMembers
+ */
 type GroupMembersProps = {
+  /** ID du groupe */
   groupId: string;
+  /** Liste des membres du groupe */
   members: Member[];
+  /** Rôle de l'utilisateur actuel dans le groupe */
   userRole: string;
+  /** Indique si l'utilisateur peut gérer le groupe */
   canManage: boolean;
+  /** Fonction de rappel lors du changement des membres */
   onMembersChange: (members: Member[]) => void;
 };
 
-type StudyGroupMembersInsert = Database['public']['Tables']['study_group_members']['Insert'];
-
+/**
+ * Composant pour afficher et gérer les membres d'un groupe d'étude
+ */
 const GroupMembers: React.FC<GroupMembersProps> = ({ 
   groupId, 
   members, 
@@ -49,13 +71,16 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [newRole, setNewRole] = useState<string>('');
 
+  /**
+   * Invite un nouveau membre par email
+   */
   const handleInviteMember = async () => {
     if (!emailToInvite) return;
     
     try {
-      // In a real application, this would send an invitation to the user
-      // For now, we'll just add them directly if they exist
-      // Perform a case-insensitive search for the email
+      // Dans une application réelle, ceci enverrait une invitation à l'utilisateur
+      // Pour l'instant, nous les ajoutons directement s'ils existent
+      // Recherche insensible à la casse pour l'email
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('id, display_name, profile_image')
@@ -67,14 +92,19 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         return;
       }
       
-      // Check if already a member
+      // Vérification si déjà membre
       const existingMember = members.find(m => m.user_id === userData.id);
       if (existingMember) {
         toast.error('Cet utilisateur est déjà membre du groupe');
         return;
       }
       
-      // Create new member object to insert with proper typing
+      // Vérification explicite que userData n'est pas une erreur
+      if ('error' in userData) {
+        throw new Error('Erreur lors de la récupération des données utilisateur');
+      }
+      
+      // Création du nouvel objet membre pour insertion avec typage correct
       const newMemberData: StudyGroupMembersInsert = {
         group_id: groupId,
         user_id: userData.id,
@@ -89,7 +119,11 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         
       if (memberError) throw memberError;
       
-      // Add profile info to the new member
+      if (!memberData || 'error' in memberData) {
+        throw new Error('Erreur lors de l\'ajout du membre');
+      }
+      
+      // Ajout des informations de profil au nouveau membre
       const newMember = {
         ...memberData,
         profile: {
@@ -108,12 +142,15 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     }
   };
   
+  /**
+   * Change le rôle d'un membre
+   */
   const handleChangeRole = async () => {
     if (!selectedMember || !newRole) return;
     
     try {
-      // Create update object
-      const updateData = { role: newRole };
+      // Création de l'objet de mise à jour
+      const updateData: StudyGroupMembersUpdate = { role: newRole };
       
       const { error } = await supabase
         .from('study_group_members')
@@ -122,7 +159,7 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         
       if (error) throw error;
       
-      // Update local state
+      // Mise à jour de l'état local
       const updatedMembers = members.map(m => 
         m.id === selectedMember.id ? { ...m, role: newRole } : m
       );
@@ -138,6 +175,9 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     }
   };
   
+  /**
+   * Supprime un membre du groupe
+   */
   const handleRemoveMember = async () => {
     if (!selectedMember) return;
     
@@ -149,7 +189,7 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         
       if (error) throw error;
       
-      // Update local state
+      // Mise à jour de l'état local
       const updatedMembers = members.filter(m => m.id !== selectedMember.id);
       onMembersChange(updatedMembers);
       setSelectedMember(null);
@@ -161,10 +201,16 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     }
   };
   
+  /**
+   * Filtre les membres selon la recherche
+   */
   const filteredMembers = members.filter(member => 
     member.profile?.display_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
+  /**
+   * Obtient la classe CSS pour l'affichage du badge de rôle
+   */
   const getRoleBadgeClass = (role: string) => {
     switch (role) {
       case 'admin':
@@ -176,6 +222,9 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     }
   };
   
+  /**
+   * Obtient le libellé du rôle en français
+   */
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'admin':

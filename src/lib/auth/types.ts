@@ -36,7 +36,7 @@ export interface UserProfile {
   profile_image?: string;
 }
 
-// Interface for Database Types with Supabase
+// Interface pour les types de la base de données Supabase
 export interface ProfilesTable {
   id: string;
   email?: string;
@@ -67,3 +67,8 @@ export interface SwitchCredentialsTable {
   created_at: string;
   updated_at: string;
 }
+
+// Types pour les mises à jour Supabase
+export type ProfilesUpdate = Partial<ProfilesTable>;
+export type StudyGroupMembersInsert = Omit<StudyGroupMembersTable, 'id' | 'joined_at'>;
+export type StudyGroupMembersUpdate = Partial<StudyGroupMembersTable>;

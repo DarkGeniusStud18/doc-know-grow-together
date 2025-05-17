@@ -1,3 +1,10 @@
+
+/**
+ * Composant ProfileSettings
+ * 
+ * Ce composant permet à l'utilisateur de modifier ses informations de profil
+ * et de télécharger une photo de profil.
+ */
 import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -10,15 +17,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/context/AuthContext';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
+import { ProfilesUpdate } from '@/lib/auth/types';
 
-// Type for form data
+/**
+ * Type pour les données du formulaire
+ */
 interface ProfileFormData {
+  /** Nom d'affichage de l'utilisateur */
   displayName: string;
+  /** Université (pour les étudiants) */
   university?: string;
+  /** Spécialité (pour les professionnels) */
   specialty?: string;
 }
 
+/**
+ * Composant de paramètres du profil utilisateur
+ */
 const ProfileSettings = () => {
   const { user, updateCurrentUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +48,9 @@ const ProfileSettings = () => {
     }
   });
 
-  // Handle profile image upload
+  /**
+   * Gère le téléchargement d'une image de profil
+   */
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
@@ -41,11 +58,11 @@ const ProfileSettings = () => {
     try {
       setIsUploading(true);
       
-      // Create a local preview
+      // Création d'une prévisualisation locale
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
 
-      // Upload to Supabase storage
+      // Téléchargement vers Supabase Storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}-${Date.now()}.${fileExt}`;
       
@@ -55,13 +72,13 @@ const ProfileSettings = () => {
       
       if (uploadError) throw uploadError;
 
-      // Get the public URL
+      // Récupération de l'URL publique
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
       if (data) {
-        // Update user profile in database
+        // Mise à jour du profil utilisateur dans la base de données
         const updateData: ProfilesUpdate = {
           profile_image: data.publicUrl,
           updated_at: new Date().toISOString()
@@ -70,11 +87,11 @@ const ProfileSettings = () => {
         const { error: updateError } = await supabase
           .from('profiles')
           .update(updateData)
-          .eq('id', user.id as string);
+          .eq('id', user.id);
         
         if (updateError) throw updateError;
         
-        // Update local user state
+        // Mise à jour de l'état local de l'utilisateur
         updateCurrentUser({
           ...user,
           profileImage: data.publicUrl
@@ -87,19 +104,21 @@ const ProfileSettings = () => {
       toast.error("Erreur lors du téléchargement de l'image", {
         description: error.message || "Veuillez réessayer plus tard"
       });
-      // Reset preview if upload failed
+      // Réinitialisation de la prévisualisation en cas d'échec
       setPreviewUrl(user.profileImage || null);
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Handle profile form submission
+  /**
+   * Gère la soumission du formulaire de profil
+   */
   const onSubmit = async (data: ProfileFormData) => {
     if (!user) return;
     
     try {
-      // Update profile in database
+      // Mise à jour du profil dans la base de données
       const updateData: ProfilesUpdate = {
         display_name: data.displayName,
         university: data.university || null,
@@ -110,11 +129,11 @@ const ProfileSettings = () => {
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('id', user.id as string);
+        .eq('id', user.id);
       
       if (error) throw error;
       
-      // Update local user state
+      // Mise à jour de l'état local de l'utilisateur
       updateCurrentUser({
         ...user,
         displayName: data.displayName,
@@ -141,7 +160,7 @@ const ProfileSettings = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {/* Profile Image Section */}
+          {/* Section de la photo de profil */}
           <div>
             <Label htmlFor="profile-image" className="block mb-2">Photo de profil</Label>
             <div className="flex items-end gap-4">
@@ -181,7 +200,7 @@ const ProfileSettings = () => {
 
           <Separator />
 
-          {/* Profile Form */}
+          {/* Formulaire de profil */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-4">
               <div className="grid gap-2">

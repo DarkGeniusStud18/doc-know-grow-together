@@ -1,11 +1,13 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole, KycStatus } from '@/lib/auth/types';
-import { toast } from '@/components/ui/sonner';
-import { Database } from '@/integrations/supabase/types';
+/**
+ * Utilitaires pour la gestion des profils utilisateur dans l'application
+ * Ce fichier contient des fonctions pour télécharger des images, mettre à jour
+ * les profils et récupérer les informations des utilisateurs
+ */
 
-type ProfilesUpdate = Database['public']['Tables']['profiles']['Update'];
-type ProfilesRow = Database['public']['Tables']['profiles']['Row'];
+import { supabase } from '@/integrations/supabase/client';
+import { User, UserRole, KycStatus, ProfilesUpdate } from '@/lib/auth/types';
+import { toast } from '@/components/ui/sonner';
 
 /**
  * Télécharge une image de profil vers Supabase Storage
@@ -15,6 +17,7 @@ type ProfilesRow = Database['public']['Tables']['profiles']['Row'];
  */
 export const uploadProfileImage = async (file: File, user: User): Promise<string | null> => {
   try {
+    // Extraction de l'extension du fichier
     const fileExt = file.name.split('.').pop();
     const filePath = `${user.id}-${Date.now()}.${fileExt}`;
     
@@ -69,6 +72,7 @@ export const updateUserProfile = async (
   }
 ): Promise<boolean> => {
   try {
+    // Préparation des données pour la mise à jour
     const updateData: ProfilesUpdate = {};
     
     if (updates.display_name !== undefined) updateData.display_name = updates.display_name;
@@ -76,13 +80,14 @@ export const updateUserProfile = async (
     if (updates.specialty !== undefined) updateData.specialty = updates.specialty;
     if (updates.profile_image !== undefined) updateData.profile_image = updates.profile_image;
     
-    // Add updated_at field
+    // Ajout de la date de mise à jour
     updateData.updated_at = new Date().toISOString();
     
+    // Requête de mise à jour dans Supabase
     const { error } = await supabase
       .from('profiles')
       .update(updateData)
-      .eq('id', userId as string);
+      .eq('id', userId);
     
     if (error) throw error;
     
@@ -102,29 +107,33 @@ export const updateUserProfile = async (
  */
 export const getUserFullProfile = async (userId: string): Promise<User | null> => {
   try {
+    // Requête pour récupérer les données du profil
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId as string)
+      .eq('id', userId)
       .maybeSingle();
       
     if (error) throw error;
     
     if (!data) return null;
 
-    // Explicitly cast data to ProfilesRow type for type safety
-    const profile = data as ProfilesRow;
+    // Vérification explicite pour s'assurer que data n'est pas une erreur
+    if ('error' in data) {
+      throw new Error(data.toString());
+    }
     
+    // Conversion des données en objet User
     return {
-      id: profile.id,
-      email: profile.email || '',
-      displayName: profile.display_name,
-      role: profile.role as UserRole,
-      kycStatus: profile.kyc_status as KycStatus,
-      profileImage: profile.profile_image,
-      university: profile.university,
-      specialty: profile.specialty,
-      createdAt: new Date(profile.created_at)
+      id: data.id,
+      email: data.email || '',
+      displayName: data.display_name,
+      role: data.role as UserRole,
+      kycStatus: data.kyc_status as KycStatus,
+      profileImage: data.profile_image,
+      university: data.university,
+      specialty: data.specialty,
+      createdAt: new Date(data.created_at)
     };
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error);

@@ -1,3 +1,10 @@
+
+/**
+ * Composant RoleSwitcher
+ * 
+ * Ce composant permet à l'utilisateur de basculer entre les interfaces étudiant et professionnel.
+ * Il nécessite un code PIN et un mot de passe pour autoriser le changement.
+ */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,29 +16,37 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
-import { Database } from '@/integrations/supabase/types';
+import { SwitchCredentialsTable, ProfilesUpdate } from '@/lib/auth/types';
 
+/**
+ * Props du composant RoleSwitcher
+ */
 interface RoleSwitcherProps {
+  /** Indique si le composant est affiché dans les paramètres */
   inSettings?: boolean;
 }
 
+/**
+ * Interface pour les identifiants de changement de rôle
+ */
 interface SwitchCredentials {
   pin_code: string;
   password: string;
 }
 
-type ProfilesUpdate = Database['public']['Tables']['profiles']['Update'];
-
+/**
+ * Composant pour changer d'interface (étudiant/professionnel)
+ */
 const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
   const { user, updateCurrentUser } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [pinCode, setPinCode] = useState('123456');
+  const [pinCode, setPinCode] = useState('123456'); // Valeurs par défaut pour faciliter le développement
   const [password, setPassword] = useState('Byron@2025');
   const [isLoading, setIsLoading] = useState(false);
   const [credentials, setCredentials] = useState<SwitchCredentials | null>(null);
 
   useEffect(() => {
-    // Fetch the credentials when component mounts
+    // Récupération des identifiants au montage du composant
     const fetchCredentials = async () => {
       try {
         const { data, error } = await supabase
@@ -43,50 +58,55 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
           
         if (error) throw error;
         
-        if (data) {
+        // Vérification que data est bien défini et n'est pas une erreur
+        if (data && !('error' in data)) {
           setCredentials({
             pin_code: data.pin_code,
             password: data.password
           });
         }
       } catch (error) {
-        console.error('Error fetching credentials:', error);
+        console.error('Erreur lors de la récupération des identifiants:', error);
       }
     };
     
     fetchCredentials();
   }, []);
 
+  /**
+   * Gère le changement de rôle de l'utilisateur
+   */
   const handleSwitchRole = async () => {
     if (!user) return;
     
     setIsLoading(true);
     
     try {
-      // Verify credentials
+      // Vérification des identifiants
       if (!credentials || pinCode !== credentials.pin_code || password !== credentials.password) {
         toast.error("Code PIN ou mot de passe incorrect");
         setIsLoading(false);
         return;
       }
       
-      // Switch the role
+      // Bascule du rôle
       const newRole = user.role === 'student' ? 'professional' : 'student';
       
-      // Create an update object
+      // Création de l'objet de mise à jour
       const updateData: ProfilesUpdate = {
         role: newRole,
         updated_at: new Date().toISOString()
       };
       
+      // Mise à jour du profil dans Supabase
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('id', user.id as string);
+        .eq('id', user.id);
       
       if (error) throw error;
       
-      // Update the user context
+      // Mise à jour du contexte utilisateur
       updateCurrentUser({
         ...user,
         role: newRole
@@ -95,11 +115,11 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
       toast.success(`Interface changée avec succès: ${newRole === 'student' ? 'Étudiant' : 'Professionnel'}`);
       setIsDialogOpen(false);
       
-      // Clear credentials
+      // Effacement des identifiants
       setPinCode('');
       setPassword('');
     } catch (error) {
-      console.error('Error switching role:', error);
+      console.error('Erreur lors du changement de rôle:', error);
       toast.error("Erreur lors du changement d'interface");
     } finally {
       setIsLoading(false);
