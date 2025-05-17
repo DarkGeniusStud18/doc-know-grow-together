@@ -1,4 +1,8 @@
 
+/**
+ * Context pour la gestion de l'authentification
+ * Adapté pour fonctionner avec la nouvelle structure Supabase
+ */
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { User, UserRole } from '@/lib/auth/types';
 import { getCurrentUser, signIn } from '@/lib/auth';
@@ -7,6 +11,9 @@ import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { checkPremiumStatus } from '@/lib/auth/services/subscription-service';
 
+/**
+ * Interface définissant les méthodes et propriétés du contexte d'authentification
+ */
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -19,11 +26,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Fournisseur du contexte d'authentification
+ */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to fetch current user with error handling
+  /**
+   * Fonction pour récupérer l'utilisateur actuel avec gestion des erreurs
+   */
   const fetchCurrentUser = async () => {
     try {
       const currentUser = await getCurrentUser();
@@ -36,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Set up auth state listener FIRST
+  // Configuration du listener d'état d'authentification EN PREMIER
   useEffect(() => {
     console.log('Setting up auth state listener');
     
@@ -45,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('Auth state change event:', event, 'Session exists:', !!session);
         
         if (event === 'SIGNED_IN') {
-          // Use a timeout to prevent auth deadlocks
+          // Utiliser un timeout pour éviter les deadlocks d'auth
           setTimeout(fetchCurrentUser, 0);
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed, updating user data');
@@ -57,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else if (event === 'USER_UPDATED') {
           setTimeout(fetchCurrentUser, 0);
         } else if (event === 'PASSWORD_RECOVERY') {
-          // Handle password recovery
+          // Gestion du processus de récupération de mot de passe
           const url = new URL(window.location.href);
           const token = url.searchParams.get('token');
           const type = url.searchParams.get('type');
@@ -70,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // Initial session check
+    // Vérification initiale de la session
     const checkSession = async () => {
       try {
         console.log('Initial session check...');
@@ -88,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.log('Valid session found, fetching user data');
           await fetchCurrentUser();
         } else {
-          // Check for demo user
+          // Vérifier s'il s'agit d'un utilisateur de démonstration
           const demoUser = localStorage.getItem('demoUser');
           if (demoUser) {
             await fetchCurrentUser();
@@ -104,22 +116,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Run initial check after subscription is set up
+    // Exécuter la vérification initiale après la configuration de l'abonnement
     checkSession();
 
-    // Cleanup function
+    // Fonction de nettoyage
     return () => {
       console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, []);
 
+  /**
+   * Connecte l'utilisateur avec email et mot de passe
+   */
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
       console.log('Attempting login for:', email);
       
-      // Handle demo accounts
+      // Gestion des comptes de démonstration
       if (email === "student@example.com" && password === "password") {
         localStorage.setItem('demoUser', 'student');
       } else if (email === "doctor@example.com" && password === "password") {
@@ -147,6 +162,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  /**
+   * Déconnecte l'utilisateur et redirige vers une URL spécifique
+   */
   const logout = async (redirectUrl?: string) => {
     try {
       setLoading(true);
@@ -159,11 +177,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  /**
+   * Inscrit un nouvel utilisateur
+   */
   const register = async (email: string, password: string, role: UserRole, displayName: string) => {
     try {
       setLoading(true);
       
-      // Check if user exists
+      // Vérifier si l'utilisateur existe déjà
       const { data: existingUser } = await supabase
         .from('profiles')
         .select('id')
@@ -175,12 +196,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // Define the redirect URL based on environment
+      // Définir l'URL de redirection en fonction de l'environnement
       const siteUrl = process.env.NODE_ENV === 'production' 
         ? 'https://doc-know-grow-together.netlify.app' 
         : window.location.origin;
       
-      // Register the new user
+      // Inscription du nouvel utilisateur
       const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
@@ -211,11 +232,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
+  /**
+   * Met à jour les données de l'utilisateur actuel dans le contexte
+   */
   const updateCurrentUser = (updatedUser: User) => {
     setUser(updatedUser);
   };
 
-  // Check if the user has premium access
+  /**
+   * Vérifie si l'utilisateur a accès aux fonctionnalités premium
+   */
   const checkPremiumAccess = async (): Promise<boolean> => {
     if (!user) return false;
     return checkPremiumStatus(user.id);
@@ -238,6 +264,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/**
+ * Hook pour accéder au contexte d'authentification
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

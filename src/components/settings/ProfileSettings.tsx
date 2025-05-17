@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/context/AuthContext';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { supabase } from '@/integrations/supabase/client';
-import { ProfilesUpdate } from '@/lib/auth/types';
+import { Database } from '@/integrations/supabase/types';
 
 /**
  * Type pour les données du formulaire
@@ -66,6 +66,22 @@ const ProfileSettings = () => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}-${Date.now()}.${fileExt}`;
       
+      // Vérifier la taille du fichier (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Le fichier est trop volumineux (max 2MB)');
+        setPreviewUrl(user.profileImage || null);
+        setIsUploading(false);
+        return;
+      }
+      
+      // Vérifier le type de fichier
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+        toast.error('Format de fichier non supporté (JPG, PNG ou GIF uniquement)');
+        setPreviewUrl(user.profileImage || null);
+        setIsUploading(false);
+        return;
+      }
+      
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
@@ -79,14 +95,12 @@ const ProfileSettings = () => {
 
       if (data) {
         // Mise à jour du profil utilisateur dans la base de données
-        const updateData: ProfilesUpdate = {
-          profile_image: data.publicUrl,
-          updated_at: new Date().toISOString()
-        };
-
         const { error: updateError } = await supabase
           .from('profiles')
-          .update(updateData)
+          .update({
+            profile_image: data.publicUrl,
+            updated_at: new Date().toISOString()
+          } as Database['public']['Tables']['profiles']['Update'])
           .eq('id', user.id);
         
         if (updateError) throw updateError;
@@ -119,16 +133,14 @@ const ProfileSettings = () => {
     
     try {
       // Mise à jour du profil dans la base de données
-      const updateData: ProfilesUpdate = {
-        display_name: data.displayName,
-        university: data.university || null,
-        specialty: data.specialty || null,
-        updated_at: new Date().toISOString()
-      };
-      
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({
+          display_name: data.displayName,
+          university: data.university || null,
+          specialty: data.specialty || null,
+          updated_at: new Date().toISOString()
+        } as Database['public']['Tables']['profiles']['Update'])
         .eq('id', user.id);
       
       if (error) throw error;

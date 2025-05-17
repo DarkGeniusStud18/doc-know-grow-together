@@ -1,133 +1,98 @@
 
-// Service pour la gestion de la connexion des utilisateurs
-import { toast } from "@/components/ui/sonner";
+/**
+ * Service pour la gestion de la connexion des utilisateurs
+ * 
+ * Ce fichier contient la fonction de connexion utilisateur via Supabase
+ */
+
 import { supabase } from "@/integrations/supabase/client";
-import { User, UserRole, KycStatus } from "../types";
+import { User } from "../types";
+import { getCurrentUser } from "../user-service";
+import { toast } from "@/components/ui/sonner";
 
 /**
- * Gère le processus de connexion d'un utilisateur
+ * Connecte un utilisateur à l'application via email et mot de passe
  * @param email - Email de l'utilisateur
  * @param password - Mot de passe de l'utilisateur
- * @returns Promise<User | null> - Informations de l'utilisateur connecté ou null si échec
+ * @returns L'utilisateur connecté ou null si échec
  */
-export const signIn = async (
-  email: string,
-  password: string
-): Promise<User | null> => {
+export const signIn = async (email: string, password: string): Promise<User | null> => {
   try {
-    console.log('Attempting sign in for:', email);
+    console.log('Tentative de connexion pour:', email);
     
-    // Gestion des comptes de démonstration
-    if (email === "student@example.com" && password === "password") {
-      const user: User = {
-        id: "student-1",
-        email: "student@example.com",
-        displayName: "Alex Dupont",
-        role: "student",
-        kycStatus: "verified",
-        university: "Université Paris Descartes",
-        createdAt: new Date(),
-      };
-      console.log('Demo student login successful');
-      // Store demo user in localStorage for persistence
-      localStorage.setItem('demoUser', 'student');
-      return user;
-    } else if (email === "doctor@example.com" && password === "password") {
-      const user: User = {
-        id: "professional-1",
-        email: "doctor@example.com",
-        displayName: "Dr. Marie Lambert",
-        role: "professional",
-        kycStatus: "verified",
-        specialty: "Cardiologie",
-        createdAt: new Date(),
-      };
-      console.log('Demo professional login successful');
-      // Store demo user in localStorage for persistence
-      localStorage.setItem('demoUser', 'professional');
-      return user;
+    // Vérifier si c'est un compte de démo
+    if ((email === 'student@example.com' || email === 'doctor@example.com') && password === 'password') {
+      console.log('Compte de démo détecté, redirection vers le tableau de bord');
+      
+      // Simuler un délai comme pour une vraie connexion
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Récupérer l'utilisateur avec getCurrentUser qui gère les comptes de démo
+      const user = await getCurrentUser();
+      
+      if (user) {
+        toast.success('Connexion réussie', { id: 'login-success' });
+        
+        // Rediriger vers le tableau de bord après une courte pause
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 300);
+        
+        return user;
+      }
+      
+      toast.error('Erreur lors de la connexion');
+      return null;
     }
-    
-    // Flux de connexion standard
+
+    // Connexion via Supabase pour les vrais comptes
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
-    
+
     if (error) {
-      console.error("Error signing in:", error);
-      throw new Error(error.message || "Email ou mot de passe incorrect");
-    }
-    
-    if (data.user) {
-      console.log("User signed in:", data.user);
+      console.error('Erreur de connexion:', error);
       
-      // Récupération du profil utilisateur de notre base de données
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .maybeSingle();
-      
-      if (profileError) {
-        console.error("Error fetching profile:", profileError);
-        throw new Error("Erreur lors de la récupération du profil");
-      }
-      
-      if (profileData) {
-        const user: User = {
-          id: data.user.id,
-          email: data.user.email || '',
-          displayName: profileData.display_name,
-          role: profileData.role as UserRole,
-          kycStatus: profileData.kyc_status as KycStatus,
-          profileImage: profileData.profile_image,
-          university: profileData.university,
-          specialty: profileData.specialty,
-          createdAt: new Date(profileData.created_at),
-        };
-        
-        console.log("User profile found:", user);
-        return user;
+      // Message d'erreur adapté selon le type d'erreur
+      if (error.message.includes('Invalid login credentials')) {
+        toast.error('Identifiants incorrects', { 
+          description: 'Vérifiez votre email et mot de passe'
+        });
+      } else if (error.message.includes('Email not confirmed')) {
+        toast.error('Email non confirmé', { 
+          description: 'Veuillez vérifier votre boîte mail pour confirmer votre compte'
+        });
       } else {
-        // Si aucun profil n'est trouvé, en créer un
-        console.log("No profile found, creating one...");
-        const displayName = data.user.user_metadata.display_name || email.split('@')[0];
-        const role = data.user.user_metadata.role || 'student';
-        
-        const { error: createProfileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            display_name: displayName,
-            role: role,
-            kyc_status: 'not_submitted' as KycStatus,
-            email: data.user.email,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (createProfileError) {
-          console.error("Error creating missing profile:", createProfileError);
-        }
-        
-        const user: User = {
-          id: data.user.id,
-          email: data.user.email || '',
-          displayName: displayName,
-          role: role as UserRole,
-          kycStatus: 'not_submitted' as KycStatus,
-          createdAt: new Date(),
-        };
-        
-        console.log("Created new profile:", user);
-        return user;
+        toast.error('Erreur de connexion', { description: error.message });
       }
+      
+      return null;
+    }
+
+    if (!data.user) {
+      console.error('Connexion réussie mais aucun utilisateur retourné');
+      toast.error('Erreur lors de la récupération du profil');
+      return null;
+    }
+
+    console.log('Récupération du profil utilisateur...');
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      console.error('Impossible de récupérer les données du profil');
+      toast.error('Erreur lors du chargement du profil');
+      return null;
     }
     
-    throw new Error("Email ou mot de passe incorrect");
-  } catch (error: any) {
-    console.error("Error signing in:", error);
-    throw error;
+    toast.success('Connexion réussie', { id: 'login-success' });
+    
+    return user;
+  } catch (error) {
+    console.error('Erreur inattendue lors de la connexion:', error);
+    toast.error('Erreur inattendue', { 
+      description: 'Une erreur est survenue. Veuillez réessayer plus tard.'
+    });
+    return null;
   }
 };

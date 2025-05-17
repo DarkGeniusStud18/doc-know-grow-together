@@ -16,7 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
-import { SwitchCredentialsTable, ProfilesUpdate } from '@/lib/auth/types';
+import { Database } from '@/integrations/supabase/types'; 
+import { isSupabaseResponseError } from '@/lib/auth/types';
 
 /**
  * Props du composant RoleSwitcher
@@ -40,8 +41,8 @@ interface SwitchCredentials {
 const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
   const { user, updateCurrentUser } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [pinCode, setPinCode] = useState('123456'); // Valeurs par défaut pour faciliter le développement
-  const [password, setPassword] = useState('Byron@2025');
+  const [pinCode, setPinCode] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [credentials, setCredentials] = useState<SwitchCredentials | null>(null);
 
@@ -56,10 +57,13 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
           .limit(1)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error('Erreur lors de la récupération des identifiants:', error);
+          return;
+        }
         
         // Vérification que data est bien défini et n'est pas une erreur
-        if (data && !('error' in data)) {
+        if (data && !isSupabaseResponseError(data)) {
           setCredentials({
             pin_code: data.pin_code,
             password: data.password
@@ -92,16 +96,13 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
       // Bascule du rôle
       const newRole = user.role === 'student' ? 'professional' : 'student';
       
-      // Création de l'objet de mise à jour
-      const updateData: ProfilesUpdate = {
-        role: newRole,
-        updated_at: new Date().toISOString()
-      };
-      
       // Mise à jour du profil dans Supabase
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({
+          role: newRole,
+          updated_at: new Date().toISOString()
+        } as Database['public']['Tables']['profiles']['Update'])
         .eq('id', user.id);
       
       if (error) throw error;

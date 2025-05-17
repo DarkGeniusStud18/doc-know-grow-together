@@ -1,7 +1,10 @@
 
-// Tableau de bord principal - Page d'accueil après connexion
-import React from "react";
-import { Link } from "react-router-dom";
+/**
+ * Tableau de bord principal - Page d'accueil après connexion
+ * Cette page affiche les fonctionnalités principales de l'application adaptées au rôle de l'utilisateur
+ */
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
 import {
@@ -33,8 +36,31 @@ import {
  * au rôle de l'utilisateur (étudiant ou professionnel)
  */
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
+  // Redirection vers la page de login si l'utilisateur n'est pas connecté
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
+
+  // Afficher un état de chargement pendant la vérification de l'authentification
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-[70vh]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-medical-blue mx-auto"></div>
+            <p className="text-lg text-gray-600">Chargement du tableau de bord...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Si l'utilisateur n'est pas défini après le chargement, ne pas afficher le contenu
   if (!user) return null;
 
   // Cartes de fonctionnalités pour les étudiants
@@ -274,7 +300,7 @@ const Dashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* For demo purposes - this would be dynamic in a real app */}
+                {/* Pour la démonstration - cela serait dynamique dans une application réelle */}
                 <div className="flex items-start gap-3">
                   <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <Book className="h-5 w-5 text-blue-600" />

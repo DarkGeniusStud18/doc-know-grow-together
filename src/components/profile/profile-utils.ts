@@ -6,8 +6,9 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole, KycStatus, ProfilesUpdate } from '@/lib/auth/types';
+import { User, UserRole, KycStatus, ProfilesUpdate, isSupabaseResponseError } from '@/lib/auth/types';
 import { toast } from '@/components/ui/sonner';
+import { Database } from '@/integrations/supabase/types';
 
 /**
  * Télécharge une image de profil vers Supabase Storage
@@ -73,7 +74,7 @@ export const updateUserProfile = async (
 ): Promise<boolean> => {
   try {
     // Préparation des données pour la mise à jour
-    const updateData: ProfilesUpdate = {};
+    const updateData: Record<string, any> = {};
     
     if (updates.display_name !== undefined) updateData.display_name = updates.display_name;
     if (updates.university !== undefined) updateData.university = updates.university;
@@ -86,7 +87,7 @@ export const updateUserProfile = async (
     // Requête de mise à jour dans Supabase
     const { error } = await supabase
       .from('profiles')
-      .update(updateData)
+      .update(updateData as Database['public']['Tables']['profiles']['Update'])
       .eq('id', userId);
     
     if (error) throw error;
@@ -118,10 +119,15 @@ export const getUserFullProfile = async (userId: string): Promise<User | null> =
     
     if (!data) return null;
 
-    // Vérification explicite pour s'assurer que data n'est pas une erreur
-    if ('error' in data) {
-      throw new Error(data.toString());
+    // S'assurer que data n'est pas une erreur
+    if (isSupabaseResponseError(data)) {
+      throw new Error('Erreur lors de la récupération du profil');
     }
+    
+    // Conversion des dates en objets Date
+    const createdAt = new Date(data.created_at);
+    const updatedAt = data.updated_at ? new Date(data.updated_at) : undefined;
+    const subscriptionExpiry = data.subscription_expiry ? new Date(data.subscription_expiry) : null;
     
     // Conversion des données en objet User
     return {
@@ -133,7 +139,10 @@ export const getUserFullProfile = async (userId: string): Promise<User | null> =
       profileImage: data.profile_image,
       university: data.university,
       specialty: data.specialty,
-      createdAt: new Date(data.created_at)
+      subscriptionStatus: data.subscription_status,
+      subscriptionExpiry: subscriptionExpiry,
+      createdAt: createdAt,
+      updatedAt: updatedAt
     };
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error);
