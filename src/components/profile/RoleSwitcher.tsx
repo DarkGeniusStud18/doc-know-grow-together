@@ -18,8 +18,8 @@ interface RoleSwitcherProps {
 const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
   const { user, updateCurrentUser } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [pinCode, setPinCode] = useState('');
-  const [password, setPassword] = useState('');
+  const [pinCode, setPinCode] = useState('123456');
+  const [password, setPassword] = useState('Byron@2025');
   const [isLoading, setIsLoading] = useState(false);
   const [credentials, setCredentials] = useState<{
     pin_code: string;
