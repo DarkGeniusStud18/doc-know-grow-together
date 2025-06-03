@@ -6,12 +6,9 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole, KycStatus, isValidData } from '@/lib/auth/types';
+import { User, UserRole, KycStatus } from '@/lib/auth/types';
 import { toast } from '@/components/ui/sonner';
-import { Database } from '@/integrations/supabase/types';
-
-// Type pour les mises à jour de profil
-type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+import { ProfileUpdate, createProfileUpdate, isValidSupabaseData } from '@/lib/auth/supabase-helpers';
 
 /**
  * Télécharge une image de profil vers Supabase Storage
@@ -91,17 +88,8 @@ export const updateUserProfile = async (
   try {
     console.log('Mise à jour du profil pour l\'utilisateur:', userId, updates);
     
-    // Préparation des données pour la mise à jour avec les types corrects
-    const updateData: ProfileUpdate = {};
-    
-    // Ajout conditionnel des champs à mettre à jour
-    if (updates.display_name !== undefined) updateData.display_name = updates.display_name;
-    if (updates.university !== undefined) updateData.university = updates.university;
-    if (updates.specialty !== undefined) updateData.specialty = updates.specialty;
-    if (updates.profile_image !== undefined) updateData.profile_image = updates.profile_image;
-    
-    // Ajout automatique de la date de mise à jour
-    updateData.updated_at = new Date().toISOString();
+    // Utilisation de l'helper pour créer les données de mise à jour
+    const updateData = createProfileUpdate(updates);
     
     // Exécution de la requête de mise à jour dans Supabase
     const { error } = await supabase
@@ -145,20 +133,14 @@ export const getUserFullProfile = async (userId: string): Promise<User | null> =
       throw error;
     }
     
-    // Vérification que des données ont été trouvées
-    if (!data) {
-      console.log('Aucun profil trouvé pour l\'utilisateur:', userId);
+    // Vérification que des données ont été trouvées et qu'elles sont valides
+    if (!data || !isValidSupabaseData(data)) {
+      console.log('Aucun profil trouvé ou données invalides pour l\'utilisateur:', userId);
       return null;
     }
-
-    // Vérification que les données sont valides (pas une erreur Supabase)
-    if (!isValidData(data)) {
-      console.error('Données de profil invalides:', data);
-      throw new Error('Erreur lors de la récupération du profil');
-    }
     
-    // Conversion des dates string en objets Date
-    const createdAt = new Date(data.created_at);
+    // Conversion des dates string en objets Date avec vérification
+    const createdAt = data.created_at ? new Date(data.created_at) : new Date();
     const updatedAt = data.updated_at ? new Date(data.updated_at) : undefined;
     const subscriptionExpiry = data.subscription_expiry ? new Date(data.subscription_expiry) : null;
     

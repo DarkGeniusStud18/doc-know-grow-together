@@ -16,8 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
-import { Database } from '@/integrations/supabase/types'; 
-import { SwitchCredentials, isValidData } from '@/lib/auth/types';
+import { SwitchCredentials } from '@/lib/auth/types';
+import { createProfileUpdate, isValidSupabaseData, SwitchCredentialsRow } from '@/lib/auth/supabase-helpers';
 
 /**
  * Props du composant RoleSwitcher
@@ -26,9 +26,6 @@ interface RoleSwitcherProps {
   /** Indique si le composant est affiché dans les paramètres (style différent) */
   inSettings?: boolean;
 }
-
-// Type pour les mises à jour de profil
-type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 /**
  * Composant principal pour changer d'interface utilisateur (étudiant/professionnel)
@@ -64,11 +61,12 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
         }
         
         // Vérification que les données sont valides
-        if (data && isValidData(data)) {
+        if (data && isValidSupabaseData(data)) {
           console.log('Identifiants récupérés avec succès');
+          const credData = data as SwitchCredentialsRow;
           setCredentials({
-            pin_code: data.pin_code,
-            password: data.password
+            pin_code: credData.pin_code,
+            password: credData.password
           });
         } else {
           console.log('Aucun identifiant configuré');
@@ -108,11 +106,8 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
       const newRole = user.role === 'student' ? 'professional' : 'student';
       console.log('Changement de rôle:', user.role, '->', newRole);
       
-      // Préparation des données de mise à jour avec les types corrects
-      const updateData: ProfileUpdate = {
-        role: newRole,
-        updated_at: new Date().toISOString()
-      };
+      // Utilisation de l'helper pour créer les données de mise à jour
+      const updateData = createProfileUpdate({ role: newRole });
       
       // Mise à jour du profil dans la base de données Supabase
       const { error } = await supabase

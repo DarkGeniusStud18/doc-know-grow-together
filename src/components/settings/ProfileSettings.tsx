@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/context/AuthContext';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
+import { createProfileUpdate } from '@/lib/auth/supabase-helpers';
 
 /**
  * Type pour les données du formulaire de profil
@@ -31,9 +31,6 @@ interface ProfileFormData {
   /** Spécialité (optionnelle, pour les professionnels) */
   specialty?: string;
 }
-
-// Type pour les mises à jour de profil Supabase
-type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 /**
  * Composant principal de paramètres du profil utilisateur
@@ -114,11 +111,10 @@ const ProfileSettings = () => {
       if (data) {
         console.log('Image téléchargée, mise à jour du profil');
         
-        // Préparation des données de mise à jour avec les types corrects
-        const updateData: ProfileUpdate = {
-          profile_image: data.publicUrl,
-          updated_at: new Date().toISOString()
-        };
+        // Utilisation de l'helper pour créer les données de mise à jour
+        const updateData = createProfileUpdate({
+          profile_image: data.publicUrl
+        });
         
         // Mise à jour du profil utilisateur dans la base de données
         const { error: updateError } = await supabase
@@ -165,13 +161,12 @@ const ProfileSettings = () => {
     try {
       console.log('Mise à jour du profil avec les données:', data);
       
-      // Préparation des données de mise à jour avec les types corrects
-      const updateData: ProfileUpdate = {
+      // Utilisation de l'helper pour créer les données de mise à jour
+      const updateData = createProfileUpdate({
         display_name: data.displayName,
         university: data.university || null,
-        specialty: data.specialty || null,
-        updated_at: new Date().toISOString()
-      };
+        specialty: data.specialty || null
+      });
       
       // Mise à jour du profil dans la base de données
       const { error } = await supabase
