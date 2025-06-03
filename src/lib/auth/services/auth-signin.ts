@@ -3,6 +3,7 @@
  * Service pour la gestion de la connexion des utilisateurs
  * 
  * Ce fichier contient la fonction de connexion utilisateur via Supabase
+ * avec gestion des comptes de démonstration et des erreurs
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,28 +13,37 @@ import { toast } from "@/components/ui/sonner";
 
 /**
  * Connecte un utilisateur à l'application via email et mot de passe
- * @param email - Email de l'utilisateur
+ * Gère à la fois les comptes de démonstration et les vrais comptes Supabase
+ * @param email - Adresse email de l'utilisateur
  * @param password - Mot de passe de l'utilisateur
- * @returns L'utilisateur connecté ou null si échec
+ * @returns L'utilisateur connecté ou null si échec de la connexion
  */
 export const signIn = async (email: string, password: string): Promise<User | null> => {
   try {
-    console.log('Tentative de connexion pour:', email);
+    console.log('Tentative de connexion pour l\'utilisateur:', email);
     
-    // Vérifier si c'est un compte de démo
+    // Vérification si c'est un compte de démonstration
     if ((email === 'student@example.com' || email === 'doctor@example.com') && password === 'password') {
-      console.log('Compte de démo détecté, redirection vers le tableau de bord');
+      console.log('Compte de démonstration détecté, traitement spécial');
       
-      // Simuler un délai comme pour une vraie connexion
+      // Simulation d'un délai comme pour une vraie connexion
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Récupérer l'utilisateur avec getCurrentUser qui gère les comptes de démo
+      // Définition du type d'utilisateur de démo dans localStorage
+      if (email === 'student@example.com') {
+        localStorage.setItem('demoUser', 'student');
+      } else {
+        localStorage.setItem('demoUser', 'professional');
+      }
+      
+      // Récupération de l'utilisateur de démo via getCurrentUser
       const user = await getCurrentUser();
       
       if (user) {
+        console.log('Connexion de démonstration réussie');
         toast.success('Connexion réussie', { id: 'login-success' });
         
-        // Rediriger vers le tableau de bord après une courte pause
+        // Redirection vers le tableau de bord après une courte pause
         setTimeout(() => {
           window.location.href = '/dashboard';
         }, 300);
@@ -41,20 +51,22 @@ export const signIn = async (email: string, password: string): Promise<User | nu
         return user;
       }
       
+      console.error('Erreur lors de la connexion de démonstration');
       toast.error('Erreur lors de la connexion');
       return null;
     }
 
-    // Connexion via Supabase pour les vrais comptes
+    // Connexion via Supabase pour les vrais comptes utilisateur
+    console.log('Tentative de connexion Supabase');
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
 
     if (error) {
-      console.error('Erreur de connexion:', error);
+      console.error('Erreur de connexion Supabase:', error);
       
-      // Message d'erreur adapté selon le type d'erreur
+      // Messages d'erreur adaptés selon le type d'erreur
       if (error.message.includes('Invalid login credentials')) {
         toast.error('Identifiants incorrects', { 
           description: 'Vérifiez votre email et mot de passe'
@@ -76,7 +88,9 @@ export const signIn = async (email: string, password: string): Promise<User | nu
       return null;
     }
 
-    console.log('Récupération du profil utilisateur...');
+    console.log('Connexion Supabase réussie, récupération du profil utilisateur...');
+    
+    // Récupération des données complètes du profil utilisateur
     const user = await getCurrentUser();
     
     if (!user) {
@@ -85,6 +99,7 @@ export const signIn = async (email: string, password: string): Promise<User | nu
       return null;
     }
     
+    console.log('Connexion complète réussie');
     toast.success('Connexion réussie', { id: 'login-success' });
     
     return user;
