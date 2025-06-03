@@ -1,9 +1,9 @@
 
 /**
- * Hook for managing switch credentials
+ * Hook for managing switch credentials - updated with proper error handling
  */
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { getSwitchCredentials, hasData } from '@/lib/supabase/query-helpers';
 import { SwitchCredentials } from '../types';
 
 export const useCredentials = () => {
@@ -14,23 +14,18 @@ export const useCredentials = () => {
       try {
         console.log('Récupération des identifiants de changement de rôle');
         
-        const { data, error } = await supabase
-          .from('switch_credentials')
-          .select('pin_code, password')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        const response = await getSwitchCredentials();
           
-        if (error) {
-          console.error('Erreur lors de la récupération des identifiants:', error);
+        if (response.error) {
+          console.error('Erreur lors de la récupération des identifiants:', response.error);
           return;
         }
         
-        if (data) {
+        if (hasData(response)) {
           console.log('Identifiants récupérés avec succès');
           setCredentials({
-            pin_code: data.pin_code,
-            password: data.password
+            pin_code: response.data.pin_code,
+            password: response.data.password
           });
         } else {
           console.log('Aucun identifiant configuré');
