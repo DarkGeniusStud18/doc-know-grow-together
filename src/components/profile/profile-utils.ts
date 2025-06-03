@@ -6,9 +6,8 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole, KycStatus } from '@/lib/auth/types';
+import { User, UserRole, KycStatus, ProfileUpdate } from '@/lib/auth/types';
 import { toast } from '@/components/ui/sonner';
-import { ProfileUpdate, createProfileUpdate, isValidSupabaseData } from '@/lib/auth/supabase-helpers';
 
 /**
  * Télécharge une image de profil vers Supabase Storage
@@ -83,13 +82,18 @@ export const updateUserProfile = async (
     specialty?: string | null;
     /** Nouvelle image de profil (optionnelle, peut être null) */
     profile_image?: string | null;
+    /** Nouveau rôle (optionnel) */
+    role?: UserRole;
   }
 ): Promise<boolean> => {
   try {
     console.log('Mise à jour du profil pour l\'utilisateur:', userId, updates);
     
-    // Utilisation de l'helper pour créer les données de mise à jour
-    const updateData = createProfileUpdate(updates);
+    // Création directe de l'objet de mise à jour avec typage Supabase
+    const updateData: ProfileUpdate = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
     
     // Exécution de la requête de mise à jour dans Supabase
     const { error } = await supabase
@@ -133,9 +137,9 @@ export const getUserFullProfile = async (userId: string): Promise<User | null> =
       throw error;
     }
     
-    // Vérification que des données ont été trouvées et qu'elles sont valides
-    if (!data || !isValidSupabaseData(data)) {
-      console.log('Aucun profil trouvé ou données invalides pour l\'utilisateur:', userId);
+    // Vérification que des données ont été trouvées
+    if (!data) {
+      console.log('Aucun profil trouvé pour l\'utilisateur:', userId);
       return null;
     }
     

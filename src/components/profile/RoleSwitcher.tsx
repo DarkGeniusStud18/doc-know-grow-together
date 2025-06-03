@@ -1,4 +1,3 @@
-
 /**
  * Composant RoleSwitcher
  * 
@@ -16,8 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
-import { SwitchCredentials } from '@/lib/auth/types';
-import { createProfileUpdate, isValidSupabaseData, SwitchCredentialsRow } from '@/lib/auth/supabase-helpers';
+import { SwitchCredentials, ProfileUpdate } from '@/lib/auth/types';
 
 /**
  * Props du composant RoleSwitcher
@@ -61,12 +59,11 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
         }
         
         // Vérification que les données sont valides
-        if (data && isValidSupabaseData(data)) {
+        if (data) {
           console.log('Identifiants récupérés avec succès');
-          const credData = data as SwitchCredentialsRow;
           setCredentials({
-            pin_code: credData.pin_code,
-            password: credData.password
+            pin_code: data.pin_code,
+            password: data.password
           });
         } else {
           console.log('Aucun identifiant configuré');
@@ -106,8 +103,11 @@ const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ inSettings = false }) => {
       const newRole = user.role === 'student' ? 'professional' : 'student';
       console.log('Changement de rôle:', user.role, '->', newRole);
       
-      // Utilisation de l'helper pour créer les données de mise à jour
-      const updateData = createProfileUpdate({ role: newRole });
+      // Création directe de l'objet de mise à jour avec typage Supabase
+      const updateData: ProfileUpdate = {
+        role: newRole,
+        updated_at: new Date().toISOString()
+      };
       
       // Mise à jour du profil dans la base de données Supabase
       const { error } = await supabase

@@ -4,6 +4,8 @@
  * Définitions adaptées à la nouvelle structure de la base de données Supabase
  */
 
+import { Database } from '@/integrations/supabase/types';
+
 // Rôles d'utilisateur disponibles dans l'application
 export type UserRole = 'student' | 'professional';
 
@@ -12,6 +14,15 @@ export type KycStatus = 'not_submitted' | 'pending' | 'verified' | 'rejected';
 
 // Type pour le statut d'abonnement de l'utilisateur
 export type SubscriptionStatus = 'free' | 'premium';
+
+// Types Supabase pour les tables
+export type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+export type StudyGroupMembersRow = Database['public']['Tables']['study_group_members']['Row'];
+export type StudyGroupMembersInsert = Database['public']['Tables']['study_group_members']['Insert'];
+export type StudyGroupMembersUpdate = Database['public']['Tables']['study_group_members']['Update'];
+export type SwitchCredentialsRow = Database['public']['Tables']['switch_credentials']['Row'];
 
 // Interface pour l'utilisateur dans le contexte de l'application
 export interface User {

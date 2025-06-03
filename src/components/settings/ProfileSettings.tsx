@@ -1,4 +1,3 @@
-
 /**
  * Composant ProfileSettings
  * 
@@ -18,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/context/AuthContext';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { supabase } from '@/integrations/supabase/client';
-import { createProfileUpdate } from '@/lib/auth/supabase-helpers';
+import { ProfileUpdate } from '@/lib/auth/types';
 
 /**
  * Type pour les données du formulaire de profil
@@ -111,10 +110,11 @@ const ProfileSettings = () => {
       if (data) {
         console.log('Image téléchargée, mise à jour du profil');
         
-        // Utilisation de l'helper pour créer les données de mise à jour
-        const updateData = createProfileUpdate({
-          profile_image: data.publicUrl
-        });
+        // Création directe de l'objet de mise à jour avec typage Supabase
+        const updateData: ProfileUpdate = {
+          profile_image: data.publicUrl,
+          updated_at: new Date().toISOString()
+        };
         
         // Mise à jour du profil utilisateur dans la base de données
         const { error: updateError } = await supabase
@@ -161,12 +161,13 @@ const ProfileSettings = () => {
     try {
       console.log('Mise à jour du profil avec les données:', data);
       
-      // Utilisation de l'helper pour créer les données de mise à jour
-      const updateData = createProfileUpdate({
+      // Création directe de l'objet de mise à jour avec typage Supabase
+      const updateData: ProfileUpdate = {
         display_name: data.displayName,
         university: data.university || null,
-        specialty: data.specialty || null
-      });
+        specialty: data.specialty || null,
+        updated_at: new Date().toISOString()
+      };
       
       // Mise à jour du profil dans la base de données
       const { error } = await supabase
