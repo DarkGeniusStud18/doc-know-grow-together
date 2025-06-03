@@ -28,7 +28,15 @@ export const RoleSwitchDialog: React.FC<RoleSwitchDialogProps> = ({
   const { switchRole, isLoading } = useRoleSwitch();
 
   const handleSwitchRole = async () => {
-    const success = await switchRole(pinCode, password, credentials);
+    if (!credentials) return;
+    
+    if (pinCode !== credentials.pin_code || password !== credentials.password) {
+      console.error('Identifiants incorrects');
+      return;
+    }
+    
+    const newRole = currentRole === 'student' ? 'professional' : 'student';
+    const success = await switchRole(newRole as any);
     if (success) {
       onClose();
       setPinCode('');

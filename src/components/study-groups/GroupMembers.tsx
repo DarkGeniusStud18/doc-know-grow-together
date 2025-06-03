@@ -1,4 +1,3 @@
-
 /**
  * Composant GroupMembers
  * 
@@ -15,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Mail, Search, Shield, UserMinus } from 'lucide-react';
-import { StudyGroupMembersInsert, StudyGroupMembersUpdate } from '@/lib/auth/types';
 
 /**
  * Interface pour le profil d'un membre
@@ -80,7 +78,6 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     try {
       // Dans une application réelle, ceci enverrait une invitation à l'utilisateur
       // Pour l'instant, nous les ajoutons directement s'ils existent
-      // Recherche insensible à la casse pour l'email
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('id, display_name, profile_image')
@@ -99,13 +96,8 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         return;
       }
       
-      // Vérification explicite que userData n'est pas une erreur
-      if ('error' in userData) {
-        throw new Error('Erreur lors de la récupération des données utilisateur');
-      }
-      
-      // Création du nouvel objet membre pour insertion avec typage correct
-      const newMemberData: StudyGroupMembersInsert = {
+      // Création du nouvel objet membre pour insertion
+      const newMemberData = {
         group_id: groupId,
         user_id: userData.id,
         role: 'member'
@@ -119,12 +111,12 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         
       if (memberError) throw memberError;
       
-      if (!memberData || 'error' in memberData) {
+      if (!memberData) {
         throw new Error('Erreur lors de l\'ajout du membre');
       }
       
       // Ajout des informations de profil au nouveau membre
-      const newMember = {
+      const newMember: Member = {
         ...memberData,
         profile: {
           display_name: userData.display_name,
@@ -149,12 +141,9 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     if (!selectedMember || !newRole) return;
     
     try {
-      // Création de l'objet de mise à jour
-      const updateData: StudyGroupMembersUpdate = { role: newRole };
-      
       const { error } = await supabase
         .from('study_group_members')
-        .update(updateData)
+        .update({ role: newRole })
         .eq('id', selectedMember.id);
         
       if (error) throw error;
