@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -6,14 +7,84 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Volume2, Search, Heart, MoreHorizontal } from 'lucide-react';
-import { useSimpleMusicPlayer } from '@/hooks/useSimpleMusicPlayer';
-import { useMusicLibrary } from '@/hooks/useMusicLibrary';
+import { Play, Pause, Volume2, Search, Heart, MoreHorizontal, PlusCircle, BookOpen } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/components/ui/sonner';
+import { useQuery } from '@tanstack/react-query';
+
+// Mock data for now - will be replaced with actual hooks
+const getTracksByCategory = async () => {
+  // Mock implementation
+  return {};
+};
+
+const CategoryHeader = ({ category }: { category: string }) => (
+  <div className="mb-4">
+    <h2 className="text-2xl font-semibold mb-2">{category}</h2>
+    <p className="text-gray-600">
+      Découvrez notre sélection de musiques pour {category.toLowerCase()}
+    </p>
+  </div>
+);
+
+const MusicTrackList = ({ tracks, currentTrackId, isPlaying, onPlayTrack }: {
+  tracks: any[];
+  currentTrackId?: string;
+  isPlaying: boolean;
+  onPlayTrack: (track: any) => void;
+}) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {tracks.map((track) => (
+      <Card key={track.id} className="hover:shadow-md transition-shadow">
+        <CardContent className="p-4">
+          <h3 className="font-medium">{track.title}</h3>
+          <p className="text-sm text-gray-500">{track.artist}</p>
+          <Button
+            size="sm"
+            className="mt-2"
+            onClick={() => onPlayTrack(track)}
+          >
+            {currentTrackId === track.id && isPlaying ? <Pause /> : <Play />}
+            {currentTrackId === track.id && isPlaying ? 'Pause' : 'Jouer'}
+          </Button>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+const MusicPlayer = ({ track, isPlaying, onPlayPause }: {
+  track: any;
+  isPlaying: boolean;
+  onPlayPause: () => void;
+}) => (
+  <div className="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-4 border">
+    <div className="flex items-center gap-3">
+      <Button size="sm" onClick={onPlayPause}>
+        {isPlaying ? <Pause /> : <Play />}
+      </Button>
+      <div>
+        <p className="font-medium text-sm">{track.title}</p>
+        <p className="text-xs text-gray-500">{track.artist}</p>
+      </div>
+    </div>
+  </div>
+);
 
 const MusicLibrary = () => {
-  const { currentTrack, isPlaying, playTrack, togglePlayPause } = useSimpleMusicPlayer();
-  const { volume, saveVolume } = useMusicLibrary();
+  // Mock player state for now
+  const [currentTrack, setCurrentTrack] = useState<any>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const playTrack = (track: any) => {
+    setCurrentTrack(track);
+    setIsPlaying(true);
+  };
+
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
 
   // Use React Query to load and cache music data
   const { data: tracksByCategory, isLoading, error } = useQuery({

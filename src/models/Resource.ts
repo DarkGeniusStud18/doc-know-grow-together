@@ -1,11 +1,12 @@
-
 import { supabase } from '@/integrations/supabase/client';
+
+export type ContentType = 'book' | 'video' | 'document' | 'article';
 
 export interface Resource {
   id: string;
   title: string;
   description: string;
-  content_type: string;
+  content_type: ContentType;
   category: string;
   author?: string;
   language: string;
@@ -36,7 +37,7 @@ export async function getResources(
     }
     
     if (filters.content_type && filters.content_type !== 'all') {
-      query = query.eq('content_type', filters.content_type);
+      query = query.eq('content_type', filters.content_type as ContentType);
     }
     
     if (filters.featured !== undefined) {
@@ -87,9 +88,14 @@ export async function getResourceById(id: string): Promise<Resource | null> {
 
 export async function createResource(resource: Omit<Resource, 'id' | 'created_at' | 'updated_at'>): Promise<Resource | null> {
   try {
+    const resourceData = {
+      ...resource,
+      content_type: resource.content_type as ContentType
+    };
+
     const { data, error } = await supabase
       .from('resources')
-      .insert([resource])
+      .insert([resourceData])
       .select()
       .single();
     
@@ -107,9 +113,16 @@ export async function createResource(resource: Omit<Resource, 'id' | 'created_at
 
 export async function updateResource(id: string, updates: Partial<Omit<Resource, 'id' | 'created_at' | 'updated_at'>>): Promise<Resource | null> {
   try {
+    const updateData: any = { ...updates };
+    
+    // Ensure content_type is properly typed if provided
+    if (updateData.content_type) {
+      updateData.content_type = updateData.content_type as ContentType;
+    }
+
     const { data, error } = await supabase
       .from('resources')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
