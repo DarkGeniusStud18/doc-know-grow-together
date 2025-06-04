@@ -122,12 +122,13 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
       }
       
       // Ajout des informations de profil au nouveau membre
+      const memberData = memberResponse.data;
       const newMember: Member = {
-        id: memberResponse.data.id,
-        user_id: memberResponse.data.user_id,
-        group_id: memberResponse.data.group_id,
-        role: memberResponse.data.role,
-        joined_at: memberResponse.data.joined_at,
+        id: memberData.id,
+        user_id: memberData.user_id,
+        group_id: memberData.group_id,
+        role: memberData.role,
+        joined_at: memberData.joined_at,
         profile: {
           display_name: userData.display_name,
           profile_image: userData.profile_image

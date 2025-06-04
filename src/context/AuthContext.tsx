@@ -14,6 +14,7 @@ interface AuthContextProps {
   signOut: () => Promise<void>;
   logout: (redirectUrl?: string) => Promise<void>;
   updateCurrentUser: (updates: Partial<User>) => void;
+  login: (email: string, password: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -95,6 +96,76 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      console.log('Login attempt for:', email);
+      
+      // Check if it's a demo user
+      if ((email === 'student@example.com' || email === 'doctor@example.com') && password === 'password') {
+        console.log('Demo user detected');
+        
+        // Simulate loading delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Set demo user in localStorage
+        if (email === 'student@example.com') {
+          localStorage.setItem('demoUser', 'student');
+        } else {
+          localStorage.setItem('demoUser', 'professional');
+        }
+        
+        // Create demo user object
+        const demoUser: User = email === 'student@example.com' ? {
+          id: "student-1",
+          email: "student@example.com",
+          displayName: "Alex Dupont",
+          role: "student",
+          kycStatus: "verified",
+          university: "Université Paris Descartes",
+          subscriptionStatus: "free",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } : {
+          id: "professional-1",
+          email: "doctor@example.com",
+          displayName: "Dr. Marie Lambert",
+          role: "professional",
+          kycStatus: "verified",
+          specialty: "Cardiologie",
+          subscriptionStatus: "free",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        
+        setUser(demoUser);
+        console.log('Demo login successful');
+        return true;
+      }
+
+      // Regular Supabase login
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        return false;
+      }
+
+      if (!data.user) {
+        console.error('No user returned from login');
+        return false;
+      }
+
+      console.log('Supabase login successful');
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -107,6 +178,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async (redirectUrl: string = '/login') => {
     try {
+      // Check if it's a demo user
+      const demoUser = localStorage.getItem('demoUser');
+      if (demoUser) {
+        localStorage.removeItem('demoUser');
+        setUser(null);
+        setSession(null);
+        window.location.href = redirectUrl;
+        return;
+      }
+      
       await signOut();
       window.location.href = redirectUrl;
     } catch (error) {
@@ -176,6 +257,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     signOut,
     logout,
     updateCurrentUser,
+    login,
   };
 
   return (

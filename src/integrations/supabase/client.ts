@@ -21,9 +21,7 @@ export const supabase = createClient<Database>(
       storageKey: 'medcollab-auth-token',
       storage: localStorage,
       detectSessionInUrl: true,
-      flowType: 'pkce',
-      // Define redirect URLs
-      redirectTo: `${SITE_URL}/email-confirmation`
+      flowType: 'pkce'
     }
   }
 );
