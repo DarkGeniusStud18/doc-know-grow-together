@@ -3,7 +3,8 @@
  * Hook for managing switch credentials - updated with proper error handling
  */
 import { useState, useEffect } from 'react';
-import { getSwitchCredentials, hasData } from '@/lib/supabase/query-helpers';
+import { getSwitchCredentials } from '@/lib/supabase/query-helpers';
+import { isValidSwitchCredentials, hasData, hasError } from '@/lib/utils/type-guards';
 import { SwitchCredentials } from '../types';
 
 export const useCredentials = () => {
@@ -16,19 +17,19 @@ export const useCredentials = () => {
         
         const response = await getSwitchCredentials();
           
-        if (response.error) {
+        if (hasError(response)) {
           console.error('Erreur lors de la récupération des identifiants:', response.error);
           return;
         }
         
-        if (hasData(response)) {
+        if (hasData(response) && isValidSwitchCredentials(response.data)) {
           console.log('Identifiants récupérés avec succès');
           setCredentials({
             pin_code: response.data.pin_code,
             password: response.data.password
           });
         } else {
-          console.log('Aucun identifiant configuré');
+          console.log('Aucun identifiant configuré ou données invalides');
         }
       } catch (error) {
         console.error('Erreur lors de la récupération des identifiants:', error);

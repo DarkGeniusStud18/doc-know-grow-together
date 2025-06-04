@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SwitchCredentials } from '../types';
 import { useRoleSwitch } from '../hooks/useRoleSwitch';
+import { toast } from '@/components/ui/sonner';
 
 interface RoleSwitchDialogProps {
   isOpen: boolean;
@@ -28,10 +29,18 @@ export const RoleSwitchDialog: React.FC<RoleSwitchDialogProps> = ({
   const { switchRole, isLoading } = useRoleSwitch();
 
   const handleSwitchRole = async () => {
-    if (!credentials) return;
+    if (!credentials) {
+      toast.error('Identifiants de changement non disponibles');
+      return;
+    }
+    
+    if (!pinCode || !password) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
     
     if (pinCode !== credentials.pin_code || password !== credentials.password) {
-      console.error('Identifiants incorrects');
+      toast.error('Identifiants incorrects');
       return;
     }
     

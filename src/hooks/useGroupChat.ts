@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { EnrichedGroupMessage } from '@/lib/auth/utils/types/validation-types';
 import { fetchGroupMessages } from '@/lib/utils/message-utils';
+import { hasData, hasError, isValidProfile } from '@/lib/utils/type-guards';
 
 export const useGroupChat = (groupId: string) => {
   const [messages, setMessages] = useState<EnrichedGroupMessage[]>([]);
@@ -35,17 +36,27 @@ export const useGroupChat = (groupId: string) => {
           if (payload.eventType === 'INSERT') {
             const newMessage = payload.new as any;
             
-            // Fetch sender info
-            const { data: profileData } = await supabase
+            // Fetch sender info with proper type checking
+            const profileResponse = await supabase
               .from('profiles')
               .select('display_name, profile_image')
               .eq('id', newMessage.user_id)
               .single();
               
+            let senderName = 'Unknown User';
+            let senderAvatar = '';
+            
+            if (hasData(profileResponse) && isValidProfile(profileResponse.data)) {
+              senderName = profileResponse.data.display_name;
+              senderAvatar = profileResponse.data.profile_image || '';
+            } else if (hasError(profileResponse)) {
+              console.error('Error fetching profile:', profileResponse.error);
+            }
+            
             const enrichedMessage = {
               ...newMessage,
-              sender_name: profileData?.display_name || 'Unknown User',
-              sender_avatar: profileData?.profile_image || ''
+              sender_name: senderName,
+              sender_avatar: senderAvatar
             } as EnrichedGroupMessage;
             
             setMessages(prevMessages => [...prevMessages, enrichedMessage]);

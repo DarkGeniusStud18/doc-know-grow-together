@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Mail, Search, Shield, UserMinus } from 'lucide-react';
+import { hasData, hasError, isValidProfile } from '@/lib/utils/type-guards';
 
 /**
  * Interface pour le profil d'un membre
@@ -76,18 +77,23 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     if (!emailToInvite) return;
     
     try {
-      // Dans une application réelle, ceci enverrait une invitation à l'utilisateur
-      // Pour l'instant, nous les ajoutons directement s'ils existent
-      const { data: userData, error: userError } = await supabase
+      const response = await supabase
         .from('profiles')
         .select('id, display_name, profile_image')
         .ilike('email', emailToInvite)
         .single();
         
-      if (userError || !userData) {
+      if (hasError(response)) {
         toast.error('Utilisateur non trouvé');
         return;
       }
+      
+      if (!hasData(response) || !isValidProfile(response.data)) {
+        toast.error('Données utilisateur invalides');
+        return;
+      }
+      
+      const userData = response.data;
       
       // Vérification si déjà membre
       const existingMember = members.find(m => m.user_id === userData.id);
@@ -103,21 +109,23 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
         role: 'member'
       };
       
-      const { data: memberData, error: memberError } = await supabase
+      const memberResponse = await supabase
         .from('study_group_members')
         .insert(newMemberData)
         .select()
         .single();
         
-      if (memberError) throw memberError;
+      if (hasError(memberResponse)) {
+        throw memberResponse.error;
+      }
       
-      if (!memberData) {
+      if (!hasData(memberResponse)) {
         throw new Error('Erreur lors de l\'ajout du membre');
       }
       
       // Ajout des informations de profil au nouveau membre
       const newMember: Member = {
-        ...memberData,
+        ...memberResponse.data,
         profile: {
           display_name: userData.display_name,
           profile_image: userData.profile_image
@@ -141,12 +149,14 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     if (!selectedMember || !newRole) return;
     
     try {
-      const { error } = await supabase
+      const response = await supabase
         .from('study_group_members')
         .update({ role: newRole })
         .eq('id', selectedMember.id);
         
-      if (error) throw error;
+      if (hasError(response)) {
+        throw response.error;
+      }
       
       // Mise à jour de l'état local
       const updatedMembers = members.map(m => 
@@ -171,12 +181,14 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     if (!selectedMember) return;
     
     try {
-      const { error } = await supabase
+      const response = await supabase
         .from('study_group_members')
         .delete()
         .eq('id', selectedMember.id);
         
-      if (error) throw error;
+      if (hasError(response)) {
+        throw response.error;
+      }
       
       // Mise à jour de l'état local
       const updatedMembers = members.filter(m => m.id !== selectedMember.id);
