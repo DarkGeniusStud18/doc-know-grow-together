@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -18,13 +19,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type CommunityTopic = {
   id: string;
-  author_id: string;
+  user_id: string; // Use user_id instead of author_id to match actual DB
   title: string;
   content: string;
   category: string;
   created_at: string;
   updated_at: string;
-  is_pinned: boolean;
+  is_pinned?: boolean; // Make optional since it might not exist in DB
   author_name?: string;
   response_count?: number;
 };
@@ -72,7 +73,7 @@ const Community: React.FC = () => {
       const { data: authorProfile, error: profileError } = await supabase
         .from('profiles')
         .select('display_name')
-        .eq('id', topic.author_id)
+        .eq('id', topic.user_id)
         .single();
       
       // Get response count
@@ -84,7 +85,8 @@ const Community: React.FC = () => {
       return {
         ...topic,
         author_name: profileError ? 'Unknown' : authorProfile?.display_name,
-        response_count: responsesError ? 0 : responseCount
+        response_count: responsesError ? 0 : responseCount,
+        is_pinned: topic.is_pinned ?? false // Default to false if not in DB
       };
     }));
     
@@ -103,7 +105,7 @@ const Community: React.FC = () => {
       const { error } = await supabase
         .from('community_topics')
         .insert({
-          author_id: user.id,
+          user_id: user.id, // Use user_id instead of author_id
           title: topic.title,
           content: topic.content,
           category: topic.category
@@ -155,8 +157,8 @@ const Community: React.FC = () => {
   const sortedTopics = [...filteredTopics].sort((a, b) => {
     if (activeTab === 'pinned') {
       // Show pinned topics first
-      if (a.is_pinned && !b.is_pinned) return -1;
-      if (!a.is_pinned && b.is_pinned) return 1;
+      if ((a.is_pinned ?? false) && !(b.is_pinned ?? false)) return -1;
+      if (!(a.is_pinned ?? false) && (b.is_pinned ?? false)) return 1;
     }
     
     if (activeTab === 'recent') {
@@ -415,7 +417,7 @@ const TopicsList: React.FC<TopicsListProps> = ({ topics, isLoading, error, onCre
               </Badge>
               
               <div className="flex items-center space-x-2">
-                {topic.is_pinned && (
+                {(topic.is_pinned ?? false) && (
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <Pin className="h-3 w-3" />
                     Épinglé

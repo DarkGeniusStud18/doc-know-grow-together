@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
@@ -19,24 +18,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // Type définitions pour les données de la discussion
 type CommunityTopic = {
   id: string;
-  author_id: string;
+  user_id: string; // Use user_id instead of author_id
   title: string;
   content: string;
   category: string;
   created_at: string;
   updated_at: string;
-  is_pinned: boolean;
+  is_pinned?: boolean; // Make optional
   author_name?: string;
 }
 
 type CommunityResponse = {
   id: string;
-  author_id: string;
+  user_id: string; // Use user_id instead of author_id
   topic_id: string;
   content: string;
   created_at: string;
   updated_at: string;
-  is_expert_response: boolean;
+  is_expert_response?: boolean; // Make optional
   author_name?: string;
   author_role?: string;
   author_image?: string;
@@ -77,7 +76,7 @@ const CommunityDiscussion = () => {
       const { data: authorData } = await supabase
         .from('profiles')
         .select('display_name')
-        .eq('id', topicData.author_id)
+        .eq('id', topicData.user_id) // Use user_id instead of author_id
         .single();
         
       // Préparation des données pour l'édition
@@ -90,7 +89,8 @@ const CommunityDiscussion = () => {
       // Retourne les données du sujet avec le nom de l'auteur
       return {
         ...topicData,
-        author_name: authorData?.display_name || 'Utilisateur'
+        author_name: authorData?.display_name || 'Utilisateur',
+        is_pinned: topicData.is_pinned ?? false
       };
     },
     enabled: !!id
@@ -115,7 +115,7 @@ const CommunityDiscussion = () => {
         const { data: authorData } = await supabase
           .from('profiles')
           .select('display_name, profile_image, role')
-          .eq('id', response.author_id)
+          .eq('id', response.user_id) // Use user_id instead of author_id
           .single();
           
         // Retourne les données de la réponse avec les informations de l'auteur
@@ -123,7 +123,8 @@ const CommunityDiscussion = () => {
           ...response,
           author_name: authorData?.display_name || 'Utilisateur',
           author_image: authorData?.profile_image,
-          author_role: authorData?.role
+          author_role: authorData?.role,
+          is_expert_response: response.is_expert_response ?? false
         };
       }));
       
@@ -141,7 +142,7 @@ const CommunityDiscussion = () => {
         .from('community_responses')
         .insert({
           topic_id: id,
-          author_id: user.id,
+          user_id: user.id, // Use user_id instead of author_id
           content
         })
         .select()
@@ -175,7 +176,7 @@ const CommunityDiscussion = () => {
       if (!user || !topic) throw new Error('Non authentifié ou sujet introuvable');
       
       // Vérification que l'utilisateur est l'auteur du sujet
-      if (user.id !== topic.author_id) {
+      if (user.id !== topic.user_id) { // Use user_id instead of author_id
         throw new Error('Vous n\'êtes pas autorisé à modifier ce sujet');
       }
       
@@ -210,7 +211,7 @@ const CommunityDiscussion = () => {
       if (!user || !topic) throw new Error('Non authentifié ou sujet introuvable');
       
       // Vérification que l'utilisateur est l'auteur du sujet
-      if (user.id !== topic.author_id) {
+      if (user.id !== topic.user_id) { // Use user_id instead of author_id
         throw new Error('Vous n\'êtes pas autorisé à supprimer ce sujet');
       }
       
@@ -236,15 +237,15 @@ const CommunityDiscussion = () => {
       if (!user || !topic) throw new Error('Non authentifié ou sujet introuvable');
       
       // Vérification que l'utilisateur est l'auteur du sujet
-      if (user.id !== topic.author_id) {
+      if (user.id !== topic.user_id) { // Use user_id instead of author_id
         throw new Error('Vous n\'êtes pas autorisé à modifier ce sujet');
       }
       
       const { error } = await supabase
         .from('community_topics')
         .update({
-          is_pinned: !topic.is_pinned
-        })
+          is_pinned: !(topic.is_pinned ?? false)
+        } as any)
         .eq('id', id);
         
       if (error) throw error;
@@ -254,7 +255,7 @@ const CommunityDiscussion = () => {
       queryClient.invalidateQueries({
         queryKey: ['communityTopic', id]
       });
-      toast.success(topic?.is_pinned ? 'Sujet désépinglé' : 'Sujet épinglé');
+      toast.success((topic?.is_pinned ?? false) ? 'Sujet désépinglé' : 'Sujet épinglé');
     },
     onError: () => {
       toast.error('Erreur lors de la modification du sujet');
@@ -281,7 +282,7 @@ const CommunityDiscussion = () => {
   };
   
   // Vérifier si l'utilisateur est l'auteur du sujet (administrateur)
-  const isTopicAdmin = user && topic && user.id === topic.author_id;
+  const isTopicAdmin = user && topic && user.id === topic.user_id; // Use user_id instead of author_id
   
   // Effet pour détecter le défilement et afficher le bouton de défilement
   useEffect(() => {
@@ -348,7 +349,7 @@ const CommunityDiscussion = () => {
                 size="sm"
                 onClick={() => togglePinMutation.mutate()}
               >
-                {topic.is_pinned ? 
+                {(topic.is_pinned ?? false) ? 
                   <><PinOff className="h-4 w-4 mr-1" /> Désépingler</> :
                   <><Pin className="h-4 w-4 mr-1" /> Épingler</>
                 }
@@ -381,7 +382,7 @@ const CommunityDiscussion = () => {
             <div className="flex justify-between items-start">
               <div>
                 <Badge className="mb-2">{topic.category}</Badge>
-                {topic.is_pinned && (
+                {(topic.is_pinned ?? false) && (
                   <Badge variant="secondary" className="ml-2">
                     <Pin className="h-3 w-3 mr-1" />
                     Épinglé
@@ -455,7 +456,7 @@ const CommunityDiscussion = () => {
                             {response.author_role === 'medecin' && (
                               <Badge className="ml-2 bg-blue-500">Médecin</Badge>
                             )}
-                            {response.is_expert_response && (
+                            {(response.is_expert_response ?? false) && (
                               <Badge className="ml-2 bg-green-500">Expert</Badge>
                             )}
                           </div>

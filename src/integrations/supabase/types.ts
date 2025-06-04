@@ -52,36 +52,42 @@ export type Database = {
       }
       clinical_cases: {
         Row: {
+          author_id: string | null
           content: string | null
           created_at: string
           created_by: string | null
           description: string | null
           difficulty_level: number | null
           id: string
+          is_anonymized: boolean
           is_premium: boolean
           specialty: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          author_id?: string | null
           content?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           difficulty_level?: number | null
           id?: string
+          is_anonymized?: boolean
           is_premium?: boolean
           specialty?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          author_id?: string | null
           content?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           difficulty_level?: number | null
           id?: string
+          is_anonymized?: boolean
           is_premium?: boolean
           specialty?: string | null
           title?: string
@@ -99,25 +105,31 @@ export type Database = {
       }
       community_responses: {
         Row: {
+          author_id: string | null
           content: string
           created_at: string
           id: string
+          is_expert_response: boolean
           topic_id: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          author_id?: string | null
           content: string
           created_at?: string
           id?: string
+          is_expert_response?: boolean
           topic_id: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          author_id?: string | null
           content?: string
           created_at?: string
           id?: string
+          is_expert_response?: boolean
           topic_id?: string
           updated_at?: string
           user_id?: string
@@ -141,28 +153,34 @@ export type Database = {
       }
       community_topics: {
         Row: {
+          author_id: string | null
           category: string | null
           content: string | null
           created_at: string
           id: string
+          is_pinned: boolean
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          author_id?: string | null
           category?: string | null
           content?: string | null
           created_at?: string
           id?: string
+          is_pinned?: boolean
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          author_id?: string | null
           category?: string | null
           content?: string | null
           created_at?: string
           id?: string
+          is_pinned?: boolean
           title?: string
           updated_at?: string
           user_id?: string

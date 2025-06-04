@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -20,12 +19,12 @@ import { useQuery } from '@tanstack/react-query';
 
 type ClinicalCase = {
   id: string;
-  author_id: string;
+  created_by: string; // Use created_by instead of author_id
   title: string;
   description: string;
   content: string;
   specialty: string;
-  is_anonymized: boolean;
+  is_anonymized?: boolean; // Make optional since it might not exist in DB
   created_at: string;
   author_name?: string;
 };
@@ -93,11 +92,12 @@ const ClinicalCases: React.FC = () => {
     // Then for each case, fetch the author profile if needed
     const enrichedCases = await Promise.all(cases.map(async (clinicalCase) => {
       // Only fetch author profile if the case is not anonymized
-      if (!clinicalCase.is_anonymized) {
+      const isAnonymized = clinicalCase.is_anonymized ?? true; // Default to true if field doesn't exist
+      if (!isAnonymized && clinicalCase.created_by) {
         const { data: authorProfile, error: profileError } = await supabase
           .from('profiles')
           .select('display_name')
-          .eq('id', clinicalCase.author_id)
+          .eq('id', clinicalCase.created_by)
           .single();
           
         return {
@@ -124,7 +124,7 @@ const ClinicalCases: React.FC = () => {
     const matchesSpecialty = activeSpecialty === 'all' || clinicalCase.specialty === activeSpecialty;
     
     const matchesTab = activeTab === 'all' || 
-                      (activeTab === 'mine' && clinicalCase.author_id === user?.id);
+                      (activeTab === 'mine' && clinicalCase.created_by === user?.id);
     
     return matchesQuery && matchesSpecialty && matchesTab;
   });
@@ -144,13 +144,13 @@ const ClinicalCases: React.FC = () => {
       const { error } = await supabase
         .from('clinical_cases')
         .insert({
-          author_id: user.id,
+          created_by: user.id,
           title: newCase.title,
           description: newCase.description,
           content: newCase.content,
           specialty: newCase.specialty,
           is_anonymized: newCase.isAnonymized
-        });
+        } as any);
         
       if (error) throw error;
       
@@ -439,10 +439,10 @@ const ClinicalCases: React.FC = () => {
                       <CardDescription className="line-clamp-2">{clinicalCase.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="pb-3">
-                      {!clinicalCase.is_anonymized && 'author_name' in clinicalCase && (
+                      {!(clinicalCase.is_anonymized ?? true) && clinicalCase.author_name && (
                         <div className="text-sm mb-3">
                           <span className="text-gray-600">Par: </span>
-                          <span className="font-medium">{clinicalCase.author_name || 'Professionnel de santé'}</span>
+                          <span className="font-medium">{clinicalCase.author_name}</span>
                         </div>
                       )}
                       <p className="text-gray-700 line-clamp-3">{clinicalCase.content}</p>
