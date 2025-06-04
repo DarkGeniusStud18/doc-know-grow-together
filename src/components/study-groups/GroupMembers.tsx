@@ -1,3 +1,4 @@
+
 /**
  * Composant GroupMembers
  * 
@@ -15,7 +16,6 @@ import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Mail, Search, Shield, UserMinus } from 'lucide-react';
 import { hasData, hasError, isValidProfile } from '@/lib/utils/type-guards';
-import { Database } from '@/integrations/supabase/types';
 
 /**
  * Interface pour le profil d'un membre
@@ -104,15 +104,13 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
       }
       
       // Création du nouvel objet membre pour insertion avec le bon type
-      const newMemberData: Database['public']['Tables']['study_group_members']['Insert'] = {
-        group_id: groupId,
-        user_id: userData.id,
-        role: 'member'
-      };
-      
       const memberResponse = await supabase
         .from('study_group_members')
-        .insert(newMemberData)
+        .insert({
+          group_id: groupId,
+          user_id: userData.id,
+          role: 'member'
+        })
         .select()
         .single();
         
@@ -126,7 +124,11 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
       
       // Ajout des informations de profil au nouveau membre
       const newMember: Member = {
-        ...memberResponse.data,
+        id: memberResponse.data.id,
+        user_id: memberResponse.data.user_id,
+        group_id: memberResponse.data.group_id,
+        role: memberResponse.data.role,
+        joined_at: memberResponse.data.joined_at,
         profile: {
           display_name: userData.display_name,
           profile_image: userData.profile_image
@@ -150,13 +152,9 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     if (!selectedMember || !newRole) return;
     
     try {
-      const updateData: Database['public']['Tables']['study_group_members']['Update'] = {
-        role: newRole
-      };
-      
       const response = await supabase
         .from('study_group_members')
-        .update(updateData)
+        .update({ role: newRole })
         .eq('id', selectedMember.id);
         
       if (hasError(response)) {
