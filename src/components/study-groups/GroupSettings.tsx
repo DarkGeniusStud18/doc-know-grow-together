@@ -30,8 +30,8 @@ const GroupSettings: React.FC<GroupSettingsProps> = ({ group, isAdmin, onGroupUp
     try {
       const { error } = await supabase
         .from('study_groups')
-        .update({ is_private: !isPrivate })
-        .eq('id', group.id);
+        .update({ is_private: !isPrivate } as any)
+        .eq('id', group.id as any);
         
       if (error) throw error;
       

@@ -1,4 +1,3 @@
-
 /**
  * Composant GroupMembers
  * 
@@ -107,10 +106,10 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
       const memberResponse = await supabase
         .from('study_group_members')
         .insert({
-          group_id: groupId,
-          user_id: userData.id,
-          role: 'member'
-        })
+          group_id: groupId as any,
+          user_id: userData.id as any,
+          role: 'member' as any
+        } as any)
         .select()
         .single();
         
@@ -154,8 +153,8 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
     try {
       const response = await supabase
         .from('study_group_members')
-        .update({ role: newRole })
-        .eq('id', selectedMember.id);
+        .update({ role: newRole } as any)
+        .eq('id', selectedMember.id as any);
         
       if (hasError(response)) {
         throw response.error;
@@ -187,7 +186,7 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
       const response = await supabase
         .from('study_group_members')
         .delete()
-        .eq('id', selectedMember.id);
+        .eq('id', selectedMember.id as any);
         
       if (hasError(response)) {
         throw response.error;

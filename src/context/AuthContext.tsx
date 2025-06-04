@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', userId as any)
         .single();
 
       if (hasError(response)) {
