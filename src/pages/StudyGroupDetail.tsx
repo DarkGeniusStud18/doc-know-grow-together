@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -371,9 +370,20 @@ const StudyGroupDetail = () => {
                 {canManageGroup && (
                   <TabsContent value="settings">
                     <GroupSettings 
-                      group={group} 
+                      group={{
+                        ...group,
+                        owner_id: group.creator_id,
+                        max_participants: group.max_members
+                      }} 
                       isAdmin={isAdmin} 
-                      onGroupUpdate={(updatedGroup: StudyGroup) => setGroup(updatedGroup)} 
+                      onGroupUpdate={(updatedGroup) => {
+                        const convertedGroup: StudyGroup = {
+                          ...updatedGroup,
+                          creator_id: updatedGroup.owner_id || updatedGroup.creator_id,
+                          max_members: updatedGroup.max_participants || updatedGroup.max_members
+                        };
+                        setGroup(convertedGroup);
+                      }} 
                     />
                   </TabsContent>
                 )}
