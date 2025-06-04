@@ -1,18 +1,10 @@
 
-/**
- * DiscordSidebar.tsx
- * 
- * Barre latérale de navigation style Discord pour l'application MedCollab
- * Permet la navigation entre les différentes sections de l'application
- */
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/context/AuthContext';
-import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, MessageSquare, Settings, Wrench, TrendingUp, Users, Music } from 'lucide-react';
+import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, Settings, Wrench, TrendingUp, Users, Music, Stethoscope, GraduationCap } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const DiscordSidebar: React.FC = () => {
@@ -25,13 +17,14 @@ const DiscordSidebar: React.FC = () => {
     return location.pathname === path;
   };
 
-  // Gestionnaire pour le bouton de déconnexion
-  const handleLogout = (e: React.MouseEvent) => {
+  // Handler for logout button
+  const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
-    logout('/dashboard');
+    console.log('Logout button clicked');
+    await logout('/');
   };
 
-  // Icône de base pour la navigation
+  // Base navigation icon component
   const NavIcon = ({ path, icon: Icon, label }: { path: string; icon: React.ElementType; label: string }) => {
     const active = isActive(path);
     
@@ -63,26 +56,26 @@ const DiscordSidebar: React.FC = () => {
     );
   };
 
-  // Éléments de navigation basés sur le rôle de l'utilisateur
+  // Navigation items based on user role
   const navItems = [
     { path: '/dashboard', icon: Book, label: 'Accueil' },
     { path: '/resources', icon: BookOpen, label: 'Ressources' },
     { path: '/community', icon: Users, label: 'Communauté' },
     { path: '/calendar', icon: Calendar, label: 'Calendrier' },
-    { path: '/music-library', icon: Music, label: 'Bibliothèque Musicale' }, // Nouvel élément pour la bibliothèque musicale
+    { path: '/music-library', icon: Music, label: 'Bibliothèque Musicale' },
   ];
   
-  // Ajouter les éléments spécifiques au rôle
+  // Role-specific items
   const studentItems = [
-    { path: '/my-courses', icon: Book, label: 'Mes cours' },
+    { path: '/my-courses', icon: GraduationCap, label: 'Mes cours' },
     { path: '/notes', icon: FileText, label: 'Mes notes' },
     { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' },
-    { path: '/tools', icon: Wrench, label: 'Outils de productivité' },
-    { path: '/exam-simulator', icon: LayoutGrid, label: 'Simulateur d\'examen' },
+    { path: '/tools', icon: Wrench, label: 'Outils' },
+    { path: '/exam-simulator', icon: LayoutGrid, label: 'Simulateur' },
   ];
   
   const professionalItems = [
-    { path: '/clinical-cases', icon: MessageSquare, label: 'Cas cliniques' },
+    { path: '/clinical-cases', icon: Stethoscope, label: 'Cas cliniques' },
     { path: '/continuing-education', icon: TrendingUp, label: 'Formation continue' },
     { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' },
   ];
@@ -91,7 +84,7 @@ const DiscordSidebar: React.FC = () => {
 
   return (
     <div className="hidden md:flex flex-col items-center w-[72px] bg-gray-100 h-screen border-r shadow-sm">
-      {/* Avatar de l'utilisateur - modifié pour être un lien vers la page de profil */}
+      {/* User avatar - link to profile */}
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -107,8 +100,8 @@ const DiscordSidebar: React.FC = () => {
       
       <div className="w-8 h-0.5 bg-gray-300 rounded-full my-2"></div>
       
-      {/* Icônes de navigation avec scrollbar transparente */}
-      <ScrollArea className="h-[calc(100vh-180px)] w-full py-2 px-3" style={{scrollbarWidth: 'thin', scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent'}}>
+      {/* Navigation icons with scrollbar */}
+      <ScrollArea className="h-[calc(100vh-180px)] w-full py-2 px-3">
         <div className="flex flex-col items-center space-y-1 w-full">
           {navItems.map((item) => (
             <NavIcon key={item.path} path={item.path} icon={item.icon} label={item.label} />
@@ -126,7 +119,7 @@ const DiscordSidebar: React.FC = () => {
         </div>
       </ScrollArea>
       
-      {/* Bouton de déconnexion */}
+      {/* Logout button */}
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>

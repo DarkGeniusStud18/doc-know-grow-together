@@ -1,4 +1,6 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -11,32 +13,21 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Mail } from 'lucide-react';
 
-/**
- * Schéma de validation du formulaire de connexion
- */
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email invalide' }),
   password: z.string().min(1, { message: 'Mot de passe requis' }),
 });
 
-/**
- * Type dérivé du schéma de validation
- */
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-/**
- * Page de connexion avec formulaire et options de connexion rapide (démo)
- */
 const Login: React.FC = () => {
-  const { login, user } = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
   
   // Check for query parameters like verified=true
   const searchParams = new URLSearchParams(location.search);
@@ -44,10 +35,11 @@ const Login: React.FC = () => {
   
   // If user is already logged in, redirect to dashboard
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user) {
+      console.log('User already logged in, redirecting to dashboard');
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -58,22 +50,24 @@ const Login: React.FC = () => {
   });
   
   const onSubmit = async (data: LoginFormValues) => {
+    if (isLoading) return;
+    
     setIsLoading(true);
-    setLoginError(null);
     
     try {
-      const success = await login(data.email, data.password);
-      if (success) {
-        toast.success('Connexion réussie');
+      console.log('Attempting login for:', data.email);
+      const result = await signIn(data.email, data.password);
+      
+      if (!result.error) {
+        console.log('Login successful, redirecting to dashboard');
         navigate('/dashboard');
       } else {
-        setLoginError('Échec de la connexion. Vérifiez vos identifiants et réessayez.');
+        console.error('Login failed:', result.error);
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      setLoginError(error.message || 'Une erreur s\'est produite lors de la connexion');
       toast.error('Erreur de connexion', { 
-        description: error.message || 'Veuillez vérifier vos identifiants et réessayer.'
+        description: 'Veuillez vérifier vos identifiants et réessayer.'
       });
     } finally {
       setIsLoading(false);
@@ -81,33 +75,42 @@ const Login: React.FC = () => {
   };
   
   const handleDemo = async (type: 'student' | 'professional') => {
+    if (isLoading) return;
+    
     setIsLoading(true);
-    setLoginError(null);
     
     try {
-      let success;
+      let result;
       if (type === 'student') {
-        success = await login('student@example.com', 'password');
+        result = await signIn('student@example.com', 'password');
       } else {
-        success = await login('doctor@example.com', 'password');
+        result = await signIn('doctor@example.com', 'password');
       }
       
-      if (success) {
-        toast.success('Connexion démo réussie');
+      if (!result.error) {
+        console.log('Demo login successful, redirecting to dashboard');
         navigate('/dashboard');
-      } else {
-        setLoginError('Échec de la connexion démo. Veuillez réessayer.');
       }
     } catch (error: any) {
       console.error('Demo login error:', error);
-      setLoginError(error.message || 'Une erreur s\'est produite lors de la connexion');
-      toast.error('Erreur de connexion', { 
-        description: error.message || 'Veuillez réessayer plus tard.' 
+      toast.error('Erreur de connexion démo', { 
+        description: 'Veuillez réessayer plus tard.' 
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show loading if auth is still loading
+  if (authLoading) {
+    return (
+      <MainLayout requireAuth={false}>
+        <div className="min-h-[calc(100vh-120px)] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout requireAuth={false}>
@@ -130,14 +133,6 @@ const Login: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {loginError && (
-              <Alert className="mb-4 bg-red-50 border-red-200" variant="destructive">
-                <AlertDescription className="text-red-700">
-                  {loginError}
-                </AlertDescription>
-              </Alert>
-            )}
-            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField

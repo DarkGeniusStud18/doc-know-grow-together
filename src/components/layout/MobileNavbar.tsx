@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, MessageSquare, Settings, Wrench, TrendingUp, Users, Menu, Search, Music } from 'lucide-react';
+import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, MessageSquare, Settings, Wrench, TrendingUp, Users, Menu, Search, Music, Stethoscope, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,25 +29,25 @@ const MobileNavbar: React.FC = () => {
     { path: '/resources', label: 'Ressources', icon: BookOpen },
     { path: '/community', label: 'Communauté', icon: Users },
     { path: '/calendar', label: 'Calendrier', icon: Calendar },
-    { path: '/music-library', label: 'Musique', icon: Music }, // Nouvel élément pour la bibliothèque musicale
+    { path: '/music-library', label: 'Musique', icon: Music },
   ];
   
   // Add role-specific items
   const studentItems = [
-    { path: '/notes', label: 'Mes cours', icon: FileText },
+    { path: '/my-courses', label: 'Mes cours', icon: GraduationCap },
+    { path: '/notes', label: 'Mes notes', icon: FileText },
     { path: '/study-groups', label: 'Groupes d\'étude', icon: Users },
-    { path: '/tools', label: 'Outils de productivité', icon: Wrench },
-    { path: '/exam-simulator', label: 'Simulateur d\'examen', icon: LayoutGrid },
+    { path: '/tools', label: 'Outils', icon: Wrench },
+    { path: '/exam-simulator', label: 'Simulateur', icon: LayoutGrid },
   ];
   
   const professionalItems = [
-    { path: '/clinical-cases', label: 'Cas cliniques', icon: MessageSquare },
+    { path: '/clinical-cases', label: 'Cas cliniques', icon: Stethoscope },
     { path: '/continuing-education', label: 'Formation continue', icon: TrendingUp },
     { path: '/study-groups', label: 'Groupes d\'étude', icon: Users },
   ];
   
   const roleSpecificItems = user.role === 'student' ? studentItems : professionalItems;
-  const allItems = [...navItems, ...roleSpecificItems, { path: '/settings', label: 'Paramètres', icon: Settings }];
   
   // Discord-style Nav Item for mobile menu
   const NavIcon = ({ path, label, icon: Icon }: { path: string; label: string; icon: React.ElementType }) => {
@@ -87,6 +88,29 @@ const MobileNavbar: React.FC = () => {
     console.log("Recherche:", searchQuery);
     setSearchOpen(false);
   };
+
+  // Page title mapping
+  const getPageTitle = () => {
+    const path = location.pathname;
+    const titleMap: { [key: string]: string } = {
+      '/dashboard': 'Accueil',
+      '/resources': 'Ressources',
+      '/community': 'Communauté',
+      '/calendar': 'Calendrier',
+      '/my-courses': 'Mes cours',
+      '/notes': 'Mes notes',
+      '/study-groups': 'Groupes d\'étude',
+      '/tools': 'Outils',
+      '/exam-simulator': 'Simulateur',
+      '/clinical-cases': 'Cas cliniques',
+      '/continuing-education': 'Formation',
+      '/settings': 'Paramètres',
+      '/profile': 'Mon Profil',
+      '/music-library': 'Musique',
+      '/subscription': 'Abonnement'
+    };
+    return titleMap[path] || 'MedCollab';
+  };
   
   return (
     <header className="md:hidden sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
@@ -102,7 +126,7 @@ const MobileNavbar: React.FC = () => {
             <Menu className="h-5 w-5" />
           </Button>
           
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-md bg-medical-blue text-white flex items-center justify-center font-bold transition-transform hover:scale-110">M</div>
           </Link>
         </div>
@@ -123,7 +147,7 @@ const MobileNavbar: React.FC = () => {
                 
                 <div className="w-8 h-0.5 bg-gray-300 rounded-full my-2"></div>
                 
-                {/* Navigation Icons - With transparent scrollbar */}
+                {/* Navigation Icons - With scrollbar */}
                 <ScrollArea className="flex-1 w-full px-3">
                   <div className="grid grid-cols-2 gap-2 py-2">
                     {navItems.map((item) => (
@@ -149,7 +173,7 @@ const MobileNavbar: React.FC = () => {
                 {/* Logout button */}
                 <button 
                   onClick={() => {
-                    logout();
+                    logout('/');
                     setOpen(false);
                   }}
                   className="w-full mt-2 mb-4"
@@ -169,18 +193,7 @@ const MobileNavbar: React.FC = () => {
         {/* Page title in the center */}
         <div className="text-center">
           <h1 className="text-lg font-semibold text-medical-navy">
-            {location.pathname === '/dashboard' && 'Accueil'}
-            {location.pathname === '/resources' && 'Ressources'}
-            {location.pathname === '/community' && 'Communauté'}
-            {location.pathname === '/calendar' && 'Calendrier'}
-            {location.pathname === '/notes' && 'Mes cours'}
-            {location.pathname === '/study-groups' && 'Groupes d\'étude'}
-            {location.pathname === '/tools' && 'Outils'}
-            {location.pathname === '/exam-simulator' && 'Examens'}
-            {location.pathname === '/clinical-cases' && 'Cas cliniques'}
-            {location.pathname === '/continuing-education' && 'Formation'}
-            {location.pathname === '/settings' && 'Paramètres'}
-            {location.pathname === '/profile' && 'Mon Profil'}
+            {getPageTitle()}
           </h1>
         </div>
         

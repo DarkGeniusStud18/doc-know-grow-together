@@ -1,14 +1,15 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Globe, LogOut, Search } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const DesktopNavbar: React.FC = () => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   
   if (!user) return null;
@@ -16,36 +17,48 @@ const DesktopNavbar: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Recherche:", searchQuery);
-    // Later we will implement actual search functionality
-    // For now, just log the search query
+    // Future search functionality implementation
   };
 
-  // Handler to logout and redirect to dashboard
-  const handleLogout = (e: React.MouseEvent) => {
+  // Handler to logout and redirect to home
+  const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
-    logout('/dashboard');
+    console.log('Desktop navbar logout clicked');
+    await logout('/');
+  };
+
+  // Page title mapping
+  const getPageTitle = () => {
+    const path = location.pathname;
+    const titleMap: { [key: string]: string } = {
+      '/dashboard': 'Accueil',
+      '/resources': 'Ressources',
+      '/community': 'Communauté',
+      '/calendar': 'Calendrier',
+      '/my-courses': 'Mes cours',
+      '/notes': 'Mes notes',
+      '/study-groups': 'Groupes d\'étude',
+      '/tools': 'Outils de productivité',
+      '/exam-simulator': 'Simulateur d\'examen',
+      '/clinical-cases': 'Cas cliniques',
+      '/continuing-education': 'Formation continue',
+      '/settings': 'Paramètres',
+      '/profile': 'Mon Profil',
+      '/music-library': 'Bibliothèque Musicale',
+      '/subscription': 'Abonnement',
+      '/kyc': 'Vérification d\'identité',
+      '/kyc-verification': 'Vérification d\'identité'
+    };
+    return titleMap[path] || 'MedCollab';
   };
 
   return (
     <header className="hidden md:block sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
       <div className="container px-6 py-3 flex justify-between items-center">
-        {/* Titre de la page/chaîne */}
+        {/* Page title */}
         <div>
           <h1 className="text-xl font-semibold text-medical-navy">
-            {window.location.pathname === '/dashboard' && 'Accueil'}
-            {window.location.pathname === '/resources' && 'Ressources'}
-            {window.location.pathname === '/community' && 'Communauté'}
-            {window.location.pathname === '/calendar' && 'Calendrier'}
-            {window.location.pathname === '/notes' && 'Mes notes'}
-            {window.location.pathname === '/my-courses' && 'Mes cours'}
-            {window.location.pathname === '/study-groups' && 'Groupes d\'étude'}
-            {window.location.pathname === '/clinical-cases' && 'Cas cliniques'}
-            {window.location.pathname === '/tools' && 'Outils de productivité'}
-            {window.location.pathname === '/exam-simulator' && 'Simulateur d\'examen'}
-            {window.location.pathname === '/continuing-education' && 'Formation continue'}
-            {window.location.pathname === '/settings' && 'Paramètres'}
-            {window.location.pathname === '/profile' && 'Mon Profil'}
-            {window.location.pathname === '/music-library' && 'Bibliothèque Musicale'} {/* Nouveau titre pour la page musicale */}
+            {getPageTitle()}
           </h1>
         </div>
 
@@ -102,6 +115,11 @@ const DesktopNavbar: React.FC = () => {
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="w-full cursor-pointer hover:bg-gray-100 transition-colors">
                   Paramètres
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/subscription" className="w-full cursor-pointer hover:bg-gray-100 transition-colors">
+                  Abonnement
                 </Link>
               </DropdownMenuItem>
               {user.role === 'student' && user.kycStatus !== 'verified' && (

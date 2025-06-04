@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole } from '@/lib/auth/types';
+import { toast } from '@/components/ui/sonner';
 
 export interface AuthContextProps {
   user: User | null;
@@ -12,7 +13,7 @@ export interface AuthContextProps {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   register: (email: string, password: string, role: UserRole, displayName: string) => Promise<boolean>;
-  login: (email: string, password: string) => Promise<{ error: any }>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: (redirectPath?: string) => Promise<void>;
   updateCurrentUser: (updatedUser: User) => void;
 }
@@ -29,30 +30,75 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!supabaseUser) return null;
 
     try {
-      const { data: profile, error } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
-        .single();
+        .maybeSingle();
 
-      if (error || !profile) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
         return null;
       }
 
+      if (!profileData) {
+        console.log('Profile not found, creating new profile...');
+        
+        const displayName = supabaseUser.user_metadata?.display_name || 
+                           supabaseUser.user_metadata?.name || 
+                           supabaseUser.email?.split('@')[0] || 
+                           'User';
+        
+        const role = supabaseUser.user_metadata?.role || 'student';
+        
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: supabaseUser.id,
+            display_name: displayName,
+            role: role,
+            kyc_status: 'not_submitted',
+            email: supabaseUser.email,
+            subscription_status: 'free'
+          })
+          .select()
+          .single();
+          
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return null;
+        }
+        
+        console.log('New profile created successfully');
+        return {
+          id: supabaseUser.id,
+          email: supabaseUser.email || newProfile.email,
+          displayName: newProfile.display_name,
+          role: newProfile.role,
+          kycStatus: newProfile.kyc_status,
+          profileImage: newProfile.profile_image,
+          university: newProfile.university,
+          specialty: newProfile.specialty,
+          subscriptionStatus: newProfile.subscription_status,
+          subscriptionExpiry: newProfile.subscription_expiry ? new Date(newProfile.subscription_expiry) : null,
+          createdAt: new Date(newProfile.created_at),
+          updatedAt: newProfile.updated_at ? new Date(newProfile.updated_at) : undefined,
+        };
+      }
+
       return {
         id: supabaseUser.id,
-        email: supabaseUser.email || profile.email,
-        displayName: profile.display_name,
-        role: profile.role,
-        kycStatus: profile.kyc_status,
-        profileImage: profile.profile_image,
-        university: profile.university,
-        specialty: profile.specialty,
-        subscriptionStatus: profile.subscription_status,
-        subscriptionExpiry: profile.subscription_expiry ? new Date(profile.subscription_expiry) : null,
-        createdAt: new Date(profile.created_at),
-        updatedAt: profile.updated_at ? new Date(profile.updated_at) : undefined,
+        email: supabaseUser.email || profileData.email,
+        displayName: profileData.display_name,
+        role: profileData.role,
+        kycStatus: profileData.kyc_status,
+        profileImage: profileData.profile_image,
+        university: profileData.university,
+        specialty: profileData.specialty,
+        subscriptionStatus: profileData.subscription_status,
+        subscriptionExpiry: profileData.subscription_expiry ? new Date(profileData.subscription_expiry) : null,
+        createdAt: new Date(profileData.created_at),
+        updatedAt: profileData.updated_at ? new Date(profileData.updated_at) : undefined,
       };
     } catch (error) {
       console.error('Error converting user:', error);
@@ -61,6 +107,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    // Check for demo user first
+    const demoUser = localStorage.getItem('demoUser');
+    if (demoUser) {
+      if (demoUser === 'student') {
+        setUser({
+          id: "student-1",
+          email: "student@example.com",
+          displayName: "Alex Dupont",
+          role: "student",
+          kycStatus: "verified",
+          university: "Université Paris Descartes",
+          subscriptionStatus: "free",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      } else if (demoUser === 'professional') {
+        setUser({
+          id: "professional-1",
+          email: "doctor@example.com",
+          displayName: "Dr. Marie Lambert",
+          role: "professional",
+          kycStatus: "verified",
+          specialty: "Cardiologie",
+          subscriptionStatus: "free",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+      setLoading(false);
+      return;
+    }
+
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
@@ -75,7 +153,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.id);
       setSession(session);
       
       if (session?.user) {
@@ -92,29 +171,129 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName
+          }
         }
+      });
+
+      if (error) {
+        console.error('Signup error:', error);
+        toast.error('Erreur lors de l\'inscription', { description: error.message });
+        return { error };
       }
-    });
-    return { error };
+
+      if (data.user && !data.session) {
+        toast.success('Vérifiez votre email', { 
+          description: 'Un lien de confirmation a été envoyé à votre adresse email.' 
+        });
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      toast.error('Erreur lors de l\'inscription');
+      return { error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
+    try {
+      // Handle demo accounts
+      if ((email === 'student@example.com' || email === 'doctor@example.com') && password === 'password') {
+        localStorage.setItem('demoUser', email === 'student@example.com' ? 'student' : 'professional');
+        
+        const demoUser = email === 'student@example.com' ? {
+          id: "student-1",
+          email: "student@example.com",
+          displayName: "Alex Dupont",
+          role: "student" as UserRole,
+          kycStatus: "verified" as any,
+          university: "Université Paris Descartes",
+          subscriptionStatus: "free" as any,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } : {
+          id: "professional-1",
+          email: "doctor@example.com",
+          displayName: "Dr. Marie Lambert",
+          role: "professional" as UserRole,
+          kycStatus: "verified" as any,
+          specialty: "Cardiologie",
+          subscriptionStatus: "free" as any,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        
+        setUser(demoUser);
+        toast.success('Connexion réussie');
+        return { error: null };
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Identifiants incorrects', { 
+            description: 'Vérifiez votre email et mot de passe' 
+          });
+        } else {
+          toast.error('Erreur de connexion', { description: error.message });
+        }
+        return { error };
+      }
+
+      if (data.user) {
+        toast.success('Connexion réussie');
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error('Erreur de connexion');
+      return { error };
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      // Handle demo users
+      const demoUser = localStorage.getItem('demoUser');
+      if (demoUser) {
+        localStorage.removeItem('demoUser');
+        setUser(null);
+        setSession(null);
+        toast.success('Déconnexion réussie');
+        window.location.href = '/';
+        return { error: null };
+      }
+
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+        toast.error('Erreur lors de la déconnexion');
+        return { error };
+      }
+
+      setUser(null);
+      setSession(null);
+      toast.success('Déconnexion réussie');
+      window.location.href = '/';
+      return { error: null };
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error('Erreur lors de la déconnexion');
+      return { error };
+    }
   };
 
   const register = async (email: string, password: string, role: UserRole, displayName: string): Promise<boolean> => {
@@ -132,17 +311,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error('Registration error:', error);
+        toast.error('Erreur lors de l\'inscription', { description: error.message });
         return false;
       }
       
+      toast.success('Inscription réussie', { 
+        description: 'Vérifiez votre email pour confirmer votre compte.' 
+      });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
+      toast.error('Erreur lors de l\'inscription');
       return false;
     }
   };
 
-  const login = signIn; // Alias for compatibility
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const result = await signIn(email, password);
+    return !result.error;
+  };
 
   const logout = async (redirectPath?: string) => {
     await signOut();

@@ -35,6 +35,10 @@ import MusicLibrary from './pages/MusicLibrary';
 import Subscription from './pages/Subscription';
 import ForgotPassword from './pages/ForgotPassword';
 import PasswordRecovery from './pages/PasswordRecovery';
+import Functionalities from './pages/Functionalities';
+
+// Tool pages
+import ToolsHub from './pages/tools/ToolsHub';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -69,6 +73,7 @@ function App() {
             <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/functionalities" element={<Functionalities />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -85,13 +90,14 @@ function App() {
               <Route path="/community" element={<Community />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/notes" element={<Notes />} />
+              <Route path="/my-courses" element={<MyCourses />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/tools" element={<Tools />} />
+              <Route path="/tools" element={<ToolsHub />} />
+              <Route path="/tools/*" element={<Tools />} />
               <Route path="/exam-simulator" element={<ExamSimulator />} />
               <Route path="/kyc" element={<KYCVerification />} />
               <Route path="/kyc-verification" element={<KYCVerification />} />
               <Route path="/continuing-education" element={<ContinuingEducation />} />
-              <Route path="/my-courses" element={<MyCourses />} /> 
               <Route path="/music-library" element={<MusicLibrary />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="*" element={<NotFound />} />
