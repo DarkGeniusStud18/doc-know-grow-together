@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -28,6 +29,17 @@ type StudyGroup = {
   max_members: number;
   created_at: string;
   updated_at: string;
+};
+
+// Type for GroupSettings component
+type GroupSettingsGroup = {
+  id: string;
+  name: string;
+  description: string;
+  owner_id: string;
+  is_private: boolean;
+  max_participants: number;
+  created_at: string;
 };
 
 type Member = {
@@ -376,11 +388,14 @@ const StudyGroupDetail = () => {
                         max_participants: group.max_members
                       }} 
                       isAdmin={isAdmin} 
-                      onGroupUpdate={(updatedGroup) => {
+                      onGroupUpdate={(updatedGroup: GroupSettingsGroup) => {
                         const convertedGroup: StudyGroup = {
-                          ...updatedGroup,
-                          creator_id: updatedGroup.owner_id || updatedGroup.creator_id,
-                          max_members: updatedGroup.max_participants || updatedGroup.max_members
+                          ...group,
+                          name: updatedGroup.name,
+                          description: updatedGroup.description,
+                          is_private: updatedGroup.is_private,
+                          max_members: updatedGroup.max_participants,
+                          updated_at: new Date().toISOString()
                         };
                         setGroup(convertedGroup);
                       }} 
