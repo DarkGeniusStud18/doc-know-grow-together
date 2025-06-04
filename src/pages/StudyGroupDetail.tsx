@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -18,6 +19,7 @@ import GroupDiscussions from '@/components/study-groups/GroupDiscussions';
 import GroupResources from '@/components/study-groups/GroupResources';
 import GroupSettings from '@/components/study-groups/GroupSettings';
 
+// Use the actual database schema type
 type StudyGroup = {
   id: string;
   name: string;
@@ -26,6 +28,7 @@ type StudyGroup = {
   is_private: boolean;
   max_members: number;
   created_at: string;
+  updated_at: string;
 };
 
 type Member = {
@@ -258,8 +261,8 @@ const StudyGroupDetail = () => {
                       type="number"
                       min="2"
                       max="100"
-                      value={editedGroup.max_participants || 50}
-                      onChange={(e) => setEditedGroup({ ...editedGroup, max_participants: parseInt(e.target.value) })}
+                      value={editedGroup.max_members || 50}
+                      onChange={(e) => setEditedGroup({ ...editedGroup, max_members: parseInt(e.target.value) })}
                     />
                   </div>
                 </CardContent>
@@ -370,7 +373,7 @@ const StudyGroupDetail = () => {
                     <GroupSettings 
                       group={group} 
                       isAdmin={isAdmin} 
-                      onGroupUpdate={setGroup} 
+                      onGroupUpdate={(updatedGroup: StudyGroup) => setGroup(updatedGroup)} 
                     />
                   </TabsContent>
                 )}
