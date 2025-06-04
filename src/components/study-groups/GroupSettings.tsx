@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
 type StudyGroup = {
   id: string;
@@ -28,9 +29,13 @@ const GroupSettings: React.FC<GroupSettingsProps> = ({ group, isAdmin, onGroupUp
 
   const updatePrivacySetting = async () => {
     try {
+      const updateData: Database['public']['Tables']['study_groups']['Update'] = {
+        is_private: !isPrivate
+      };
+      
       const { error } = await supabase
         .from('study_groups')
-        .update({ is_private: !isPrivate })
+        .update(updateData)
         .eq('id', group.id);
         
       if (error) throw error;
