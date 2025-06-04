@@ -1,21 +1,19 @@
-
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import MainLayout from '@/components/layout/MainLayout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MusicPlayer } from '@/components/music/MusicPlayer';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useMusicLibrary } from '@/hooks/useMusicLibrary';
-import { BookOpen, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getTracksByCategory } from '@/models/Music';
-import { MusicTrackList } from '@/components/music/MusicTrackList';
-import { CategoryHeader } from '@/components/music/CategoryHeader';
-import { toast } from 'sonner';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Play, Pause, Volume2, Search, Heart, MoreHorizontal } from 'lucide-react';
+import { useSimpleMusicPlayer } from '@/hooks/useSimpleMusicPlayer';
+import { useMusicLibrary } from '@/hooks/useMusicLibrary';
 
 const MusicLibrary = () => {
-  const { currentTrack, isPlaying, playTrack, togglePlayPause } = useMusicLibrary();
+  const { currentTrack, isPlaying, playTrack, togglePlayPause } = useSimpleMusicPlayer();
+  const { volume, saveVolume } = useMusicLibrary();
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Use React Query to load and cache music data
   const { data: tracksByCategory, isLoading, error } = useQuery({

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -20,9 +19,9 @@ type StudyGroup = {
   id: string;
   name: string;
   description: string;
-  owner_id: string;
+  creator_id: string;
   is_private: boolean;
-  max_participants: number;
+  max_members: number;
   created_at: string;
   owner_name?: string;
   member_count?: number;
@@ -67,7 +66,7 @@ const StudyGroups: React.FC = () => {
           const { data: ownerProfile, error: profileError } = await supabase
             .from('profiles')
             .select('display_name')
-            .eq('id', group.owner_id)
+            .eq('id', group.creator_id)
             .single();
           
           if (profileError) {
@@ -140,9 +139,9 @@ const StudyGroups: React.FC = () => {
       console.log("Creating study group with data:", {
         name: newGroup.name,
         description: newGroup.description,
-        owner_id: user.id,
+        creator_id: user.id,
         is_private: newGroup.isPrivate,
-        max_participants: newGroup.maxParticipants
+        max_members: newGroup.maxParticipants
       });
       
       // First, create the study group
@@ -151,9 +150,9 @@ const StudyGroups: React.FC = () => {
         .insert({
           name: newGroup.name,
           description: newGroup.description,
-          owner_id: user.id,
+          creator_id: user.id,
           is_private: newGroup.isPrivate,
-          max_participants: newGroup.maxParticipants
+          max_members: newGroup.maxParticipants
         })
         .select();
         
@@ -414,7 +413,7 @@ const StudyGroups: React.FC = () => {
                   <Button variant="outline" className="w-full hover-scale" onClick={() => navigate(`/study-groups/${group.id}`)}>
                     Voir le groupe
                   </Button>
-                  {group.owner_id !== user.id && !studyGroups.some(g => g.id === group.id && g.member_count && g.member_count > 0) && (
+                  {group.creator_id !== user.id && !studyGroups.some(g => g.id === group.id && g.member_count && g.member_count > 0) && (
                     <Button 
                       className="hover-scale" 
                       onClick={() => joinGroup(group.id)}

@@ -5,11 +5,11 @@ export interface Resource {
   id: string;
   title: string;
   description: string;
-  content_type: string; // Keep as string to match actual DB schema
+  content_type: string;
   category: string;
   author?: string;
   language: string;
-  url: string; // URL to the resource file or content
+  url: string;
   thumbnail?: string;
   featured: boolean;
   requires_verification: boolean;
@@ -89,7 +89,7 @@ export async function createResource(resource: Omit<Resource, 'id' | 'created_at
   try {
     const { data, error } = await supabase
       .from('resources')
-      .insert([resource as any]) // Use 'as any' to bypass type checking for now
+      .insert([resource])
       .select()
       .single();
     
@@ -109,7 +109,7 @@ export async function updateResource(id: string, updates: Partial<Omit<Resource,
   try {
     const { data, error } = await supabase
       .from('resources')
-      .update(updates as any) // Use 'as any' to bypass type checking for now
+      .update(updates)
       .eq('id', id)
       .select()
       .single();

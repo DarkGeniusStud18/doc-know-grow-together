@@ -22,9 +22,9 @@ type StudyGroup = {
   id: string;
   name: string;
   description: string;
-  owner_id: string;
+  creator_id: string;
   is_private: boolean;
-  max_participants: number;
+  max_members: number;
   created_at: string;
 };
 
@@ -103,7 +103,7 @@ const StudyGroupDetail = () => {
           name: groupData.name,
           description: groupData.description,
           is_private: groupData.is_private,
-          max_participants: groupData.max_participants
+          max_members: groupData.max_members
         });
       } catch (error) {
         console.error('Error fetching study group details:', error);
@@ -130,7 +130,7 @@ const StudyGroupDetail = () => {
           name: editedGroup.name,
           description: editedGroup.description,
           is_private: editedGroup.is_private,
-          max_participants: editedGroup.max_participants
+          max_members: editedGroup.max_members
         })
         .eq('id', group.id);
         
@@ -141,7 +141,7 @@ const StudyGroupDetail = () => {
         name: editedGroup.name || group.name,
         description: editedGroup.description || group.description,
         is_private: editedGroup.is_private ?? group.is_private,
-        max_participants: editedGroup.max_participants || group.max_participants
+        max_members: editedGroup.max_members || group.max_members
       });
       
       setIsEditing(false);
@@ -407,7 +407,7 @@ const StudyGroupDetail = () => {
                 </div>
                 <div className="text-sm">
                   <p className="text-gray-500">Nombre maximum de membres</p>
-                  <p>{group.max_participants}</p>
+                  <p>{group.max_members}</p>
                 </div>
               </CardContent>
             </Card>

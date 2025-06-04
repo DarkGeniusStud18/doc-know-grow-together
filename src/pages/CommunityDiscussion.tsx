@@ -453,7 +453,7 @@ const CommunityDiscussion = () => {
                             {new Date(response.created_at).toLocaleString('fr-FR', {
                               day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                             })}
-                            {response.author_role === 'medecin' && (
+                            {response.author_role === 'professional' && (
                               <Badge className="ml-2 bg-blue-500">Médecin</Badge>
                             )}
                             {(response.is_expert_response ?? false) && (
