@@ -2,14 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useMusicLibrary } from '@/hooks/useMusicLibrary';
+import { useSimpleMusicPlayer } from '@/hooks/useSimpleMusicPlayer';
 
 /**
  * Composant de notification musicale flottante
  * Persiste même lorsqu'on navigue entre les pages
  */
 const MusicNotification: React.FC = () => {
-  const { currentTrack, isPlaying, volume, togglePlayPause, changeVolume } = useMusicLibrary();
+  const { currentTrack, isPlaying, volume, togglePlayPause, changeVolume } = useSimpleMusicPlayer();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

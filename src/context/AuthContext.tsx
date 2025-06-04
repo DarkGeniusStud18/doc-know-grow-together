@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,10 +8,11 @@ import { hasData, hasError } from '@/lib/utils/type-guards';
 interface AuthContextProps {
   user: User | null;
   session: any | null;
-  isLoading: boolean;
+  loading: boolean;
   signUp: (data: any) => Promise<any>;
   signIn: (data: any) => Promise<any>;
   signOut: () => Promise<void>;
+  logout: (redirectUrl?: string) => Promise<void>;
   updateCurrentUser: (updates: Partial<User>) => void;
 }
 
@@ -19,11 +21,11 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadSession = async () => {
-      setIsLoading(true);
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
 
       setSession(session);
@@ -32,7 +34,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userProfile = await getUserProfile(session.user.id);
         setUser(userProfile);
       }
-      setIsLoading(false);
+      setLoading(false);
     };
 
     loadSession();
@@ -103,6 +105,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const logout = async (redirectUrl: string = '/login') => {
+    try {
+      await signOut();
+      window.location.href = redirectUrl;
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   const getUserProfile = async (userId: string): Promise<User | null> => {
     try {
       const response = await supabase
@@ -159,10 +170,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const value: AuthContextProps = {
     user,
     session,
-    isLoading,
+    loading,
     signUp,
     signIn,
     signOut,
+    logout,
     updateCurrentUser,
   };
 

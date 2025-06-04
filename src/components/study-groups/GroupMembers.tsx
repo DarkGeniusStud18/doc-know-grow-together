@@ -111,7 +111,7 @@ const GroupMembers: React.FC<GroupMembersProps> = ({
       
       const memberResponse = await supabase
         .from('study_group_members')
-        .insert(newMemberData)
+        .insert([newMemberData])
         .select()
         .single();
         
