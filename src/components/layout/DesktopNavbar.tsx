@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Bell, Globe, LogOut, Search } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const DesktopNavbar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -24,7 +23,7 @@ const DesktopNavbar: React.FC = () => {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     console.log('Desktop navbar logout clicked');
-    await logout('/');
+    await signOut();
   };
 
   // Page title mapping

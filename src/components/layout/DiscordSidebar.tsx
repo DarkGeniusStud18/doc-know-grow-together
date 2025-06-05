@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -8,7 +7,7 @@ import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, Settings, Wrenc
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const DiscordSidebar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   
   if (!user) return null;
@@ -21,7 +20,7 @@ const DiscordSidebar: React.FC = () => {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     console.log('Logout button clicked');
-    await logout('/');
+    await signOut();
   };
 
   // Base navigation icon component
