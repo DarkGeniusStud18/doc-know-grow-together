@@ -818,6 +818,45 @@ export type Database = {
           },
         ]
       }
+      user_display_preferences: {
+        Row: {
+          color_scheme: string
+          created_at: string
+          font_family: string
+          font_size: string
+          high_contrast: boolean
+          id: string
+          reduce_motion: boolean
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color_scheme?: string
+          created_at?: string
+          font_family?: string
+          font_size?: string
+          high_contrast?: boolean
+          id?: string
+          reduce_motion?: boolean
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color_scheme?: string
+          created_at?: string
+          font_family?: string
+          font_size?: string
+          high_contrast?: boolean
+          id?: string
+          reduce_motion?: boolean
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_music_preferences: {
         Row: {
           created_at: string

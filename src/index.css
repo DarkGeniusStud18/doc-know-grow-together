@@ -46,12 +46,12 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Dark Theme - Updated with darker text and smoother contrast */
-  /*.dark {
+  /* Dark Theme */
+  .dark {
     --background: 222.2 45% 7%;
-    --foreground: 210 40% 90%;*/ /* Darker title text (90% instead of 98%) */
+    --foreground: 210 40% 90%;
 
-    /*--card: 222.2 45% 9%;
+    --card: 222.2 45% 9%;
     --card-foreground: 210 40% 90%;
 
     --popover: 222.2 45% 9%;
@@ -84,9 +84,9 @@
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 240 12% 18%;
     --sidebar-ring: 212.7 26.8% 70%;
-  }*/
+  }
 
-  /* Color Schemes - Updated for smoother transitions */
+  /* Color Schemes */
   :root.color-blue {
     --primary: 221 75% 55%;
     --primary-foreground: 210 40% 98%;
@@ -118,6 +118,92 @@
     --secondary-foreground: 210 40% 98%;
     --sidebar-primary: 24 85% 58%;
   }
+
+  :root.color-red {
+    --primary: 0 72% 51%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 0 65% 58%;
+    --secondary-foreground: 210 40% 98%;
+    --sidebar-primary: 0 72% 51%;
+  }
+
+  :root.color-indigo {
+    --primary: 239 84% 67%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 239 75% 75%;
+    --secondary-foreground: 210 40% 98%;
+    --sidebar-primary: 239 84% 67%;
+  }
+
+  :root.color-pink {
+    --primary: 330 81% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 330 75% 70%;
+    --secondary-foreground: 210 40% 98%;
+    --sidebar-primary: 330 81% 60%;
+  }
+
+  :root.color-teal {
+    --primary: 173 58% 39%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 173 50% 50%;
+    --secondary-foreground: 210 40% 98%;
+    --sidebar-primary: 173 58% 39%;
+  }
+
+  /* Font Size Classes */
+  :root.text-small {
+    font-size: 0.875rem;
+  }
+
+  :root.text-normal {
+    font-size: 1rem;
+  }
+
+  :root.text-large {
+    font-size: 1.125rem;
+  }
+
+  :root.text-extra-large {
+    font-size: 1.25rem;
+  }
+
+  /* Accessibility Classes */
+  .reduce-motion * {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  
+  .high-contrast {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --primary: 240 100% 20%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 100% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --border: 0 0% 50%;
+    --input: 0 0% 90%;
+  }
+
+  .high-contrast.dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --primary: 240 100% 80%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 240 100% 90%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 90%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --border: 0 0% 50%;
+    --input: 0 0% 10%;
+  }
 }
 
 @layer base {
@@ -138,40 +224,18 @@
     font-family: 'Courier New', monospace;
   }
   
-  /* Accessibility classes */
-  .reduced-motion * {
-    transition: none !important;
-    animation: none !important;
-  }
+  /* Font size responsive classes */
+  .text-small h1 { font-size: 1.875rem !important; }
+  .text-small h2 { font-size: 1.5rem !important; }
+  .text-small h3 { font-size: 1.25rem !important; }
   
-  .high-contrast {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --primary: 240 100% 20%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 100% 10%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-  }
+  .text-large h1 { font-size: 2.5rem !important; }
+  .text-large h2 { font-size: 2rem !important; }
+  .text-large h3 { font-size: 1.75rem !important; }
   
-  .large-text {
-    font-size: 1.1rem !important;
-  }
-  
-  .large-text h1 {
-    font-size: 2.25rem !important;
-  }
-  
-  .large-text h2 {
-    font-size: 1.875rem !important;
-  }
-  
-  .large-text h3 {
-    font-size: 1.5rem !important;
-  }
+  .text-extra-large h1 { font-size: 3rem !important; }
+  .text-extra-large h2 { font-size: 2.25rem !important; }
+  .text-extra-large h3 { font-size: 2rem !important; }
 }
 
 @layer components {
@@ -187,7 +251,7 @@
     @apply text-xl md:text-2xl font-semibold text-medical-navy mb-4;
   }
   
-  /* Added animations */
+  /* Animation classes that respect reduce-motion */
   .fade-in-bottom {
     animation: fadeInBottom 0.5s ease-out forwards;
   }
@@ -203,7 +267,7 @@
     }
   }
 
-  /* New hover animations and transitions */
+  /* Hover animations that respect reduce-motion */
   .hover-scale {
     @apply transition-transform duration-300 ease-in-out;
   }
@@ -249,5 +313,21 @@
   a.btn:active,
   .btn:active {
     @apply transform translate-y-0;
+  }
+
+  /* Override animations when reduce-motion is active */
+  .reduce-motion .fade-in-bottom {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .reduce-motion .hover-scale:hover,
+  .reduce-motion .hover-lift:hover,
+  .reduce-motion button:hover,
+  .reduce-motion [role="button"]:hover,
+  .reduce-motion a.btn:hover,
+  .reduce-motion .btn:hover {
+    transform: none;
   }
 }
