@@ -67,8 +67,8 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <ThemeProvider>
           <BrowserRouter>
             <ScrollToTop />
             <Routes>
@@ -106,8 +106,8 @@ function App() {
             <MusicNotification />
             <MusicSync />
           </BrowserRouter>
-        </AuthProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
