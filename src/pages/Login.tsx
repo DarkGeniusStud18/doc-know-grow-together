@@ -40,9 +40,8 @@ const Login: React.FC = () => {
       const result = await signIn(data.email, data.password);
       
       if (!result.error) {
-        console.log('Login successful, redirecting...');
-        // Don't manually redirect here - let the useEffect handle it
-        toast.success('Connexion réussie!');
+        console.log('Login successful, navigating to dashboard...');
+        navigate('/dashboard', { replace: true });
       } else {
         console.error('Login failed:', result.error);
         toast.error('Erreur de connexion', { 
@@ -73,9 +72,8 @@ const Login: React.FC = () => {
       }
       
       if (!result.error) {
-        console.log('Demo login successful');
-        toast.success('Connexion démo réussie!');
-        // Don't manually redirect here - let the useEffect handle it
+        console.log('Demo login successful, navigating to dashboard...');
+        navigate('/dashboard', { replace: true });
       } else {
         toast.error('Erreur de connexion démo', { 
           description: 'Veuillez réessayer plus tard.' 

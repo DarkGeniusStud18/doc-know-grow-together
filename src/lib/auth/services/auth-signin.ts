@@ -42,12 +42,6 @@ export const signIn = async (email: string, password: string): Promise<User | nu
       if (user) {
         console.log('Connexion de démonstration réussie');
         toast.success('Connexion réussie', { id: 'login-success' });
-        
-        // Redirection vers le tableau de bord après une courte pause
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 300);
-        
         return user;
       }
       

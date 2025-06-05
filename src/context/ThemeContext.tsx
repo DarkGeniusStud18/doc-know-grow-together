@@ -31,7 +31,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useAuth();
+  const authContext = useAuth();
+  const user = authContext?.user; // Safe access to user
   const [loading, setLoading] = useState(true);
   
   // Initialize with default values
