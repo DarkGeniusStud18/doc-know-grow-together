@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from 'react';
@@ -21,7 +22,7 @@ const Login: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const verified = searchParams.get('verified') === 'true';
   
-  // Redirect if user is already logged in
+  // Redirect if user is already logged in - but only after auth loading is complete
   useEffect(() => {
     if (!authLoading && user) {
       console.log('User already logged in, redirecting to dashboard');
@@ -40,10 +41,13 @@ const Login: React.FC = () => {
       
       if (!result.error) {
         console.log('Login successful, redirecting...');
-        // Navigate to dashboard after successful login
-        navigate('/dashboard', { replace: true });
+        // Don't manually redirect here - let the useEffect handle it
+        toast.success('Connexion réussie!');
       } else {
         console.error('Login failed:', result.error);
+        toast.error('Erreur de connexion', { 
+          description: 'Veuillez vérifier vos identifiants et réessayer.'
+        });
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -69,8 +73,13 @@ const Login: React.FC = () => {
       }
       
       if (!result.error) {
-        console.log('Demo login successful, redirecting...');
-        navigate('/dashboard', { replace: true });
+        console.log('Demo login successful');
+        toast.success('Connexion démo réussie!');
+        // Don't manually redirect here - let the useEffect handle it
+      } else {
+        toast.error('Erreur de connexion démo', { 
+          description: 'Veuillez réessayer plus tard.' 
+        });
       }
     } catch (error: any) {
       console.error('Demo login error:', error);
@@ -82,21 +91,21 @@ const Login: React.FC = () => {
     }
   };
 
-  // Show loading only during initial auth check
+  // Show loading screen only during initial auth check
   if (authLoading) {
     return (
       <MainLayout requireAuth={false}>
         <div className="min-h-[calc(100vh-120px)] flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            <p className="text-lg text-gray-600">Chargement...</p>
+            <p className="text-lg text-gray-600">Vérification de la session...</p>
           </div>
         </div>
       </MainLayout>
     );
   }
 
-  // Don't render login form if user is authenticated
+  // If user is authenticated after loading is complete, don't render the form
   if (user) {
     return null;
   }

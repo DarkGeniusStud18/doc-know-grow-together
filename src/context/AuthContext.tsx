@@ -22,9 +22,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
+        
         // Check for demo user first
         const demoUser = localStorage.getItem('demoUser');
         if (demoUser && mounted) {
+          console.log('Found demo user:', demoUser);
           if (demoUser === 'student') {
             setUser(getDemoUser('student'));
           } else if (demoUser === 'professional') {
@@ -69,9 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Initialize auth state
-    initializeAuth();
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.id);
@@ -81,12 +81,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (event === 'SIGNED_OUT') {
         setSession(null);
         setUser(null);
+        localStorage.removeItem('demoUser');
         return;
       }
 
-      setSession(session);
-      
-      if (session?.user) {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setSession(session);
+        
         try {
           console.log('Converting user after auth state change...');
           const customUser = await convertToCustomUser(session.user);
@@ -101,10 +102,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error converting user:', error);
           setUser(null);
         }
-      } else {
-        setUser(null);
       }
     });
+
+    // Initialize auth state
+    initializeAuth();
 
     return () => {
       mounted = false;
