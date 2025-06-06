@@ -5,14 +5,134 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Timer, Play, Pause, RotateCcw, Settings } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from '@/components/ui/sonner';
 
 const PomodoroTimer: React.FC = () => {
+  const { user } = useAuth();
   const [minutes, setMinutes] = useState(25);
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [mode, setMode] = useState<'work' | 'break'>('work');
   const [workTime, setWorkTime] = useState(25);
   const [breakTime, setBreakTime] = useState(5);
+  const [longBreakTime, setLongBreakTime] = useState(15);
+  const [sessionsUntilLongBreak, setSessionsUntilLongBreak] = useState(4);
+  const [sessionCount, setSessionCount] = useState(0);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Load user settings from Supabase
+  useEffect(() => {
+    if (user) {
+      loadUserSettings();
+    }
+  }, [user]);
+
+  const loadUserSettings = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('pomodoro_settings')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error loading settings:', error);
+      return;
+    }
+
+    if (data) {
+      setWorkTime(data.work_duration);
+      setBreakTime(data.short_break_duration);
+      setLongBreakTime(data.long_break_duration);
+      setSessionsUntilLongBreak(data.sessions_until_long_break);
+      setMinutes(data.work_duration);
+    }
+  };
+
+  const saveUserSettings = async () => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('pomodoro_settings')
+      .upsert({
+        user_id: user.id,
+        work_duration: workTime,
+        short_break_duration: breakTime,
+        long_break_duration: longBreakTime,
+        sessions_until_long_break: sessionsUntilLongBreak,
+      });
+
+    if (error) {
+      console.error('Error saving settings:', error);
+      toast.error('Erreur lors de la sauvegarde des paramètres');
+    } else {
+      toast.success('Paramètres sauvegardés !');
+    }
+  };
+
+  const startSession = async () => {
+    if (!user) return;
+
+    const sessionType = mode === 'work' ? 'work' : 
+                       (sessionCount + 1) % sessionsUntilLongBreak === 0 ? 'long_break' : 'short_break';
+    
+    const duration = mode === 'work' ? workTime : 
+                    sessionType === 'long_break' ? longBreakTime : breakTime;
+
+    const { data, error } = await supabase
+      .from('pomodoro_sessions')
+      .insert({
+        user_id: user.id,
+        session_type: sessionType,
+        duration_minutes: duration,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error starting session:', error);
+      toast.error('Erreur lors du démarrage de la session');
+      return;
+    }
+
+    setCurrentSessionId(data.id);
+    setIsActive(true);
+    toast.success('Session démarrée !');
+  };
+
+  const completeSession = async () => {
+    if (!user || !currentSessionId) return;
+
+    const { error } = await supabase
+      .from('pomodoro_sessions')
+      .update({
+        completed: true,
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', currentSessionId);
+
+    if (error) {
+      console.error('Error completing session:', error);
+    } else {
+      if (mode === 'work') {
+        setSessionCount(prev => prev + 1);
+        setMode('break');
+        const isLongBreak = (sessionCount + 1) % sessionsUntilLongBreak === 0;
+        setMinutes(isLongBreak ? longBreakTime : breakTime);
+        toast.success(isLongBreak ? 'Longue pause !' : 'Pause !');
+      } else {
+        setMode('work');
+        setMinutes(workTime);
+        toast.success('Retour au travail !');
+      }
+      setSeconds(0);
+      setCurrentSessionId(null);
+    }
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -25,16 +145,8 @@ const PomodoroTimer: React.FC = () => {
           setMinutes(minutes - 1);
           setSeconds(59);
         } else {
-          // Timer finished
           setIsActive(false);
-          if (mode === 'work') {
-            setMode('break');
-            setMinutes(breakTime);
-          } else {
-            setMode('work');
-            setMinutes(workTime);
-          }
-          setSeconds(0);
+          completeSession();
         }
       }, 1000);
     } else if (!isActive && seconds !== 0) {
@@ -44,15 +156,20 @@ const PomodoroTimer: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, minutes, seconds, mode, workTime, breakTime]);
+  }, [isActive, minutes, seconds]);
 
   const toggleTimer = () => {
-    setIsActive(!isActive);
+    if (!isActive && !currentSessionId) {
+      startSession();
+    } else {
+      setIsActive(!isActive);
+    }
   };
 
   const resetTimer = () => {
     setIsActive(false);
     setSeconds(0);
+    setCurrentSessionId(null);
     if (mode === 'work') {
       setMinutes(workTime);
     } else {
@@ -81,7 +198,7 @@ const PomodoroTimer: React.FC = () => {
               {mode === 'work' ? 'Temps de travail' : 'Pause'}
             </CardTitle>
             <CardDescription>
-              {mode === 'work' ? 'Concentrez-vous sur votre tâche' : 'Prenez une pause bien méritée'}
+              Session {sessionCount + 1} {mode === 'work' ? '- Concentrez-vous sur votre tâche' : '- Prenez une pause bien méritée'}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
@@ -115,31 +232,40 @@ const PomodoroTimer: React.FC = () => {
               Paramètres
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Temps de travail (minutes)</label>
-                <input
-                  type="number"
-                  value={workTime}
-                  onChange={(e) => setWorkTime(parseInt(e.target.value) || 25)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  min="1"
-                  max="60"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Temps de pause (minutes)</label>
-                <input
-                  type="number"
-                  value={breakTime}
-                  onChange={(e) => setBreakTime(parseInt(e.target.value) || 5)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  min="1"
-                  max="30"
-                />
-              </div>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Temps de travail: {workTime} min</label>
+              <Slider
+                value={[workTime]}
+                onValueChange={(value) => setWorkTime(value[0])}
+                max={60}
+                min={5}
+                step={5}
+              />
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Pause courte: {breakTime} min</label>
+              <Slider
+                value={[breakTime]}
+                onValueChange={(value) => setBreakTime(value[0])}
+                max={15}
+                min={1}
+                step={1}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Pause longue: {longBreakTime} min</label>
+              <Slider
+                value={[longBreakTime]}
+                onValueChange={(value) => setLongBreakTime(value[0])}
+                max={30}
+                min={10}
+                step={5}
+              />
+            </div>
+            <Button onClick={saveUserSettings} className="w-full">
+              Sauvegarder les paramètres
+            </Button>
           </CardContent>
         </Card>
       </div>

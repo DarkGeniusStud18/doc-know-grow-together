@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      calculator_results: {
+        Row: {
+          calculator_type: string
+          created_at: string
+          id: string
+          input_values: Json
+          notes: string | null
+          result_unit: string | null
+          result_value: number | null
+          user_id: string
+        }
+        Insert: {
+          calculator_type: string
+          created_at?: string
+          id?: string
+          input_values: Json
+          notes?: string | null
+          result_unit?: string | null
+          result_value?: number | null
+          user_id: string
+        }
+        Update: {
+          calculator_type?: string
+          created_at?: string
+          id?: string
+          input_values?: Json
+          notes?: string | null
+          result_unit?: string | null
+          result_value?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           created_at: string
@@ -509,6 +542,39 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          metric_type: string
+          metric_unit: string | null
+          metric_value: number
+          recorded_date: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          metric_type: string
+          metric_unit?: string | null
+          metric_value: number
+          recorded_date?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          metric_type?: string
+          metric_unit?: string | null
+          metric_value?: number
+          recorded_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       playlist_tracks: {
         Row: {
           created_at: string
@@ -586,6 +652,84 @@ export type Database = {
           },
         ]
       }
+      pomodoro_sessions: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          session_type: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          session_type: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          session_type?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pomodoro_settings: {
+        Row: {
+          auto_start_breaks: boolean
+          auto_start_pomodoros: boolean
+          created_at: string
+          id: string
+          long_break_duration: number
+          sessions_until_long_break: number
+          short_break_duration: number
+          sound_enabled: boolean
+          updated_at: string
+          user_id: string
+          work_duration: number
+        }
+        Insert: {
+          auto_start_breaks?: boolean
+          auto_start_pomodoros?: boolean
+          created_at?: string
+          id?: string
+          long_break_duration?: number
+          sessions_until_long_break?: number
+          short_break_duration?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          work_duration?: number
+        }
+        Update: {
+          auto_start_breaks?: boolean
+          auto_start_pomodoros?: boolean
+          created_at?: string
+          id?: string
+          long_break_duration?: number
+          sessions_until_long_break?: number
+          short_break_duration?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          work_duration?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -628,6 +772,143 @@ export type Database = {
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           university?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      quiz_attempts: {
+        Row: {
+          attempted_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          time_taken_seconds: number | null
+          user_answer: string
+          user_id: string
+        }
+        Insert: {
+          attempted_at?: string
+          id?: string
+          is_correct: boolean
+          question_id: string
+          time_taken_seconds?: number | null
+          user_answer: string
+          user_id: string
+        }
+        Update: {
+          attempted_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          time_taken_seconds?: number | null
+          user_answer?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_questions: {
+        Row: {
+          category: string | null
+          correct_answer: string
+          created_at: string
+          difficulty: number | null
+          explanation: string | null
+          id: string
+          options: Json | null
+          question: string
+          question_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          correct_answer: string
+          created_at?: string
+          difficulty?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question: string
+          question_type: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          correct_answer?: string
+          created_at?: string
+          difficulty?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question?: string
+          question_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      research_sources: {
+        Row: {
+          abstract: string | null
+          authors: string[] | null
+          citation_format: string | null
+          created_at: string
+          doi: string | null
+          id: string
+          is_favorite: boolean
+          journal: string | null
+          notes: string | null
+          publication_year: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          abstract?: string | null
+          authors?: string[] | null
+          citation_format?: string | null
+          created_at?: string
+          doi?: string | null
+          id?: string
+          is_favorite?: boolean
+          journal?: string | null
+          notes?: string | null
+          publication_year?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          abstract?: string | null
+          authors?: string[] | null
+          citation_format?: string | null
+          created_at?: string
+          doi?: string | null
+          id?: string
+          is_favorite?: boolean
+          journal?: string | null
+          notes?: string | null
+          publication_year?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -679,6 +960,54 @@ export type Database = {
           title?: string
           updated_at?: string
           url?: string
+        }
+        Relationships: []
+      }
+      study_goals: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          current_value: number
+          deadline: string | null
+          description: string | null
+          goal_type: string
+          id: string
+          target_value: number
+          title: string
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          deadline?: string | null
+          description?: string | null
+          goal_type: string
+          id?: string
+          target_value: number
+          title: string
+          unit?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          deadline?: string | null
+          description?: string | null
+          goal_type?: string
+          id?: string
+          target_value?: number
+          title?: string
+          unit?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -917,6 +1246,25 @@ export type Database = {
           id: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_user_goal_progress: {
+        Args: { p_user_id: string }
+        Returns: {
+          goal_id: string
+          title: string
+          goal_type: string
+          progress_percentage: number
+          is_overdue: boolean
+        }[]
+      }
+      get_user_pomodoro_stats: {
+        Args: { p_user_id: string; p_start_date?: string; p_end_date?: string }
+        Returns: {
+          total_sessions: number
+          completed_sessions: number
+          total_work_time: number
+          completion_rate: number
         }[]
       }
       has_premium_access: {
