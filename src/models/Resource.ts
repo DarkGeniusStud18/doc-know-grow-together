@@ -1,6 +1,10 @@
-import { supabase } from '@/integrations/supabase/client';
 
-export type ContentType = 'book' | 'video' | 'document' | 'article';
+import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
+
+type DbContentType = Database['public']['Enums']['content_type'];
+
+export type ContentType = DbContentType;
 
 export interface Resource {
   id: string;
@@ -17,6 +21,7 @@ export interface Resource {
   is_premium: boolean;
   created_at: string | Date;
   updated_at: string | Date;
+  created_by?: string;
 }
 
 export async function getResources(
@@ -58,7 +63,7 @@ export async function getResources(
       console.error('Error fetching resources:', error);
       throw new Error('Failed to fetch resources');
     }
-    
+
     return data || [];
   } catch (error) {
     console.error('Error in getResources:', error);
@@ -78,7 +83,7 @@ export async function getResourceById(id: string): Promise<Resource | null> {
       console.error('Error fetching resource:', error);
       return null;
     }
-    
+
     return data || null;
   } catch (error) {
     console.error('Error in getResourceById:', error);
@@ -88,14 +93,9 @@ export async function getResourceById(id: string): Promise<Resource | null> {
 
 export async function createResource(resource: Omit<Resource, 'id' | 'created_at' | 'updated_at'>): Promise<Resource | null> {
   try {
-    const resourceData = {
-      ...resource,
-      content_type: resource.content_type as ContentType
-    };
-
     const { data, error } = await supabase
       .from('resources')
-      .insert([resourceData])
+      .insert([resource])
       .select()
       .single();
     
@@ -113,16 +113,9 @@ export async function createResource(resource: Omit<Resource, 'id' | 'created_at
 
 export async function updateResource(id: string, updates: Partial<Omit<Resource, 'id' | 'created_at' | 'updated_at'>>): Promise<Resource | null> {
   try {
-    const updateData: any = { ...updates };
-    
-    // Ensure content_type is properly typed if provided
-    if (updateData.content_type) {
-      updateData.content_type = updateData.content_type as ContentType;
-    }
-
     const { data, error } = await supabase
       .from('resources')
-      .update(updateData)
+      .update(updates)
       .eq('id', id)
       .select()
       .single();

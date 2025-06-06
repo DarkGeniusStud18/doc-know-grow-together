@@ -7,6 +7,19 @@ import { isDemoAccount, getDemoUserType, getDemoUser } from '../utils/demoUsers'
 export const useAuthOperations = (setUser: any, setSession: any) => {
   const signInWithEmail = async (email: string, password: string) => {
     try {
+      // Check if it's a demo account first
+      if (isDemoAccount(email, password)) {
+        const demoUserType = getDemoUserType(email);
+        if (demoUserType) {
+          localStorage.setItem('demoUser', demoUserType);
+          const demoUser = getDemoUser(demoUserType);
+          setUser(demoUser);
+          setSession(null);
+          toast.success(`Connexion en tant que ${demoUserType === 'student' ? 'étudiant' : 'professionnel'} démo`);
+          return { data: { user: demoUser, session: null }, error: null };
+        }
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -67,7 +80,8 @@ export const useAuthOperations = (setUser: any, setSession: any) => {
   const signOut = async () => {
     try {
       // Clear demo user if exists
-      if (isDemoAccount()) {
+      const demoUser = localStorage.getItem('demoUser');
+      if (demoUser) {
         localStorage.removeItem('demoUser');
         setUser(null);
         setSession(null);

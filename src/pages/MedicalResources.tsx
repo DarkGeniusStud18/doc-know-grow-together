@@ -5,27 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BookOpen, Video, FileText, Headphones, Plus, ExternalLink, Search } from 'lucide-react';
+import { BookOpen, Video, FileText, Headphones, Plus, ExternalLink, Search, Edit, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import AddResourceForm from '@/components/resources/AddResourceForm';
-
-interface Resource {
-  id: string;
-  title: string;
-  description?: string;
-  category?: string;
-  author?: string;
-  language?: string;
-  url: string;
-  thumbnail?: string;
-  content_type: 'article' | 'video' | 'podcast' | 'document' | 'course' | 'quiz';
-  featured: boolean;
-  is_premium: boolean;
-  created_at: string;
-  created_by?: string;
-}
+import { getResources, deleteResource, Resource } from '@/models/Resource';
 
 const MedicalResources: React.FC = () => {
   const { user } = useAuth();
@@ -41,19 +26,35 @@ const MedicalResources: React.FC = () => {
 
   const loadResources = async () => {
     try {
-      const { data, error } = await supabase
-        .from('resources')
-        .select('*')
-        .order('featured', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setResources(data || []);
+      setLoading(true);
+      const data = await getResources();
+      setResources(data);
     } catch (error) {
       console.error('Error loading resources:', error);
       toast.error('Erreur lors du chargement des ressources');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteResource = async (resourceId: string) => {
+    if (!user) return;
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?')) {
+      return;
+    }
+
+    try {
+      const success = await deleteResource(resourceId);
+      if (success) {
+        toast.success('Ressource supprimée avec succès');
+        loadResources();
+      } else {
+        toast.error('Erreur lors de la suppression');
+      }
+    } catch (error) {
+      console.error('Error deleting resource:', error);
+      toast.error('Erreur lors de la suppression');
     }
   };
 
@@ -74,6 +75,7 @@ const MedicalResources: React.FC = () => {
       document: 'Document',
       course: 'Cours',
       quiz: 'Quiz',
+      book: 'Livre',
     };
     return labels[contentType] || contentType;
   };
@@ -197,7 +199,7 @@ const MedicalResources: React.FC = () => {
                   </CardDescription>
                 )}
                 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex gap-2">
                     {resource.category && (
                       <Badge variant="outline" className="text-xs">
@@ -210,12 +212,25 @@ const MedicalResources: React.FC = () => {
                       </Badge>
                     )}
                   </div>
-                  <Button size="sm" asChild>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button size="sm" asChild className="flex-1">
                     <a href={resource.url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="mr-1 h-3 w-3" />
                       Ouvrir
                     </a>
                   </Button>
+                  
+                  {user && user.id === resource.created_by && (
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDeleteResource(resource.id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

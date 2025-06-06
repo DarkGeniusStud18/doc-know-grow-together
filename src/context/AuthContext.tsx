@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        // Get current session
+        // Get current session with better error handling
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -50,14 +50,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user && mounted) {
           console.log('Found existing session, converting user...');
-          const customUser = await convertToCustomUser(session.user);
-          if (customUser) {
-            setSession(session);
-            setUser(customUser);
-            console.log('User authenticated and profile loaded');
-          } else {
-            console.error('Failed to convert user, signing out...');
-            await supabase.auth.signOut();
+          setSession(session);
+          
+          try {
+            const customUser = await convertToCustomUser(session.user);
+            if (customUser) {
+              setUser(customUser);
+              console.log('User authenticated and profile loaded');
+            } else {
+              console.error('Failed to convert user');
+              setUser(null);
+            }
+          } catch (conversionError) {
+            console.error('Error converting user:', conversionError);
+            setUser(null);
           }
         }
 
@@ -72,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Set up auth state listener FIRST
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.id);
       
@@ -109,10 +115,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (event === 'TOKEN_REFRESHED' && session) {
         console.log('Token refreshed successfully');
         setSession(session);
+        if (session.user && !user) {
+          try {
+            const customUser = await convertToCustomUser(session.user);
+            if (customUser) {
+              setUser(customUser);
+            }
+          } catch (error) {
+            console.error('Error refreshing user profile:', error);
+          }
+        }
       }
     });
 
-    // THEN initialize auth state
+    // Initialize auth state
     initializeAuth();
 
     return () => {
@@ -130,7 +146,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     session,
     loading,
     ...authOperations,
-    updateCurrentUser
+    updateCurrentUser,
+    // Add legacy method aliases for backward compatibility
+    signUp: authOperations.signUpWithEmail,
+    signIn: authOperations.signInWithEmail,
+    register: async (email: string, password: string, role: any, displayName: string) => {
+      const result = await authOperations.signUpWithEmail(email, password, { display_name: displayName, role });
+      return !result.error;
+    },
+    login: async (email: string, password: string) => {
+      const result = await authOperations.signInWithEmail(email, password);
+      return !result.error;
+    },
+    logout: async (redirectPath?: string) => {
+      await authOperations.signOut();
+    }
   };
 
   return (

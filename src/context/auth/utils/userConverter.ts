@@ -1,118 +1,96 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { User } from '@/lib/auth/types';
+import { supabase } from '@/integrations/supabase/client';
 
-export const convertToCustomUser = async (supabaseUser: any): Promise<User | null> => {
-  if (!supabaseUser) return null;
-
+export const convertToCustomUser = async (supabaseUser: SupabaseUser): Promise<User | null> => {
   try {
-    console.log('Converting user:', supabaseUser.id);
+    console.log('Converting supabase user to custom user:', supabaseUser.id);
     
-    // First, try to get existing profile
-    const { data: profileData, error } = await supabase
+    // First try to get existing profile
+    let { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', supabaseUser.id)
       .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
       console.error('Error fetching profile:', error);
       return null;
     }
 
-    if (!profileData) {
-      console.log('Profile not found, creating new profile...');
+    // If no profile exists, create one with retry logic
+    if (!profile) {
+      console.log('No profile found, creating new profile...');
       
-      const displayName = supabaseUser.user_metadata?.display_name || 
-                         supabaseUser.user_metadata?.name || 
-                         supabaseUser.email?.split('@')[0] || 
-                         'User';
-      
-      const role = supabaseUser.user_metadata?.role || 'student';
-      
-      // Use upsert to handle potential race conditions
-      const { data: newProfile, error: createError } = await supabase
+      const profileData = {
+        id: supabaseUser.id,
+        display_name: supabaseUser.user_metadata?.display_name || 
+                     supabaseUser.user_metadata?.name || 
+                     supabaseUser.email?.split('@')[0] || 
+                     'User',
+        email: supabaseUser.email,
+        role: (supabaseUser.user_metadata?.role as any) || 'student',
+        kyc_status: 'not_submitted' as const,
+        subscription_status: 'free' as const,
+        university: supabaseUser.user_metadata?.university || null,
+        specialty: supabaseUser.user_metadata?.specialty || null,
+      };
+
+      // Try to insert the profile with upsert to handle race conditions
+      const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
-        .upsert({
-          id: supabaseUser.id,
-          display_name: displayName,
-          role: role,
-          kyc_status: 'not_submitted',
-          email: supabaseUser.email,
-          subscription_status: 'free'
-        }, {
-          onConflict: 'id'
+        .upsert(profileData, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
         })
         .select()
         .single();
+
+      if (insertError) {
+        console.error('Error creating profile:', insertError);
         
-      if (createError) {
-        console.error('Error creating profile:', createError);
-        // If profile creation fails due to RLS, the trigger might handle it
-        // Let's try to fetch again after a short delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { data: retryProfile, error: retryError } = await supabase
+        // If upsert failed, try one more time to fetch existing profile
+        const { data: existingProfile, error: fetchError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', supabaseUser.id)
-          .single();
-          
-        if (retryError || !retryProfile) {
-          console.error('Failed to create or fetch profile after retry:', retryError);
+          .maybeSingle();
+
+        if (fetchError || !existingProfile) {
+          console.error('Failed to create or fetch profile after retry:', fetchError);
           return null;
         }
         
-        return {
-          id: supabaseUser.id,
-          email: supabaseUser.email || retryProfile.email,
-          displayName: retryProfile.display_name,
-          role: retryProfile.role,
-          kycStatus: retryProfile.kyc_status,
-          profileImage: retryProfile.profile_image,
-          university: retryProfile.university,
-          specialty: retryProfile.specialty,
-          subscriptionStatus: retryProfile.subscription_status,
-          subscriptionExpiry: retryProfile.subscription_expiry ? new Date(retryProfile.subscription_expiry) : null,
-          createdAt: new Date(retryProfile.created_at),
-          updatedAt: retryProfile.updated_at ? new Date(retryProfile.updated_at) : undefined,
-        };
+        profile = existingProfile;
+      } else {
+        profile = newProfile;
       }
-      
-      console.log('New profile created successfully');
-      return {
-        id: supabaseUser.id,
-        email: supabaseUser.email || newProfile.email,
-        displayName: newProfile.display_name,
-        role: newProfile.role,
-        kycStatus: newProfile.kyc_status,
-        profileImage: newProfile.profile_image,
-        university: newProfile.university,
-        specialty: newProfile.specialty,
-        subscriptionStatus: newProfile.subscription_status,
-        subscriptionExpiry: newProfile.subscription_expiry ? new Date(newProfile.subscription_expiry) : null,
-        createdAt: new Date(newProfile.created_at),
-        updatedAt: newProfile.updated_at ? new Date(newProfile.updated_at) : undefined,
-      };
     }
 
-    console.log('Using existing profile');
+    if (!profile) {
+      console.error('No profile available after conversion process');
+      return null;
+    }
+
+    console.log('Profile converted successfully:', profile);
+
     return {
-      id: supabaseUser.id,
-      email: supabaseUser.email || profileData.email,
-      displayName: profileData.display_name,
-      role: profileData.role,
-      kycStatus: profileData.kyc_status,
-      profileImage: profileData.profile_image,
-      university: profileData.university,
-      specialty: profileData.specialty,
-      subscriptionStatus: profileData.subscription_status,
-      subscriptionExpiry: profileData.subscription_expiry ? new Date(profileData.subscription_expiry) : null,
-      createdAt: new Date(profileData.created_at),
-      updatedAt: profileData.updated_at ? new Date(profileData.updated_at) : undefined,
+      id: profile.id,
+      email: profile.email || supabaseUser.email || '',
+      displayName: profile.display_name,
+      role: profile.role,
+      kycStatus: profile.kyc_status,
+      subscriptionStatus: profile.subscription_status,
+      subscriptionExpiry: profile.subscription_expiry ? new Date(profile.subscription_expiry) : null,
+      university: profile.university,
+      specialty: profile.specialty,
+      profileImage: profile.profile_image,
+      createdAt: new Date(profile.created_at),
+      updatedAt: new Date(profile.updated_at),
     };
   } catch (error) {
-    console.error('Error converting user:', error);
+    console.error('Unexpected error in convertToCustomUser:', error);
     return null;
   }
 };
