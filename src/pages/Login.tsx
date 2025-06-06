@@ -13,7 +13,7 @@ import { toast } from '@/components/ui/sonner';
 import { Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const { signIn, user, loading: authLoading } = useAuth();
+  const { signInWithEmail, signInAsDemo, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +37,14 @@ const Login: React.FC = () => {
     
     try {
       console.log('Attempting login for:', data.email);
-      const result = await signIn(data.email, data.password);
+      const result = await signInWithEmail(data.email, data.password);
       
       if (!result.error) {
         console.log('Login successful, navigating to dashboard...');
-        navigate('/dashboard', { replace: true });
+        // Force navigation after successful login
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
       } else {
         console.error('Login failed:', result.error);
         toast.error('Erreur de connexion', { 
@@ -64,16 +67,14 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      let result;
-      if (type === 'student') {
-        result = await signIn('student@example.com', 'password');
-      } else {
-        result = await signIn('doctor@example.com', 'password');
-      }
+      const result = await signInAsDemo(type);
       
       if (!result.error) {
         console.log('Demo login successful, navigating to dashboard...');
-        navigate('/dashboard', { replace: true });
+        // Force navigation after successful demo login
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
       } else {
         toast.error('Erreur de connexion démo', { 
           description: 'Veuillez réessayer plus tard.' 

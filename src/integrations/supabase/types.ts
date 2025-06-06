@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      articles: {
+        Row: {
+          author_id: string
+          category: string | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          published_at: string | null
+          reading_time: number | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          author_id: string
+          category?: string | null
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          published_at?: string | null
+          reading_time?: number | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          author_id?: string
+          category?: string | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          published_at?: string | null
+          reading_time?: number | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
       calculator_results: {
         Row: {
           calculator_type: string
@@ -262,6 +313,38 @@ export type Database = {
             columns: ["instructor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edit_notifications: {
+        Row: {
+          created_at: string
+          edit_id: string
+          id: string
+          is_read: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          edit_id: string
+          id?: string
+          is_read?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          edit_id?: string
+          id?: string
+          is_read?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edit_notifications_edit_id_fkey"
+            columns: ["edit_id"]
+            isOneToOne: false
+            referencedRelation: "resource_edits"
             referencedColumns: ["id"]
           },
         ]
@@ -912,6 +995,57 @@ export type Database = {
         }
         Relationships: []
       }
+      resource_edits: {
+        Row: {
+          article_id: string | null
+          changes: Json
+          created_at: string
+          edit_summary: string | null
+          edit_type: string
+          editor_id: string
+          id: string
+          original_author_id: string
+          resource_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          changes: Json
+          created_at?: string
+          edit_summary?: string | null
+          edit_type: string
+          editor_id: string
+          id?: string
+          original_author_id: string
+          resource_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          changes?: Json
+          created_at?: string
+          edit_summary?: string | null
+          edit_type?: string
+          editor_id?: string
+          id?: string
+          original_author_id?: string
+          resource_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_edits_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_edits_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resources: {
         Row: {
           author: string | null
@@ -920,10 +1054,13 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          edit_count: number | null
           featured: boolean
           id: string
           is_premium: boolean
           language: string | null
+          last_edited_at: string | null
+          last_edited_by: string | null
           requires_verification: boolean
           thumbnail: string | null
           title: string
@@ -937,10 +1074,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          edit_count?: number | null
           featured?: boolean
           id?: string
           is_premium?: boolean
           language?: string | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           requires_verification?: boolean
           thumbnail?: string | null
           title: string
@@ -954,10 +1094,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          edit_count?: number | null
           featured?: boolean
           id?: string
           is_premium?: boolean
           language?: string | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           requires_verification?: boolean
           thumbnail?: string | null
           title?: string

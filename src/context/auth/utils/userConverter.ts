@@ -19,13 +19,14 @@ export const convertToCustomUser = async (supabaseUser: SupabaseUser): Promise<U
       return null;
     }
 
-    // If no profile exists, create one with retry logic
+    // If no profile exists, create one with comprehensive data from metadata
     if (!profile) {
-      console.log('No profile found, creating new profile...');
+      console.log('No profile found, creating new profile with metadata:', supabaseUser.user_metadata);
       
       const profileData = {
         id: supabaseUser.id,
         display_name: supabaseUser.user_metadata?.display_name || 
+                     supabaseUser.user_metadata?.displayName ||
                      supabaseUser.user_metadata?.name || 
                      supabaseUser.email?.split('@')[0] || 
                      'User',
@@ -36,6 +37,8 @@ export const convertToCustomUser = async (supabaseUser: SupabaseUser): Promise<U
         university: supabaseUser.user_metadata?.university || null,
         specialty: supabaseUser.user_metadata?.specialty || null,
       };
+
+      console.log('Creating profile with data:', profileData);
 
       // Try to insert the profile with upsert to handle race conditions
       const { data: newProfile, error: insertError } = await supabase
@@ -65,7 +68,10 @@ export const convertToCustomUser = async (supabaseUser: SupabaseUser): Promise<U
         profile = existingProfile;
       } else {
         profile = newProfile;
+        console.log('Profile created successfully:', profile);
       }
+    } else {
+      console.log('Existing profile found:', profile);
     }
 
     if (!profile) {

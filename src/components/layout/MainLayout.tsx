@@ -20,21 +20,39 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   
+  // Timeout for loading to prevent infinite loading
+  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadingTimeout(true);
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timer);
+  }, []);
+  
   React.useEffect(() => {
     if (!loading && !user && requireAuth) {
       navigate('/login');
     }
   }, [user, loading, navigate, requireAuth]);
   
-  if (loading && requireAuth) {
+  // Show loading only for a reasonable time
+  if (loading && requireAuth && !loadingTimeout) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 text-medical-blue animate-spin" />
-          <p className="text-medical-navy animate-pulse">Chargement...</p>
+          <p className="text-medical-navy animate-pulse">Vérification de la session...</p>
         </div>
       </div>
     );
+  }
+
+  // If loading timeout reached and still no user but auth required, redirect to login
+  if (loadingTimeout && !user && requireAuth) {
+    navigate('/login');
+    return null;
   }
   
   // Si l'utilisateur est connecté, afficher la mise en page authentifiée

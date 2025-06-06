@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   const authOperations = useAuthOperations(setUser, setSession);
 
@@ -34,16 +35,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(getDemoUser('professional'));
           }
           setLoading(false);
+          setInitialized(true);
           return;
         }
 
-        // Get current session with better error handling
+        // Get current session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
           if (mounted) {
             setLoading(false);
+            setInitialized(true);
           }
           return;
         }
@@ -54,26 +57,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           try {
             const customUser = await convertToCustomUser(session.user);
-            if (customUser) {
+            if (customUser && mounted) {
               setUser(customUser);
               console.log('User authenticated and profile loaded');
-            } else {
+            } else if (mounted) {
               console.error('Failed to convert user');
               setUser(null);
+              setSession(null);
             }
           } catch (conversionError) {
             console.error('Error converting user:', conversionError);
-            setUser(null);
+            if (mounted) {
+              setUser(null);
+              setSession(null);
+            }
           }
         }
 
         if (mounted) {
           setLoading(false);
+          setInitialized(true);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) {
           setLoading(false);
+          setInitialized(true);
         }
       }
     };
@@ -82,13 +91,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.id);
       
-      if (!mounted) return;
+      if (!mounted || !initialized) return;
 
       if (event === 'SIGNED_OUT') {
         setSession(null);
         setUser(null);
         localStorage.removeItem('demoUser');
-        setLoading(false);
         return;
       }
 
@@ -98,24 +106,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           console.log('Converting user after auth state change...');
           const customUser = await convertToCustomUser(session.user);
-          if (customUser) {
+          if (customUser && mounted) {
             setUser(customUser);
             console.log('User profile loaded successfully');
-          } else {
+          } else if (mounted) {
             console.error('Failed to load user profile');
             setUser(null);
           }
         } catch (error) {
           console.error('Error converting user:', error);
-          setUser(null);
+          if (mounted) {
+            setUser(null);
+          }
         }
-        setLoading(false);
       }
 
       if (event === 'TOKEN_REFRESHED' && session) {
         console.log('Token refreshed successfully');
         setSession(session);
-        if (session.user && !user) {
+        if (session.user && !user && mounted) {
           try {
             const customUser = await convertToCustomUser(session.user);
             if (customUser) {
@@ -150,6 +159,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Add legacy method aliases for backward compatibility
     signUp: authOperations.signUpWithEmail,
     signIn: authOperations.signInWithEmail,
+    signOut: authOperations.signOut,
     register: async (email: string, password: string, role: any, displayName: string) => {
       const result = await authOperations.signUpWithEmail(email, password, { display_name: displayName, role });
       return !result.error;

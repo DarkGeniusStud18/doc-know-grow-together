@@ -1,101 +1,112 @@
 
 import React, { useState, useEffect } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { BookOpen, Video, FileText, Headphones, Plus, ExternalLink, Search, Edit, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/components/ui/sonner';
-import AddResourceForm from '@/components/resources/AddResourceForm';
-import { getResources, deleteResource, Resource } from '@/models/Resource';
+import { supabase } from '@/integrations/supabase/client';
+import MainLayout from '@/components/layout/MainLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import ResourceCreator from '@/components/resources/ResourceCreator';
+import ResourceEditor from '@/components/resources/ResourceEditor';
+import EditNotifications from '@/components/notifications/EditNotifications';
+import { Search, ExternalLink, FileText, BookOpen, Filter, Eye } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MedicalResources: React.FC = () => {
   const { user } = useAuth();
-  const [resources, setResources] = useState<Resource[]>([]);
+  const [resources, setResources] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [viewType, setViewType] = useState<'all' | 'resources' | 'articles'>('all');
 
   useEffect(() => {
-    loadResources();
+    fetchData();
   }, []);
 
-  const loadResources = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await getResources();
-      setResources(data);
-    } catch (error) {
-      console.error('Error loading resources:', error);
-      toast.error('Erreur lors du chargement des ressources');
+      // Fetch external resources
+      const { data: resourcesData, error: resourcesError } = await supabase
+        .from('resources')
+        .select(`
+          *,
+          profiles:created_by (display_name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (resourcesError) throw resourcesError;
+
+      // Fetch articles
+      const { data: articlesData, error: articlesError } = await supabase
+        .from('articles')
+        .select(`
+          *,
+          profiles:author_id (display_name)
+        `)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (articlesError) throw articlesError;
+
+      setResources(resourcesData || []);
+      setArticles(articlesData || []);
+    } catch (error: any) {
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteResource = async (resourceId: string) => {
-    if (!user) return;
-    
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?')) {
-      return;
-    }
-
+  const handleViewArticle = async (articleId: string) => {
     try {
-      const success = await deleteResource(resourceId);
-      if (success) {
-        toast.success('Ressource supprimée avec succès');
-        loadResources();
-      } else {
-        toast.error('Erreur lors de la suppression');
-      }
+      // Increment view count
+      await supabase
+        .from('articles')
+        .update({ views_count: supabase.sql`views_count + 1` })
+        .eq('id', articleId);
+
+      fetchData(); // Refresh to show updated view count
     } catch (error) {
-      console.error('Error deleting resource:', error);
-      toast.error('Erreur lors de la suppression');
+      console.error('Error updating view count:', error);
     }
-  };
-
-  const getIcon = (contentType: string) => {
-    switch (contentType) {
-      case 'video': return <Video className="h-5 w-5" />;
-      case 'podcast': return <Headphones className="h-5 w-5" />;
-      case 'document': return <FileText className="h-5 w-5" />;
-      default: return <BookOpen className="h-5 w-5" />;
-    }
-  };
-
-  const getTypeLabel = (contentType: string) => {
-    const labels: Record<string, string> = {
-      article: 'Article',
-      video: 'Vidéo',
-      podcast: 'Podcast',
-      document: 'Document',
-      course: 'Cours',
-      quiz: 'Quiz',
-      book: 'Livre',
-    };
-    return labels[contentType] || contentType;
   };
 
   const filteredResources = resources.filter(resource => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.author?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || resource.category === selectedCategory;
+                         resource.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || resource.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set(resources.map(r => r.category).filter(Boolean)));
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = [
+    { value: 'all', label: 'Toutes les catégories' },
+    { value: 'cardiologie', label: 'Cardiologie' },
+    { value: 'neurologie', label: 'Neurologie' },
+    { value: 'pediatrie', label: 'Pédiatrie' },
+    { value: 'chirurgie', label: 'Chirurgie' },
+    { value: 'medecine_generale', label: 'Médecine générale' },
+    { value: 'pharmacologie', label: 'Pharmacologie' },
+    { value: 'anatomie', label: 'Anatomie' },
+    { value: 'autre', label: 'Autre' }
+  ];
 
   if (loading) {
     return (
-      <MainLayout>
-        <div className="container mx-auto py-6">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-lg">Chargement des ressources...</div>
+      <MainLayout requireAuth={true}>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <p className="text-lg">Chargement des ressources...</p>
           </div>
         </div>
       </MainLayout>
@@ -103,149 +114,175 @@ const MedicalResources: React.FC = () => {
   }
 
   return (
-    <MainLayout>
-      <div className="container mx-auto py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <MainLayout requireAuth={true}>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Ressources médicales</h1>
-            <p className="text-gray-600">Accédez à une collection de ressources médicales de qualité</p>
+            <h1 className="text-3xl font-bold text-medical-navy">Ressources Médicales</h1>
+            <p className="text-gray-600 mt-2">
+              Découvrez et partagez des ressources médicales de qualité
+            </p>
           </div>
-          {user && (
-            <Button onClick={() => setShowAddForm(!showAddForm)} className="mt-4 md:mt-0">
-              <Plus className="mr-2 h-4 w-4" />
-              Ajouter une ressource
-            </Button>
-          )}
+          {user && <EditNotifications />}
         </div>
 
-        {showAddForm && user && (
-          <div className="mb-6">
-            <AddResourceForm 
-              onResourceAdded={() => {
-                loadResources();
-                setShowAddForm(false);
-              }}
-              onCancel={() => setShowAddForm(false)}
+        {user && <ResourceCreator onResourceCreated={fetchData} />}
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Rechercher des ressources..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
             />
           </div>
-        )}
+          
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(category => (
+                <SelectItem key={category.value} value={category.value}>
+                  {category.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher des ressources..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Toutes les catégories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
+          <Select value={viewType} onValueChange={(value: any) => setViewType(value)}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tout voir</SelectItem>
+              <SelectItem value="resources">Ressources externes</SelectItem>
+              <SelectItem value="articles">Articles</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* Resources Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredResources.map((resource) => (
+          {/* External Resources */}
+          {(viewType === 'all' || viewType === 'resources') && filteredResources.map((resource) => (
             <Card key={resource.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
+              <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 text-blue-600">
-                    {getIcon(resource.content_type)}
-                    <span className="text-sm font-medium">{getTypeLabel(resource.content_type)}</span>
-                  </div>
-                  <div className="flex gap-1">
-                    {resource.featured && (
-                      <Badge variant="secondary" className="text-xs">
-                        Recommandé
-                      </Badge>
-                    )}
-                    {resource.is_premium && (
-                      <Badge className="text-xs bg-gradient-to-r from-purple-500 to-pink-500">
-                        Premium
-                      </Badge>
-                    )}
-                  </div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ExternalLink className="h-5 w-5 text-medical-teal" />
+                    {resource.title}
+                  </CardTitle>
+                  {user?.role === 'professional' && (
+                    <ResourceEditor
+                      resource={resource}
+                      type="resource"
+                      onEditComplete={fetchData}
+                    />
+                  )}
                 </div>
-                <CardTitle className="text-lg leading-tight">{resource.title}</CardTitle>
-                {resource.author && (
-                  <p className="text-sm text-gray-500">par {resource.author}</p>
-                )}
+                <CardDescription>{resource.description}</CardDescription>
               </CardHeader>
-              
-              {resource.thumbnail && (
-                <div className="px-6 pb-3">
-                  <img 
-                    src={resource.thumbnail} 
-                    alt={resource.title}
-                    className="w-full h-40 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-              
               <CardContent>
-                {resource.description && (
-                  <CardDescription className="mb-4 line-clamp-3">
-                    {resource.description}
-                  </CardDescription>
-                )}
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-2">
-                    {resource.category && (
-                      <Badge variant="outline" className="text-xs">
-                        {resource.category}
-                      </Badge>
-                    )}
-                    {resource.language && (
-                      <Badge variant="outline" className="text-xs">
-                        {resource.language.toUpperCase()}
-                      </Badge>
+                <div className="space-y-3">
+                  {resource.category && (
+                    <Badge variant="secondary">
+                      {categories.find(c => c.value === resource.category)?.label || resource.category}
+                    </Badge>
+                  )}
+                  
+                  {resource.author && (
+                    <p className="text-sm text-gray-600">
+                      <strong>Auteur:</strong> {resource.author}
+                    </p>
+                  )}
+                  
+                  <div className="text-xs text-gray-500">
+                    Ajouté par {resource.profiles?.display_name} le{' '}
+                    {new Date(resource.created_at).toLocaleDateString('fr-FR')}
+                    {resource.edit_count > 0 && (
+                      <span className="ml-2">• {resource.edit_count} modification(s)</span>
                     )}
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button size="sm" asChild className="flex-1">
+                  
+                  <Button asChild className="w-full">
                     <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-1 h-3 w-3" />
-                      Ouvrir
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Accéder à la ressource
                     </a>
                   </Button>
-                  
-                  {user && user.id === resource.created_by && (
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={() => handleDeleteResource(resource.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {/* Articles */}
+          {(viewType === 'all' || viewType === 'articles') && filteredArticles.map((article) => (
+            <Card key={article.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-medical-blue" />
+                    {article.title}
+                  </CardTitle>
+                  {user?.role === 'professional' && (
+                    <ResourceEditor
+                      resource={article}
+                      type="article"
+                      onEditComplete={fetchData}
+                    />
                   )}
+                </div>
+                <CardDescription>{article.excerpt}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {article.category && (
+                    <Badge variant="secondary">
+                      {categories.find(c => c.value === article.category)?.label || article.category}
+                    </Badge>
+                  )}
+                  
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    {article.reading_time && (
+                      <span>{article.reading_time} min de lecture</span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Eye className="h-4 w-4" />
+                      {article.views_count || 0}
+                    </span>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    Par {article.profiles?.display_name} le{' '}
+                    {new Date(article.created_at).toLocaleDateString('fr-FR')}
+                  </div>
+                  
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleViewArticle(article.id)}
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Lire l'article
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {filteredResources.length === 0 && (
+        {filteredResources.length === 0 && filteredArticles.length === 0 && (
           <div className="text-center py-12">
-            <BookOpen className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-2 text-lg font-medium">Aucune ressource trouvée</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {searchTerm || selectedCategory ? 
-                'Essayez de modifier vos critères de recherche' : 
-                'Les ressources seront bientôt disponibles'
-              }
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Aucune ressource trouvée
+            </h3>
+            <p className="text-gray-500">
+              Essayez de modifier vos filtres ou ajoutez une nouvelle ressource.
             </p>
           </div>
         )}

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
  * @param redirectUrl - URL de redirection après déconnexion (optionnel)
  * @returns Promise<void>
  */
-export const signOut = async (redirectUrl: string = '/login'): Promise<void> => {
+export const signOut = async (redirectUrl: string = '/'): Promise<void> => {
   try {
     console.log("Signing out, will redirect to:", redirectUrl);
     
@@ -18,7 +18,7 @@ export const signOut = async (redirectUrl: string = '/login'): Promise<void> => 
       localStorage.removeItem('demoUser');
       toast.success("Déconnexion réussie");
       
-      // Redirection vers la page spécifiée (login par défaut)
+      // Redirection vers la page d'accueil par défaut
       window.location.href = redirectUrl;
       return;
     }
@@ -29,7 +29,7 @@ export const signOut = async (redirectUrl: string = '/login'): Promise<void> => 
     
     toast.success("Déconnexion réussie");
     
-    // Redirection vers la page spécifiée (login par défaut)
+    // Redirection vers la page d'accueil par défaut
     window.location.href = redirectUrl;
   } catch (error: any) {
     console.error("Error signing out:", error);
