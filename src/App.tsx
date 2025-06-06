@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
@@ -39,6 +38,18 @@ import Functionalities from './pages/Functionalities';
 
 // Tool pages
 import ToolsHub from './pages/tools/ToolsHub';
+import StudyPlanner from './pages/tools/StudyPlanner';
+import TaskList from './pages/tools/TaskList';
+import StudyTimer from './pages/tools/StudyTimer';
+import FlashcardGenerator from './pages/tools/FlashcardGenerator';
+import InteractivePresentations from './pages/tools/InteractivePresentations';
+import ClinicalCasesExplorer from './pages/tools/ClinicalCasesExplorer';
+import PomodoroTimer from './pages/tools/PomodoroTimer';
+import MedicalCalculators from './pages/tools/MedicalCalculators';
+import ResearchAssistant from './pages/tools/ResearchAssistant';
+import QuizGenerator from './pages/tools/QuizGenerator';
+import StudyGoals from './pages/tools/StudyGoals';
+import PerformanceTracker from './pages/tools/PerformanceTracker';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -93,6 +104,19 @@ function App() {
               <Route path="/my-courses" element={<MyCourses />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/tools" element={<ToolsHub />} />
+              <Route path="/tools/pomodoro" element={<PomodoroTimer />} />
+              <Route path="/tools/study-planner" element={<StudyPlanner />} />
+              <Route path="/tools/flashcard-generator" element={<FlashcardGenerator />} />
+              <Route path="/tools/flashcards/flashcard-generator" element={<FlashcardGenerator />} />
+              <Route path="/tools/study-goals" element={<StudyGoals />} />
+              <Route path="/tools/medical-calculators" element={<MedicalCalculators />} />
+              <Route path="/tools/research-assistant" element={<ResearchAssistant />} />
+              <Route path="/tools/quiz-generator" element={<QuizGenerator />} />
+              <Route path="/tools/performance-tracker" element={<PerformanceTracker />} />
+              <Route path="/tools/task-list" element={<TaskList />} />
+              <Route path="/tools/study-timer" element={<StudyTimer />} />
+              <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
+              <Route path="/tools/clinical-cases-explorer" element={<ClinicalCasesExplorer />} />
               <Route path="/tools/*" element={<Tools />} />
               <Route path="/exam-simulator" element={<ExamSimulator />} />
               <Route path="/kyc" element={<KYCVerification />} />
