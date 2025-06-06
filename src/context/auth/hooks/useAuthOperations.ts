@@ -4,159 +4,137 @@ import { toast } from '@/components/ui/sonner';
 import { UserRole } from '@/lib/auth/types';
 import { isDemoAccount, getDemoUserType, getDemoUser } from '../utils/demoUsers';
 
-export const useAuthOperations = (setUser: (user: any) => void, setSession: (session: any) => void) => {
-  const signUp = async (email: string, password: string, displayName: string) => {
+export const useAuthOperations = (setUser: any, setSession: any) => {
+  const signInWithEmail = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          data: {
-            display_name: displayName
-          }
-        }
       });
 
       if (error) {
-        console.error('Signup error:', error);
-        toast.error('Erreur lors de l\'inscription', { description: error.message });
+        console.error('Sign in error:', error);
+        toast.error('Erreur de connexion: ' + error.message);
         return { error };
       }
 
-      if (data.user && !data.session) {
-        toast.success('Vérifiez votre email', { 
-          description: 'Un lien de confirmation a été envoyé à votre adresse email.' 
-        });
+      if (data.session) {
+        console.log('Sign in successful');
+        toast.success('Connexion réussie !');
       }
 
-      return { error: null };
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      toast.error('Erreur lors de l\'inscription');
+      return { data, error: null };
+    } catch (error) {
+      console.error('Unexpected sign in error:', error);
+      toast.error('Erreur inattendue lors de la connexion');
       return { error };
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signUpWithEmail = async (email: string, password: string, metadata?: any) => {
     try {
-      // Handle demo accounts
-      if (isDemoAccount(email, password)) {
-        const demoUserType = getDemoUserType(email);
-        if (demoUserType) {
-          localStorage.setItem('demoUser', demoUserType);
-          const demoUser = getDemoUser(demoUserType);
-          setUser(demoUser);
-          toast.success('Connexion réussie');
-          return { error: null };
-        }
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: metadata
+        }
       });
 
       if (error) {
-        console.error('Login error:', error);
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Identifiants incorrects', { 
-            description: 'Vérifiez votre email et mot de passe' 
-          });
-        } else {
-          toast.error('Erreur de connexion', { description: error.message });
-        }
+        console.error('Sign up error:', error);
+        toast.error('Erreur d\'inscription: ' + error.message);
         return { error };
       }
 
-      if (data.user) {
-        toast.success('Connexion réussie');
+      if (data.user && !data.session) {
+        toast.info('Vérifiez votre email pour confirmer votre compte');
+      } else if (data.session) {
+        toast.success('Inscription réussie !');
       }
 
-      return { error: null };
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error('Erreur de connexion');
+      return { data, error: null };
+    } catch (error) {
+      console.error('Unexpected sign up error:', error);
+      toast.error('Erreur inattendue lors de l\'inscription');
       return { error };
     }
   };
 
   const signOut = async () => {
     try {
-      // Handle demo users
-      const demoUser = localStorage.getItem('demoUser');
-      if (demoUser) {
+      // Clear demo user if exists
+      if (isDemoAccount()) {
         localStorage.removeItem('demoUser');
         setUser(null);
         setSession(null);
         toast.success('Déconnexion réussie');
-        window.location.href = '/';
         return { error: null };
       }
 
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
-        console.error('Logout error:', error);
+        console.error('Sign out error:', error);
         toast.error('Erreur lors de la déconnexion');
         return { error };
       }
 
-      setUser(null);
-      setSession(null);
       toast.success('Déconnexion réussie');
-      window.location.href = '/';
       return { error: null };
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      toast.error('Erreur lors de la déconnexion');
+    } catch (error) {
+      console.error('Unexpected sign out error:', error);
+      toast.error('Erreur inattendue lors de la déconnexion');
       return { error };
     }
   };
 
-  const register = async (email: string, password: string, role: UserRole, displayName: string): Promise<boolean> => {
+  const signInAsDemo = (userType: 'student' | 'professional') => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            display_name: displayName,
-            role: role
-          }
-        }
-      });
-      
-      if (error) {
-        console.error('Registration error:', error);
-        toast.error('Erreur lors de l\'inscription', { description: error.message });
-        return false;
-      }
-      
-      toast.success('Inscription réussie', { 
-        description: 'Vérifiez votre email pour confirmer votre compte.' 
-      });
-      return true;
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      toast.error('Erreur lors de l\'inscription');
-      return false;
+      localStorage.setItem('demoUser', userType);
+      const demoUser = getDemoUser(userType);
+      setUser(demoUser);
+      setSession(null);
+      toast.success(`Connexion en tant que ${userType === 'student' ? 'étudiant' : 'professionnel'} démo`);
+      return { error: null };
+    } catch (error) {
+      console.error('Demo sign in error:', error);
+      toast.error('Erreur lors de la connexion démo');
+      return { error };
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const result = await signIn(email, password);
-    return !result.error;
-  };
+  const resetPassword = async (email: string) => {
+    try {
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
 
-  const logout = async (redirectPath?: string) => {
-    await signOut();
+      if (error) {
+        console.error('Reset password error:', error);
+        toast.error('Erreur lors de la réinitialisation: ' + error.message);
+        return { error };
+      }
+
+      toast.success('Email de réinitialisation envoyé !');
+      return { error: null };
+    } catch (error) {
+      console.error('Unexpected reset password error:', error);
+      toast.error('Erreur inattendue lors de la réinitialisation');
+      return { error };
+    }
   };
 
   return {
-    signUp,
-    signIn,
+    signInWithEmail,
+    signUpWithEmail,
     signOut,
-    register,
-    login,
-    logout
+    signInAsDemo,
+    resetPassword,
   };
 };

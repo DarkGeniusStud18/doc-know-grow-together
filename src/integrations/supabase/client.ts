@@ -6,11 +6,6 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://yblwafdsidkuzgzfazpf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlibHdhZmRzaWRrdXpnemZhenBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4MDU2MzIsImV4cCI6MjA2MjM4MTYzMn0.5GiBnyp-NAAZbOcenQYWkqPt-x0jvOcW4InS1U-u-Ns";
 
-// Define the site URL based on environment
-const SITE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://doc-know-grow-together.netlify.app' 
-  : window.location.origin;
-
 export const supabase = createClient<Database>(
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY,

@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.id);
       
@@ -82,6 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(null);
         setUser(null);
         localStorage.removeItem('demoUser');
+        setLoading(false);
         return;
       }
 
@@ -102,10 +103,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error converting user:', error);
           setUser(null);
         }
+        setLoading(false);
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session) {
+        console.log('Token refreshed successfully');
+        setSession(session);
       }
     });
 
-    // Initialize auth state
+    // THEN initialize auth state
     initializeAuth();
 
     return () => {

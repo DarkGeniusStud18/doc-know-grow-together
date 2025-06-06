@@ -918,6 +918,7 @@ export type Database = {
           category: string | null
           content_type: Database["public"]["Enums"]["content_type"]
           created_at: string
+          created_by: string | null
           description: string | null
           featured: boolean
           id: string
@@ -934,6 +935,7 @@ export type Database = {
           category?: string | null
           content_type: Database["public"]["Enums"]["content_type"]
           created_at?: string
+          created_by?: string | null
           description?: string | null
           featured?: boolean
           id?: string
@@ -950,6 +952,7 @@ export type Database = {
           category?: string | null
           content_type?: Database["public"]["Enums"]["content_type"]
           created_at?: string
+          created_by?: string | null
           description?: string | null
           featured?: boolean
           id?: string
