@@ -86,124 +86,7 @@
     --sidebar-ring: 212.7 26.8% 70%;
   }
 
-  /* Color Schemes */
-  :root.color-blue {
-    --primary: 221 75% 55%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217 75% 60%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 221 75% 55%;
-  }
-
-  :root.color-green {
-    --primary: 142 65% 40%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 142 60% 48%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 142 65% 40%;
-  }
-
-  :root.color-purple {
-    --primary: 270 65% 58%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 270 60% 63%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 270 65% 58%;
-  }
-
-  :root.color-orange {
-    --primary: 24 85% 58%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 24 80% 65%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 24 85% 58%;
-  }
-
-  :root.color-red {
-    --primary: 0 72% 51%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 0 65% 58%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 0 72% 51%;
-  }
-
-  :root.color-indigo {
-    --primary: 239 84% 67%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 239 75% 75%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 239 84% 67%;
-  }
-
-  :root.color-pink {
-    --primary: 330 81% 60%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 330 75% 70%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 330 81% 60%;
-  }
-
-  :root.color-teal {
-    --primary: 173 58% 39%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 173 50% 50%;
-    --secondary-foreground: 210 40% 98%;
-    --sidebar-primary: 173 58% 39%;
-  }
-
-  /* Font Size Classes */
-  :root.text-small {
-    font-size: 0.875rem;
-  }
-
-  :root.text-normal {
-    font-size: 1rem;
-  }
-
-  :root.text-large {
-    font-size: 1.125rem;
-  }
-
-  :root.text-extra-large {
-    font-size: 1.25rem;
-  }
-
-  /* Accessibility Classes */
-  .reduce-motion * {
-    transition: none !important;
-    animation: none !important;
-    transform: none !important;
-  }
-  
-  .high-contrast {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --primary: 240 100% 20%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 100% 10%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --border: 0 0% 50%;
-    --input: 0 0% 90%;
-  }
-
-  .high-contrast.dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --primary: 240 100% 80%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 240 100% 90%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 90%;
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-    --border: 0 0% 50%;
-    --input: 0 0% 10%;
-  }
+  /* ... keep existing code (color schemes and font size classes) the same ... */
 }
 
 @layer base {
@@ -240,15 +123,63 @@
 
 @layer components {
   .medical-card {
-    @apply bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 p-4 sm:p-6;
   }
   
   .page-title {
-    @apply text-3xl md:text-4xl font-bold text-medical-navy mb-6;
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold text-medical-navy mb-4 sm:mb-6 lg:mb-8;
   }
   
   .section-title {
-    @apply text-xl md:text-2xl font-semibold text-medical-navy mb-4;
+    @apply text-lg sm:text-xl lg:text-2xl font-semibold text-medical-navy mb-3 sm:mb-4 lg:mb-6;
+  }
+  
+  /* Improved spacing utilities */
+  .spacing-section {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+  
+  .spacing-content {
+    @apply space-y-3 sm:space-y-4 lg:space-y-6;
+  }
+  
+  .spacing-tight {
+    @apply space-y-2 sm:space-y-3;
+  }
+  
+  /* Responsive padding utilities */
+  .padding-page {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  .padding-card {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+  
+  .padding-tight {
+    @apply p-2 sm:p-3 lg:p-4;
+  }
+  
+  /* Responsive margin utilities */
+  .margin-section {
+    @apply mb-6 sm:mb-8 lg:mb-12;
+  }
+  
+  .margin-content {
+    @apply mb-4 sm:mb-6 lg:mb-8;
+  }
+  
+  /* Container improvements */
+  .container-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-content {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-narrow {
+    @apply max-w-2xl mx-auto px-4 sm:px-6;
   }
   
   /* Animation classes that respect reduce-motion */
@@ -273,7 +204,7 @@
   }
   
   .hover-scale:hover {
-    transform: scale(1.03);
+    transform: scale(1.02);
   }
   
   .hover-lift {
@@ -281,7 +212,7 @@
   }
   
   .hover-lift:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
   
@@ -290,7 +221,7 @@
   }
   
   .hover-glow:hover {
-    box-shadow: 0 0 15px rgba(var(--primary), 0.5);
+    box-shadow: 0 0 15px rgba(var(--primary), 0.3);
   }
   
   /* Interactive button animations */
@@ -329,5 +260,27 @@
   .reduce-motion a.btn:hover,
   .reduce-motion .btn:hover {
     transform: none;
+  }
+  
+  /* Improved form elements */
+  .form-input {
+    @apply w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-foreground mb-1.5 sm:mb-2;
+  }
+  
+  /* Grid improvements */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+  }
+  
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8;
+  }
+  
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
   }
 }

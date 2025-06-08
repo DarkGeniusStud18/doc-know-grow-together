@@ -40,10 +40,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   // Show loading only for a reasonable time
   if (loading && requireAuth && !loadingTimeout) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 text-medical-blue animate-spin" />
-          <p className="text-medical-navy animate-pulse">Vérification de la session...</p>
+      <div className="flex items-center justify-center min-h-screen bg-medical-light">
+        <div className="flex flex-col items-center gap-6 p-8 bg-white rounded-xl shadow-sm">
+          <Loader2 className="h-16 w-16 text-medical-blue animate-spin" />
+          <p className="text-medical-navy animate-pulse text-lg font-medium">Vérification de la session...</p>
         </div>
       </div>
     );
@@ -69,12 +69,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           {/* Desktop navbar shown on medium screens and above */}
           <DesktopNavbar />
           
-          <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full overflow-x-auto">
-            {children}
+          <main className="flex-grow p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-x-auto">
+            <div className="space-y-6 md:space-y-8">
+              {children}
+            </div>
           </main>
           
-          <footer className="bg-white py-4 border-t mt-auto">
-            <div className="container mx-auto px-4">
+          <footer className="bg-white py-6 md:py-8 border-t mt-auto">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <p className="text-center text-sm text-gray-500">
                 &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
               </p>
@@ -89,11 +91,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   return (
     <div className="min-h-screen bg-medical-light flex flex-col">
       <Navbar simplified />
-      <main className="flex-grow overflow-x-hidden px-4 sm:px-6">
-        {children}
+      <main className="flex-grow overflow-x-hidden px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+          {children}
+        </div>
       </main>
-      <footer className="bg-white py-6 border-t mt-auto">
-        <div className="container mx-auto px-4">
+      <footer className="bg-white py-6 md:py-8 border-t mt-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-500">
             &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
           </p>
