@@ -11,7 +11,13 @@ export const taskService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match our Task interface with proper types
+    return (data || []).map(task => ({
+      ...task,
+      priority: task.priority as 'low' | 'medium' | 'high',
+      status: task.status as 'pending' | 'in_progress' | 'completed'
+    })) as Task[];
   },
 
   async createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at'>): Promise<Task> {
@@ -22,7 +28,13 @@ export const taskService = {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Transform the data to match our Task interface with proper types
+    return {
+      ...data,
+      priority: data.priority as 'low' | 'medium' | 'high',
+      status: data.status as 'pending' | 'in_progress' | 'completed'
+    } as Task;
   },
 
   async updateTask(id: string, updates: Partial<Task>): Promise<Task> {
@@ -34,7 +46,13 @@ export const taskService = {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Transform the data to match our Task interface with proper types
+    return {
+      ...data,
+      priority: data.priority as 'low' | 'medium' | 'high',
+      status: data.status as 'pending' | 'in_progress' | 'completed'
+    } as Task;
   },
 
   async deleteTask(id: string): Promise<void> {

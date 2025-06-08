@@ -11,7 +11,12 @@ export const studyPlanService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match our StudyPlan interface
+    return (data || []).map(plan => ({
+      ...plan,
+      subjects: Array.isArray(plan.subjects) ? plan.subjects : []
+    })) as StudyPlan[];
   },
 
   async getActiveStudyPlan(userId: string): Promise<StudyPlan | null> {
@@ -23,7 +28,14 @@ export const studyPlanService = {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    
+    if (!data) return null;
+    
+    // Transform the data to match our StudyPlan interface
+    return {
+      ...data,
+      subjects: Array.isArray(data.subjects) ? data.subjects : []
+    } as StudyPlan;
   },
 
   async createStudyPlan(plan: Omit<StudyPlan, 'id' | 'created_at' | 'updated_at'>): Promise<StudyPlan> {
@@ -34,7 +46,12 @@ export const studyPlanService = {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Transform the data to match our StudyPlan interface
+    return {
+      ...data,
+      subjects: Array.isArray(data.subjects) ? data.subjects : []
+    } as StudyPlan;
   },
 
   async updateStudyPlan(id: string, updates: Partial<StudyPlan>): Promise<StudyPlan> {
@@ -46,7 +63,12 @@ export const studyPlanService = {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Transform the data to match our StudyPlan interface
+    return {
+      ...data,
+      subjects: Array.isArray(data.subjects) ? data.subjects : []
+    } as StudyPlan;
   },
 
   async deleteStudyPlan(id: string): Promise<void> {

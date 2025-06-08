@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { studySessionService } from '@/lib/database/studySessions';
 import { StudySession, StudySessionNote } from '@/types/database';
 import { toast } from 'sonner';
+import { useRealtimeSync } from './useRealtimeSync';
 
 export const useStudySessions = () => {
   const { user } = useAuth();
