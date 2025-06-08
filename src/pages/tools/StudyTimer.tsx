@@ -1,228 +1,191 @@
 
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock, Play, Pause, RotateCcw, Settings } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { Input } from '@/components/ui/input';
+import { Play, Pause, Square, Clock } from 'lucide-react';
+import { useStudySessions } from '@/hooks/useStudySessions';
 
-const StudyTimer = () => {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
-  const [isActive, setIsActive] = useState(false);
-  const [isBreak, setIsBreak] = useState(false);
-  const [sessions, setSessions] = useState(0);
-  
-  // Settings
-  const [workDuration, setWorkDuration] = useState(25);
-  const [shortBreakDuration, setShortBreakDuration] = useState(5);
-  const [longBreakDuration, setLongBreakDuration] = useState(15);
-  const [showSettings, setShowSettings] = useState(false);
+const StudyTimer: React.FC = () => {
+  const { sessions, stats, startSession, endSession, addNote } = useStudySessions();
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [currentSession, setCurrentSession] = useState<any>(null);
+  const [subject, setSubject] = useState('');
+  const [note, setNote] = useState('');
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: NodeJS.Timeout;
     
-    if (isActive && timeLeft > 0) {
+    if (isRunning) {
       interval = setInterval(() => {
-        setTimeLeft(timeLeft => timeLeft - 1);
+        setTime(time => time + 1);
       }, 1000);
-    } else if (timeLeft === 0) {
-      // Timer finished
-      setIsActive(false);
+    }
+    
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleStart = async () => {
+    if (!currentSession) {
+      const session = await startSession(subject || undefined);
+      setCurrentSession(session);
+    }
+    setIsRunning(true);
+  };
+
+  const handlePause = () => {
+    setIsRunning(false);
+  };
+
+  const handleStop = async () => {
+    if (currentSession && time > 0) {
+      const durationMinutes = Math.floor(time / 60);
+      await endSession(currentSession.id, durationMinutes);
       
-      if (isBreak) {
-        // Break finished, start work session
-        setIsBreak(false);
-        setTimeLeft(workDuration * 60);
-        toast.success('Pause terminée ! Reprenez le travail.');
-      } else {
-        // Work session finished
-        setSessions(prev => prev + 1);
-        const isLongBreak = (sessions + 1) % 4 === 0;
-        setIsBreak(true);
-        setTimeLeft(isLongBreak ? longBreakDuration * 60 : shortBreakDuration * 60);
-        toast.success(isLongBreak ? 'Session terminée ! Prenez une longue pause.' : 'Session terminée ! Prenez une courte pause.');
+      if (note.trim()) {
+        await addNote(currentSession.id, note);
       }
     }
     
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isActive, timeLeft, isBreak, sessions, workDuration, shortBreakDuration, longBreakDuration]);
-
-  const toggleTimer = () => {
-    setIsActive(!isActive);
-  };
-
-  const resetTimer = () => {
-    setIsActive(false);
-    setIsBreak(false);
-    setTimeLeft(workDuration * 60);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const applySettings = () => {
-    resetTimer();
-    setShowSettings(false);
-    toast.success('Paramètres sauvegardés !');
+    setIsRunning(false);
+    setTime(0);
+    setCurrentSession(null);
+    setSubject('');
+    setNote('');
   };
 
   return (
     <MainLayout>
-      <div className="container py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Clock className="h-8 w-8 text-medical-red" />
-              Chronomètre d'étude
-            </h1>
-            <p className="text-gray-600 mt-2">Technique Pomodoro pour maximiser votre concentration</p>
-          </div>
-          <Button variant="outline" onClick={() => setShowSettings(!showSettings)}>
-            <Settings className="h-4 w-4 mr-2" />
-            Paramètres
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            {showSettings && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Paramètres du timer</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Travail (minutes)</label>
-                      <input
-                        type="number"
-                        value={workDuration}
-                        onChange={(e) => setWorkDuration(parseInt(e.target.value))}
-                        min="1"
-                        max="60"
-                        className="w-full p-2 border rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Pause courte (minutes)</label>
-                      <input
-                        type="number"
-                        value={shortBreakDuration}
-                        onChange={(e) => setShortBreakDuration(parseInt(e.target.value))}
-                        min="1"
-                        max="30"
-                        className="w-full p-2 border rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Pause longue (minutes)</label>
-                      <input
-                        type="number"
-                        value={longBreakDuration}
-                        onChange={(e) => setLongBreakDuration(parseInt(e.target.value))}
-                        min="1"
-                        max="60"
-                        className="w-full p-2 border rounded-md"
-                      />
-                    </div>
-                  </div>
-                  <Button onClick={applySettings} className="mt-4">
-                    Appliquer les paramètres
-                  </Button>
-                </CardContent>
-              </Card>
+      <div className="container mx-auto p-6 space-y-6">
+        <h1 className="text-3xl font-bold text-center">Minuteur d'étude</h1>
+        
+        {/* Timer Display */}
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <div className="text-6xl font-mono font-bold text-medical-teal mb-6">
+              {formatTime(time)}
+            </div>
+            
+            {!currentSession && (
+              <div className="mb-4">
+                <Input
+                  placeholder="Matière d'étude (optionnel)"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="mb-4"
+                />
+              </div>
             )}
+            
+            <div className="flex justify-center gap-2">
+              {!isRunning ? (
+                <Button onClick={handleStart} size="lg" className="flex items-center gap-2">
+                  <Play className="h-5 w-5" />
+                  {currentSession ? 'Reprendre' : 'Démarrer'}
+                </Button>
+              ) : (
+                <Button onClick={handlePause} variant="outline" size="lg" className="flex items-center gap-2">
+                  <Pause className="h-5 w-5" />
+                  Pause
+                </Button>
+              )}
+              
+              {currentSession && (
+                <Button onClick={handleStop} variant="destructive" size="lg" className="flex items-center gap-2">
+                  <Square className="h-5 w-5" />
+                  Arrêter
+                </Button>
+              )}
+            </div>
+            
+            {currentSession && (
+              <div className="mt-4">
+                <Input
+                  placeholder="Note de session (optionnelle)"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardContent className="text-center py-12">
-                <div className={`text-8xl font-bold mb-8 ${
-                  isBreak ? 'text-medical-green' : 'text-medical-red'
-                }`}>
-                  {formatTime(timeLeft)}
-                </div>
-                
-                <div className={`text-2xl font-semibold mb-8 ${
-                  isBreak ? 'text-medical-green' : 'text-medical-navy'
-                }`}>
-                  {isBreak ? 'Pause en cours' : 'Session de travail'}
-                </div>
-                
-                <div className="flex justify-center gap-4">
-                  <Button 
-                    onClick={toggleTimer}
-                    size="lg"
-                    className={isBreak ? 'bg-medical-green hover:bg-medical-green/90' : ''}
-                  >
-                    {isActive ? (
-                      <>
-                        <Pause className="h-5 w-5 mr-2" />
-                        Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-5 w-5 mr-2" />
-                        {timeLeft === (isBreak ? 
-                          (sessions % 4 === 0 ? longBreakDuration : shortBreakDuration) * 60 : 
-                          workDuration * 60) ? 'Démarrer' : 'Reprendre'}
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button variant="outline" onClick={resetTimer} size="lg">
-                    <RotateCcw className="h-5 w-5 mr-2" />
-                    Reset
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Statistiques</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-medical-red">{sessions}</div>
-                    <div className="text-sm text-gray-500">Sessions terminées</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Temps de travail</span>
-                      <span>{sessions * workDuration} min</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Prochaine pause longue</span>
-                      <span>Dans {4 - (sessions % 4)} session{4 - (sessions % 4) !== 1 ? 's' : ''}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Comment ça marche ?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm space-y-2">
-                  <p>1. Travaillez pendant {workDuration} minutes</p>
-                  <p>2. Prenez une pause de {shortBreakDuration} minutes</p>
-                  <p>3. Répétez 4 fois</p>
-                  <p>4. Prenez une longue pause de {longBreakDuration} minutes</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Statistics */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Clock className="h-8 w-8 text-medical-teal mx-auto mb-2" />
+              <div className="text-2xl font-bold">{stats.total_hours}h</div>
+              <div className="text-sm text-gray-600">Total cette semaine</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold">{stats.avg_session_duration}min</div>
+              <div className="text-sm text-gray-600">Durée moyenne</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold">{stats.sessions_count}</div>
+              <div className="text-sm text-gray-600">Sessions</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-lg font-semibold truncate">{stats.most_studied_subject}</div>
+              <div className="text-sm text-gray-600">Matière principale</div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Recent Sessions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sessions récentes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sessions.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Aucune session d'étude pour le moment.</p>
+            ) : (
+              <div className="space-y-2">
+                {sessions.slice(0, 5).map((session) => (
+                  <div key={session.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <div className="font-medium">
+                        {session.subject || 'Session d\'étude'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {new Date(session.started_at).toLocaleDateString('fr-FR')} - {session.duration_minutes} min
+                      </div>
+                    </div>
+                    <div className={`px-2 py-1 rounded text-xs ${
+                      session.completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {session.completed ? 'Terminée' : 'En cours'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );

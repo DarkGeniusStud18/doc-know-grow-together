@@ -1,239 +1,256 @@
 
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ListChecks, Plus, Trash2, Calendar } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Check, Clock, AlertCircle, Trash2 } from 'lucide-react';
+import { useTasks } from '@/hooks/useTasks';
+import { Task } from '@/types/database';
 
-type Task = {
-  id: string;
-  title: string;
-  completed: boolean;
-  priority: 'low' | 'medium' | 'high';
-  dueDate?: string;
-  createdAt: string;
-};
+const TaskList: React.FC = () => {
+  const { tasks, categories, isLoading, createTask, updateTask, deleteTask, createCategory } = useTasks();
+  const [showNewTaskForm, setShowNewTaskForm] = useState(false);
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    due_date: ''
+  });
+  const [newCategory, setNewCategory] = useState({ name: '', color: '#3B82F6' });
 
-const TaskList = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskPriority, setNewTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [newTaskDueDate, setNewTaskDueDate] = useState('');
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTask.title.trim()) return;
 
-  const addTask = () => {
-    if (!newTaskTitle.trim()) return;
+    await createTask({
+      ...newTask,
+      status: 'pending',
+      due_date: newTask.due_date || undefined
+    });
 
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: newTaskTitle,
-      completed: false,
-      priority: newTaskPriority,
-      dueDate: newTaskDueDate || undefined,
-      createdAt: new Date().toISOString()
-    };
-
-    setTasks([...tasks, newTask]);
-    setNewTaskTitle('');
-    setNewTaskDueDate('');
-    toast.success('Tâche ajoutée avec succès !');
+    setNewTask({ title: '', description: '', priority: 'medium', due_date: '' });
+    setShowNewTaskForm(false);
   };
 
-  const toggleTask = (id: string) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategory.name.trim()) return;
+
+    await createCategory(newCategory);
+    setNewCategory({ name: '', color: '#3B82F6' });
+    setShowNewCategoryForm(false);
   };
 
-  const deleteTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
-    toast.info('Tâche supprimée');
+  const toggleTaskStatus = async (task: Task) => {
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+    await updateTask(task.id, { status: newStatus });
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'high': return <AlertCircle className="h-4 w-4 text-red-500" />;
+      case 'medium': return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'low': return <Clock className="h-4 w-4 text-green-500" />;
+      default: return null;
     }
   };
 
-  const completedTasks = tasks.filter(task => task.completed).length;
-  const pendingTasks = tasks.length - completedTasks;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal"></div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <div className="container py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <ListChecks className="h-8 w-8 text-medical-green" />
-              Liste de tâches
-            </h1>
-            <p className="text-gray-600 mt-2">Organisez vos tâches et suivez votre progression</p>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Gestionnaire de tâches</h1>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowNewCategoryForm(true)} variant="outline">
+              Nouvelle catégorie
+            </Button>
+            <Button onClick={() => setShowNewTaskForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle tâche
+            </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Ajouter une nouvelle tâche</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <Input
-                      value={newTaskTitle}
-                      onChange={(e) => setNewTaskTitle(e.target.value)}
-                      placeholder="Titre de la tâche..."
-                      onKeyPress={(e) => e.key === 'Enter' && addTask()}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Priorité</label>
-                      <select
-                        value={newTaskPriority}
-                        onChange={(e) => setNewTaskPriority(e.target.value as 'low' | 'medium' | 'high')}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="low">Faible</option>
-                        <option value="medium">Moyenne</option>
-                        <option value="high">Élevée</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Date d'échéance (optionnel)</label>
-                      <Input
-                        type="date"
-                        value={newTaskDueDate}
-                        onChange={(e) => setNewTaskDueDate(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button onClick={addTask} className="w-full" disabled={!newTaskTitle.trim()}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter la tâche
+        {/* Categories */}
+        {categories.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Catégories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <Badge key={category.id} style={{ backgroundColor: category.color, color: 'white' }}>
+                    {category.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* New Category Form */}
+        {showNewCategoryForm && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Nouvelle catégorie</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateCategory} className="space-y-4">
+                <Input
+                  placeholder="Nom de la catégorie"
+                  value={newCategory.name}
+                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                />
+                <div className="flex items-center gap-2">
+                  <label>Couleur:</label>
+                  <input
+                    type="color"
+                    value={newCategory.color}
+                    onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
+                    className="w-10 h-10 rounded"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit">Créer</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowNewCategoryForm(false)}>
+                    Annuler
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Mes tâches</CardTitle>
-                <CardDescription>
-                  {tasks.length} tâche{tasks.length !== 1 ? 's' : ''} au total
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {tasks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <ListChecks className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Aucune tâche créée</p>
-                    <p className="text-sm text-gray-400 mt-1">Ajoutez votre première tâche ci-dessus</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {tasks.map((task) => (
-                      <div key={task.id} className={`border rounded-lg p-4 transition-all ${
-                        task.completed ? 'bg-gray-50 opacity-75' : 'hover:bg-gray-50'
-                      }`}>
-                        <div className="flex items-start gap-3">
-                          <Checkbox
-                            checked={task.completed}
-                            onCheckedChange={() => toggleTask(task.id)}
-                            className="mt-1"
-                          />
-                          
-                          <div className="flex-1 min-w-0">
-                            <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500' : ''}`}>
-                              {task.title}
-                            </h3>
-                            
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className={`text-xs px-2 py-1 rounded border ${getPriorityColor(task.priority)}`}>
-                                {task.priority === 'high' ? 'Élevée' : 
-                                 task.priority === 'medium' ? 'Moyenne' : 'Faible'}
-                              </span>
-                              
-                              {task.dueDate && (
-                                <span className="text-xs text-gray-500 flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {new Date(task.dueDate).toLocaleDateString('fr-FR')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteTask(task.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Progression</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-medical-green">{completedTasks}</div>
-                    <div className="text-sm text-gray-500">Tâches terminées</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>En cours</span>
-                      <span>{pendingTasks}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Terminées</span>
-                      <span>{completedTasks}</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-medium">
-                      <span>Total</span>
-                      <span>{tasks.length}</span>
-                    </div>
-                  </div>
-                  
-                  {tasks.length > 0 && (
-                    <div className="mt-4">
-                      <div className="text-sm text-gray-500 mb-1">
-                        Progression: {Math.round((completedTasks / tasks.length) * 100)}%
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-medical-green h-2 rounded-full transition-all"
-                          style={{ width: `${(completedTasks / tasks.length) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
+        {/* New Task Form */}
+        {showNewTaskForm && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Nouvelle tâche</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateTask} className="space-y-4">
+                <Input
+                  placeholder="Titre de la tâche"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                />
+                <Textarea
+                  placeholder="Description (optionnelle)"
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Select value={newTask.priority} onValueChange={(value: any) => setNewTask({ ...newTask, priority: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Priorité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Faible</SelectItem>
+                      <SelectItem value="medium">Moyenne</SelectItem>
+                      <SelectItem value="high">Élevée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="datetime-local"
+                    value={newTask.due_date}
+                    onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                  />
                 </div>
+                <div className="flex gap-2">
+                  <Button type="submit">Créer la tâche</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowNewTaskForm(false)}>
+                    Annuler
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tasks List */}
+        <div className="grid gap-4">
+          {tasks.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <p className="text-gray-500">Aucune tâche pour le moment.</p>
+                <p className="text-sm text-gray-400 mt-2">Créez votre première tâche pour commencer !</p>
               </CardContent>
             </Card>
-          </div>
+          ) : (
+            tasks.map((task) => (
+              <Card key={task.id} className={`transition-all duration-200 ${task.status === 'completed' ? 'opacity-75' : ''}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleTaskStatus(task)}
+                        className={`mt-1 ${task.status === 'completed' ? 'text-green-600' : 'text-gray-400'}`}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className={`font-semibold ${task.status === 'completed' ? 'line-through text-gray-500' : ''}`}>
+                            {task.title}
+                          </h3>
+                          {getPriorityIcon(task.priority)}
+                          <Badge className={getStatusColor(task.status)}>
+                            {task.status === 'completed' ? 'Terminée' :
+                             task.status === 'in_progress' ? 'En cours' : 'En attente'}
+                          </Badge>
+                        </div>
+                        {task.description && (
+                          <p className="text-gray-600 text-sm mb-2">{task.description}</p>
+                        )}
+                        {task.due_date && (
+                          <p className="text-xs text-gray-500">
+                            Échéance: {new Date(task.due_date).toLocaleDateString('fr-FR')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteTask(task.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </MainLayout>
