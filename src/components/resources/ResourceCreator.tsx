@@ -46,7 +46,7 @@ const ResourceCreator: React.FC<ResourceCreatorProps> = ({ onResourceCreated }) 
             url: formData.url,
             category: formData.category,
             author: formData.author,
-            content_type: 'link',
+            content_type: 'document', // Utiliser un type valide
             created_by: user.id
           });
 

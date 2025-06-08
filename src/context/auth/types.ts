@@ -1,16 +1,26 @@
 
+import { User } from '@/lib/auth/types';
 import { Session } from '@supabase/supabase-js';
-import { User, UserRole } from '@/lib/auth/types';
+
+export interface AuthResult {
+  error?: string;
+  user?: User | null;
+}
 
 export interface AuthContextProps {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<{ error: any }>;
-  register: (email: string, password: string, role: UserRole, displayName: string) => Promise<boolean>;
+  signInWithEmail: (email: string, password: string) => Promise<AuthResult>;
+  signUpWithEmail: (email: string, password: string, metadata?: any) => Promise<AuthResult>;
+  signInAsDemo: (type: 'student' | 'professional') => Promise<AuthResult>;
+  signOut: () => Promise<void>;
+  updateCurrentUser: (user: User) => void;
+  
+  // Legacy method aliases for backward compatibility
+  signUp: (email: string, password: string, metadata?: any) => Promise<AuthResult>;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
+  register: (email: string, password: string, role: any, displayName: string) => Promise<boolean>;
   login: (email: string, password: string) => Promise<boolean>;
   logout: (redirectPath?: string) => Promise<void>;
-  updateCurrentUser: (updatedUser: User) => void;
 }

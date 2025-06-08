@@ -63,11 +63,19 @@ const MedicalResources: React.FC = () => {
 
   const handleViewArticle = async (articleId: string) => {
     try {
-      // Increment view count
-      await supabase
+      // Increment view count using RPC or direct update
+      const { data: currentArticle } = await supabase
         .from('articles')
-        .update({ views_count: supabase.sql`views_count + 1` })
-        .eq('id', articleId);
+        .select('views_count')
+        .eq('id', articleId)
+        .single();
+
+      if (currentArticle) {
+        await supabase
+          .from('articles')
+          .update({ views_count: (currentArticle.views_count || 0) + 1 })
+          .eq('id', articleId);
+      }
 
       fetchData(); // Refresh to show updated view count
     } catch (error) {
@@ -76,14 +84,14 @@ const MedicalResources: React.FC = () => {
   };
 
   const filteredResources = resources.filter(resource => {
-    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = resource.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || resource.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const filteredArticles = articles.filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = article.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
     return matchesSearch && matchesCategory;

@@ -40,11 +40,9 @@ const Login: React.FC = () => {
       const result = await signInWithEmail(data.email, data.password);
       
       if (!result.error) {
-        console.log('Login successful, navigating to dashboard...');
-        // Force navigation after successful login
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 100);
+        console.log('Login successful, user should be set in context');
+        // Don't navigate immediately, let the auth context handle it
+        // The useEffect above will handle navigation when user state updates
       } else {
         console.error('Login failed:', result.error);
         toast.error('Erreur de connexion', { 
@@ -70,11 +68,9 @@ const Login: React.FC = () => {
       const result = await signInAsDemo(type);
       
       if (!result.error) {
-        console.log('Demo login successful, navigating to dashboard...');
-        // Force navigation after successful demo login
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 100);
+        console.log('Demo login successful, user should be set in context');
+        // Don't navigate immediately, let the auth context handle it
+        // The useEffect above will handle navigation when user state updates
       } else {
         toast.error('Erreur de connexion démo', { 
           description: 'Veuillez réessayer plus tard.' 

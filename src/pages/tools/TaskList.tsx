@@ -1,332 +1,239 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, CheckCircle, Clock, CalendarDays, Save } from 'lucide-react';
+import { ListChecks, Plus, Trash2, Calendar } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface Task {
+type Task = {
   id: string;
   title: string;
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
   dueDate?: string;
-  category: string;
-}
+  createdAt: string;
+};
 
-const TaskList: React.FC = () => {
+const TaskList = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [newTaskCategory, setNewTaskCategory] = useState('études');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  const categories = ['études', 'examens', 'personnel', 'recherche', 'administratif'];
-
-  // Load tasks from localStorage
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('medcollabTasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
-
-  // Save tasks to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('medcollabTasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  const handleAddTask = () => {
-    if (!newTaskTitle.trim()) {
-      toast.error('Veuillez entrer un titre pour la tâche');
-      return;
-    }
+  const addTask = () => {
+    if (!newTaskTitle.trim()) return;
 
     const newTask: Task = {
       id: Date.now().toString(),
-      title: newTaskTitle.trim(),
+      title: newTaskTitle,
       completed: false,
       priority: newTaskPriority,
-      category: newTaskCategory,
-      dueDate: newTaskDueDate || undefined
+      dueDate: newTaskDueDate || undefined,
+      createdAt: new Date().toISOString()
     };
 
     setTasks([...tasks, newTask]);
     setNewTaskTitle('');
     setNewTaskDueDate('');
-    toast.success('Tâche ajoutée !');
+    toast.success('Tâche ajoutée avec succès !');
   };
 
-  const handleToggleComplete = (id: string) => {
+  const toggleTask = (id: string) => {
     setTasks(tasks.map(task => 
       task.id === id ? { ...task, completed: !task.completed } : task
     ));
   };
 
-  const handleDeleteTask = (id: string) => {
+  const deleteTask = (id: string) => {
     setTasks(tasks.filter(task => task.id !== id));
     toast.info('Tâche supprimée');
   };
 
-  const handleSaveTasks = () => {
-    localStorage.setItem('medcollabTasks', JSON.stringify(tasks));
-    toast.success('Vos tâches ont été sauvegardées !');
-  };
-
-  const filteredTasks = tasks
-    .filter(task => {
-      if (filter === 'active') return !task.completed;
-      if (filter === 'completed') return task.completed;
-      return true;
-    })
-    .filter(task => {
-      if (categoryFilter === 'all') return true;
-      return task.category === categoryFilter;
-    })
-    .sort((a, b) => {
-      // Sort by completion status, then priority, then due date
-      if (a.completed !== b.completed) return a.completed ? 1 : -1;
-      
-      const priorityValues = { high: 0, medium: 1, low: 2 };
-      if (priorityValues[a.priority] !== priorityValues[b.priority]) {
-        return priorityValues[a.priority] - priorityValues[b.priority];
-      }
-      
-      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
-      if (a.dueDate) return -1;
-      if (b.dueDate) return 1;
-      return 0;
-    });
-
   const getPriorityColor = (priority: string) => {
-    switch(priority) {
-      case 'high': return 'bg-red-100 text-red-700';
-      case 'medium': return 'bg-amber-100 text-amber-700';
-      case 'low': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getPriorityLabel = (priority: string) => {
-    switch(priority) {
-      case 'high': return 'Haute';
-      case 'medium': return 'Moyenne';
-      case 'low': return 'Basse';
-      default: return 'Inconnue';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('fr-FR').format(date);
-  };
-
-  const isOverdue = (dateString?: string) => {
-    if (!dateString) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(dateString);
-    return dueDate < today && dueDate.getTime() !== today.getTime();
-  };
+  const completedTasks = tasks.filter(task => task.completed).length;
+  const pendingTasks = tasks.length - completedTasks;
 
   return (
     <MainLayout>
-      <div className="container mx-auto py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <div className="container py-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Liste de tâches</h1>
-            <p className="text-gray-500">Organisez vos tâches et suivez votre progression</p>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <ListChecks className="h-8 w-8 text-medical-green" />
+              Liste de tâches
+            </h1>
+            <p className="text-gray-600 mt-2">Organisez vos tâches et suivez votre progression</p>
           </div>
-          <Button 
-            onClick={handleSaveTasks} 
-            className="mt-4 md:mt-0 flex items-center gap-2"
-          >
-            <Save size={16} />
-            Enregistrer mes tâches
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column: Add new task */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Nouvelle tâche</CardTitle>
-              <CardDescription>Ajoutez une nouvelle tâche à votre liste</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium block mb-1">Titre de la tâche</label>
-                <Input
-                  placeholder="Ex: Réviser le chapitre 5 d'anatomie"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-1">Catégorie</label>
-                <Select 
-                  value={newTaskCategory}
-                  onValueChange={setNewTaskCategory}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir une catégorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-1">Priorité</label>
-                <Select 
-                  value={newTaskPriority}
-                  onValueChange={(value) => setNewTaskPriority(value as 'low' | 'medium' | 'high')}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir une priorité" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="high">Haute</SelectItem>
-                    <SelectItem value="medium">Moyenne</SelectItem>
-                    <SelectItem value="low">Basse</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-1">Date d'échéance (optionnel)</label>
-                <Input
-                  type="date"
-                  value={newTaskDueDate}
-                  onChange={(e) => setNewTaskDueDate(e.target.value)}
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={handleAddTask} 
-                className="w-full flex items-center gap-2"
-              >
-                <Plus size={16} />
-                Ajouter cette tâche
-              </Button>
-            </CardFooter>
-          </Card>
-
-          {/* Right column: Task list */}
-          <Card className="col-span-1 lg:col-span-2">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <CardTitle>Mes tâches</CardTitle>
-                <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
-                  <Button 
-                    variant={filter === 'all' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('all')}
-                  >
-                    Toutes
-                  </Button>
-                  <Button 
-                    variant={filter === 'active' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('active')}
-                  >
-                    À faire
-                  </Button>
-                  <Button 
-                    variant={filter === 'completed' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('completed')}
-                  >
-                    Terminées
+          <div className="lg:col-span-2">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Ajouter une nouvelle tâche</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Input
+                      value={newTaskTitle}
+                      onChange={(e) => setNewTaskTitle(e.target.value)}
+                      placeholder="Titre de la tâche..."
+                      onKeyPress={(e) => e.key === 'Enter' && addTask()}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Priorité</label>
+                      <select
+                        value={newTaskPriority}
+                        onChange={(e) => setNewTaskPriority(e.target.value as 'low' | 'medium' | 'high')}
+                        className="w-full p-2 border rounded-md"
+                      >
+                        <option value="low">Faible</option>
+                        <option value="medium">Moyenne</option>
+                        <option value="high">Élevée</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Date d'échéance (optionnel)</label>
+                      <Input
+                        type="date"
+                        value={newTaskDueDate}
+                        onChange={(e) => setNewTaskDueDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  
+                  <Button onClick={addTask} className="w-full" disabled={!newTaskTitle.trim()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter la tâche
                   </Button>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <CardDescription>Total: {filteredTasks.length} tâches</CardDescription>
-                <Select 
-                  value={categoryFilter}
-                  onValueChange={setCategoryFilter}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filtrer par catégorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Toutes les catégories</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {filteredTasks.length > 0 ? (
-                filteredTasks.map(task => (
-                  <div 
-                    key={task.id}
-                    className={`p-3 rounded-lg border ${task.completed ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200'} flex items-center gap-3`}
-                  >
-                    <Checkbox 
-                      checked={task.completed}
-                      onCheckedChange={() => handleToggleComplete(task.id)}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`font-medium ${task.completed ? 'line-through text-gray-500' : ''}`}>
-                        {task.title}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Mes tâches</CardTitle>
+                <CardDescription>
+                  {tasks.length} tâche{tasks.length !== 1 ? 's' : ''} au total
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {tasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <ListChecks className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">Aucune tâche créée</p>
+                    <p className="text-sm text-gray-400 mt-1">Ajoutez votre première tâche ci-dessus</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {tasks.map((task) => (
+                      <div key={task.id} className={`border rounded-lg p-4 transition-all ${
+                        task.completed ? 'bg-gray-50 opacity-75' : 'hover:bg-gray-50'
+                      }`}>
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={task.completed}
+                            onCheckedChange={() => toggleTask(task.id)}
+                            className="mt-1"
+                          />
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500' : ''}`}>
+                              {task.title}
+                            </h3>
+                            
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className={`text-xs px-2 py-1 rounded border ${getPriorityColor(task.priority)}`}>
+                                {task.priority === 'high' ? 'Élevée' : 
+                                 task.priority === 'medium' ? 'Moyenne' : 'Faible'}
+                              </span>
+                              
+                              {task.dueDate && (
+                                <span className="text-xs text-gray-500 flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(task.dueDate).toLocaleDateString('fr-FR')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteTask(task.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                          {getPriorityLabel(task.priority)}
-                        </Badge>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                          {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
-                        </Badge>
-                        {task.dueDate && (
-                          <Badge variant="outline" className={`flex items-center gap-1 ${isOverdue(task.dueDate) ? 'bg-red-50 text-red-700' : 'bg-purple-50 text-purple-700'}`}>
-                            <CalendarDays size={12} />
-                            {formatDate(task.dueDate)}
-                          </Badge>
-                        )}
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Progression</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-medical-green">{completedTasks}</div>
+                    <div className="text-sm text-gray-500">Tâches terminées</div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>En cours</span>
+                      <span>{pendingTasks}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Terminées</span>
+                      <span>{completedTasks}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>Total</span>
+                      <span>{tasks.length}</span>
+                    </div>
+                  </div>
+                  
+                  {tasks.length > 0 && (
+                    <div className="mt-4">
+                      <div className="text-sm text-gray-500 mb-1">
+                        Progression: {Math.round((completedTasks / tasks.length) * 100)}%
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-medical-green h-2 rounded-full transition-all"
+                          style={{ width: `${(completedTasks / tasks.length) * 100}%` }}
+                        ></div>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                      onClick={() => handleDeleteTask(task.id)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <CheckCircle className="mx-auto h-12 w-12 text-gray-300" />
-                  <h3 className="mt-2 text-lg font-medium">Aucune tâche</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {filter === 'all' ? 'Commencez par ajouter une tâche!' : filter === 'active' ? 'Toutes les tâches sont complétées!' : 'Aucune tâche complétée!'}
-                  </p>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </MainLayout>

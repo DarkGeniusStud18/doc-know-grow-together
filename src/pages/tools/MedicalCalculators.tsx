@@ -167,7 +167,7 @@ const MedicalCalculators: React.FC = () => {
     {
       id: 'bmi',
       title: "IMC (Indice de Masse Corporelle)",
-      description: "Calculez l'indice de masse corporelle",
+      description: "Calculez l'indice de masse corporelle d'un individu avec précision",
       icon: <Activity className="h-6 w-6 text-blue-500" />,
       category: "Général",
     },

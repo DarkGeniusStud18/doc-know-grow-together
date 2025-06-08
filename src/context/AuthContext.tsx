@@ -97,6 +97,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(null);
         setUser(null);
         localStorage.removeItem('demoUser');
+        // Force navigation to home page after signout
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
         return;
       }
 
@@ -109,6 +113,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (customUser && mounted) {
             setUser(customUser);
             console.log('User profile loaded successfully');
+            // Force navigation to dashboard after successful signin
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 100);
           } else if (mounted) {
             console.error('Failed to load user profile');
             setUser(null);
@@ -145,6 +153,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Handle demo user navigation
+  useEffect(() => {
+    if (user && !loading) {
+      const demoUser = localStorage.getItem('demoUser');
+      if (demoUser && window.location.pathname === '/login') {
+        // Navigate to dashboard for demo users
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 100);
+      }
+    }
+  }, [user, loading]);
 
   const updateCurrentUser = (updatedUser: User) => {
     setUser(updatedUser);

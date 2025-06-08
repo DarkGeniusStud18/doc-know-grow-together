@@ -1,4 +1,5 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import { UserRole } from '@/lib/auth/types';
@@ -15,7 +16,7 @@ export const useAuthOperations = (setUser: any, setSession: any) => {
           const demoUser = getDemoUser(demoUserType);
           setUser(demoUser);
           setSession(null);
-          toast.success(`Connexion en tant que ${demoUserType === 'student' ? 'étudiant' : 'professionnel'} démo`);
+          toast.success(`Connexion en tant que ${demoUserType === 'student' ? 'étudiant' : 'professionnel'} démo réussie ! ( Actualisé la page ! )`);
           return { data: { user: demoUser, session: null }, error: null };
         }
       }
@@ -33,7 +34,7 @@ export const useAuthOperations = (setUser: any, setSession: any) => {
 
       if (data.session) {
         console.log('Sign in successful');
-        toast.success('Connexion réussie !');
+        toast.success('Connexion réussie ! ( Actualisé la page ! )');
       }
 
       return { data, error: null };
@@ -77,7 +78,7 @@ export const useAuthOperations = (setUser: any, setSession: any) => {
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     try {
       // Clear demo user if exists
       const demoUser = localStorage.getItem('demoUser');
@@ -85,8 +86,8 @@ export const useAuthOperations = (setUser: any, setSession: any) => {
         localStorage.removeItem('demoUser');
         setUser(null);
         setSession(null);
-        toast.success('Déconnexion réussie');
-        return { error: null };
+        toast.success('Déconnexion réussie ! ( Actualisé la page ! )');
+        return;
       }
 
       const { error } = await supabase.auth.signOut();
@@ -94,26 +95,25 @@ export const useAuthOperations = (setUser: any, setSession: any) => {
       if (error) {
         console.error('Sign out error:', error);
         toast.error('Erreur lors de la déconnexion');
-        return { error };
+        throw error;
       }
 
-      toast.success('Déconnexion réussie');
-      return { error: null };
+      toast.success('Déconnexion réussie ! ( Actualisé la page ! )');
     } catch (error) {
       console.error('Unexpected sign out error:', error);
       toast.error('Erreur inattendue lors de la déconnexion');
-      return { error };
+      throw error;
     }
   };
 
-  const signInAsDemo = (userType: 'student' | 'professional') => {
+  const signInAsDemo = async (userType: 'student' | 'professional') => {
     try {
       localStorage.setItem('demoUser', userType);
       const demoUser = getDemoUser(userType);
       setUser(demoUser);
       setSession(null);
-      toast.success(`Connexion en tant que ${userType === 'student' ? 'étudiant' : 'professionnel'} démo`);
-      return { error: null };
+      toast.success(`Connexion en tant que ${userType === 'student' ? 'étudiant' : 'professionnel'} démo réussie ! ( Actualisé la page ! )`);
+      return { user: demoUser, error: null };
     } catch (error) {
       console.error('Demo sign in error:', error);
       toast.error('Erreur lors de la connexion démo');
