@@ -67,7 +67,6 @@ const DiscordSidebar: React.FC = () => {
   
   // Role-specific items
   const studentItems = [
-    { path: '/my-courses', icon: GraduationCap, label: 'Mes cours' },
     { path: '/notes', icon: FileText, label: 'Mes notes' },
     { path: '/study-groups', icon: Users, label: 'Groupes d\'étude' },
     { path: '/tools', icon: Wrench, label: 'Outils' },

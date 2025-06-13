@@ -187,6 +187,41 @@ export type Database = {
           },
         ]
       }
+      community_discussions: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          topic_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          topic_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          topic_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_discussions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "community_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_responses: {
         Row: {
           author_id: string | null
@@ -243,9 +278,12 @@ export type Database = {
           created_at: string
           id: string
           is_pinned: boolean
+          last_activity: string | null
+          response_count: number | null
           title: string
           updated_at: string
           user_id: string
+          view_count: number | null
         }
         Insert: {
           author_id?: string | null
@@ -254,9 +292,12 @@ export type Database = {
           created_at?: string
           id?: string
           is_pinned?: boolean
+          last_activity?: string | null
+          response_count?: number | null
           title: string
           updated_at?: string
           user_id: string
+          view_count?: number | null
         }
         Update: {
           author_id?: string | null
@@ -265,9 +306,12 @@ export type Database = {
           created_at?: string
           id?: string
           is_pinned?: boolean
+          last_activity?: string | null
+          response_count?: number | null
           title?: string
           updated_at?: string
           user_id?: string
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -386,6 +430,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      exam_sessions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          duration_minutes: number
+          exam_type: string
+          id: string
+          max_score: number
+          questions_count: number
+          score: number
+          subjects: string[] | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes: number
+          exam_type: string
+          id?: string
+          max_score: number
+          questions_count: number
+          score: number
+          subjects?: string[] | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes?: number
+          exam_type?: string
+          id?: string
+          max_score?: number
+          questions_count?: number
+          score?: number
+          subjects?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
       }
       flashcards: {
         Row: {
@@ -1113,6 +1196,47 @@ export type Database = {
           },
           {
             foreignKeyName: "resource_edits_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resource_files: {
+        Row: {
+          created_at: string
+          file_path: string
+          file_size: number | null
+          filename: string
+          id: string
+          mime_type: string | null
+          resource_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          file_size?: number | null
+          filename: string
+          id?: string
+          mime_type?: string | null
+          resource_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          file_size?: number | null
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          resource_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_files_resource_id_fkey"
             columns: ["resource_id"]
             isOneToOne: false
             referencedRelation: "resources"
