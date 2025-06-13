@@ -3,7 +3,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./AuthContext";
 
 type Theme = "light" | "dark" | "system";
 type Font = "default" | "serif" | "mono";
@@ -31,8 +30,18 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const authContext = useAuth();
-  const user = authContext?.user; // Safe access to user
+  // Safe access to auth context - handle case where AuthProvider might not be available
+  let user = null;
+  try {
+    // Dynamic import of useAuth to avoid circular dependency issues
+    const { useAuth } = require("@/context/AuthContext");
+    const authContext = useAuth();
+    user = authContext?.user;
+  } catch (error) {
+    // Auth context not available yet, proceed without user
+    console.log('Auth context not available in ThemeProvider');
+  }
+
   const [loading, setLoading] = useState(true);
   
   // Initialize with default values
