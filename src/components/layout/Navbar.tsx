@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -12,7 +11,17 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ simplified = false }) => {
-  const { user, logout } = useAuth();
+  // Add error handling for useAuth
+  let user, logout;
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+    logout = authContext.logout;
+  } catch (error) {
+    console.error('Auth context error in Navbar:', error);
+    user = null;
+    logout = () => {};
+  }
 
   // Handler for logout button
   const handleLogout = (e: React.MouseEvent) => {

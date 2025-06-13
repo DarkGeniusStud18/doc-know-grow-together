@@ -17,7 +17,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   children, 
   requireAuth = false 
 }) => {
-  const { user, loading } = useAuth();
+  // Add error boundary for useAuth
+  let user, loading;
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+    loading = authContext.loading;
+  } catch (error) {
+    console.error('Auth context error:', error);
+    // If we can't access auth context, treat as not authenticated
+    user = null;
+    loading = false;
+  }
+
   const navigate = useNavigate();
   
   // Timeout for loading to prevent infinite loading

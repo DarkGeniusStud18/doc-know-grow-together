@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -8,7 +7,17 @@ import { Book, BookOpen, Calendar, FileText, LayoutGrid, LogOut, Settings, Wrenc
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const DiscordSidebar: React.FC = () => {
-  const { user, signOut } = useAuth();
+  // Add error handling for useAuth
+  let user, signOut;
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+    signOut = authContext.signOut;
+  } catch (error) {
+    console.error('Auth context error in DiscordSidebar:', error);
+    return null; // Don't render sidebar if auth context is not available
+  }
+
   const location = useLocation();
   
   if (!user) return null;
