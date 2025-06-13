@@ -1,0 +1,10 @@
+/*
+
+  # Force browser to always check for new content
+  Cache-Control: public, max-age=0, must-revalidate
+
+  # Allow service worker to control the entire site
+  Service-Worker-Allowed: /
+
+  # Allow manifest file to be fetched correctly
+  Content-Type: application/manifest+json
