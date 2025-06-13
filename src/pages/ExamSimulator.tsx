@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Clock, FileText, LayoutGrid, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/sonner';
 
 const ExamSimulator = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [selectedType, setSelectedType] = useState('QCM');
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [questionsCount, setQuestionsCount] = useState(30);
+  const [duration, setDuration] = useState(60);
 
   const examTypes = [
     {
@@ -48,12 +56,71 @@ const ExamSimulator = () => {
     { title: "Questions ouvertes - Pharmacologie", date: "29 avril 2025", score: "68%" }
   ];
 
-  const handleStartExam = () => {
+  const toggleSubject = (subject: string) => {
+    setSelectedSubjects(prev => 
+      prev.includes(subject) 
+        ? prev.filter(s => s !== subject)
+        : [...prev, subject]
+    );
+  };
+
+  const saveExamSession = async (score: number, maxScore: number, actualDuration: number) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('exam_sessions')
+        .insert({
+          user_id: user.id,
+          exam_type: selectedType,
+          subjects: selectedSubjects,
+          questions_count: questionsCount,
+          score: score,
+          max_score: maxScore,
+          duration_minutes: actualDuration,
+          completed_at: new Date().toISOString()
+        });
+        
+      if (error) throw error;
+      
+      toast.success('Session d\'examen enregistrée dans l\'historique');
+    } catch (error) {
+      console.error('Error saving exam session:', error);
+      toast.error('Erreur lors de la sauvegarde de la session');
+    }
+  };
+
+  const simulateExam = async () => {
+    if (!user) {
+      toast.error('Vous devez être connecté pour passer un examen');
+      return;
+    }
+    
+    if (selectedSubjects.length === 0) {
+      toast.error('Veuillez sélectionner au moins une matière');
+      return;
+    }
+    
     setLoading(true);
-    setTimeout(() => {
+    
+    try {
+      // Simulate exam execution
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Generate mock results
+      const mockScore = Math.floor(Math.random() * questionsCount * 0.6) + Math.floor(questionsCount * 0.2);
+      const actualDuration = Math.floor(duration * (0.7 + Math.random() * 0.5));
+      
+      // Save to history
+      await saveExamSession(mockScore, questionsCount, actualDuration);
+      
+      toast.success(`Examen terminé ! Score: ${mockScore}/${questionsCount} (${Math.round((mockScore/questionsCount)*100)}%)`);
+    } catch (error) {
+      console.error('Error during exam simulation:', error);
+      toast.error('Erreur lors de la simulation d\'examen');
+    } finally {
       setLoading(false);
-      // Navigate or show exam
-    }, 1500);
+    }
   };
 
   return (
@@ -81,7 +148,12 @@ const ExamSimulator = () => {
                       {examTypes.map((type, index) => (
                         <div 
                           key={index}
-                          className="border rounded-md p-3 cursor-pointer hover:border-medical-teal transition-colors"
+                          className={`border rounded-md p-3 cursor-pointer transition-colors ${
+                            selectedType === type.title 
+                              ? 'border-medical-teal bg-medical-teal/10' 
+                              : 'hover:border-medical-teal'
+                          }`}
+                          onClick={() => setSelectedType(type.title)}
                         >
                           <div className="flex items-center gap-2 mb-2">
                             <div className={`p-1 rounded ${type.color}`}>
@@ -99,12 +171,19 @@ const ExamSimulator = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-1">Matières</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Matières ({selectedSubjects.length} sélectionnée{selectedSubjects.length !== 1 ? 's' : ''})
+                    </label>
                     <div className="flex flex-wrap gap-2">
                       {subjects.map((subject, index) => (
                         <div 
                           key={index} 
-                          className="border rounded-md px-3 py-1 cursor-pointer hover:bg-medical-teal hover:text-white transition-colors text-sm"
+                          className={`border rounded-md px-3 py-1 cursor-pointer transition-colors text-sm ${
+                            selectedSubjects.includes(subject)
+                              ? 'bg-medical-teal text-white border-medical-teal'
+                              : 'hover:bg-medical-teal hover:text-white'
+                          }`}
+                          onClick={() => toggleSubject(subject)}
                         >
                           {subject}
                         </div>
@@ -119,7 +198,8 @@ const ExamSimulator = () => {
                         type="number"
                         min="5"
                         max="100"
-                        defaultValue="30"
+                        value={questionsCount}
+                        onChange={(e) => setQuestionsCount(parseInt(e.target.value) || 30)}
                         className="w-full p-2 border rounded-md"
                       />
                     </div>
@@ -129,7 +209,8 @@ const ExamSimulator = () => {
                         type="number"
                         min="10"
                         max="240"
-                        defaultValue="60"
+                        value={duration}
+                        onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
                         className="w-full p-2 border rounded-md"
                       />
                     </div>
@@ -138,14 +219,14 @@ const ExamSimulator = () => {
               </CardContent>
               <CardFooter>
                 <Button 
-                  onClick={handleStartExam} 
-                  disabled={loading}
+                  onClick={simulateExam} 
+                  disabled={loading || selectedSubjects.length === 0}
                   className="w-full"
                 >
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Préparation de l'examen...
+                      Examen en cours...
                     </>
                   ) : (
                     <>
