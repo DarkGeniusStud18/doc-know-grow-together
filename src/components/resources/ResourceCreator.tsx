@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -42,7 +41,7 @@ const ResourceCreator: React.FC<{ onResourceCreated: () => void }> = ({ onResour
       const resource = await createResource({
         title: formData.title,
         description: formData.description,
-        content_type: 'external_link',
+        content_type: 'document', // Changed from 'external_link' to 'document'
         category: formData.category || 'Général',
         author: formData.author || user.displayName,
         language: formData.language,
