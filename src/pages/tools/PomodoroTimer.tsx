@@ -22,6 +22,7 @@ const PomodoroTimer: React.FC = () => {
   const [sessionsUntilLongBreak, setSessionsUntilLongBreak] = useState(4);
   const [sessionCount, setSessionCount] = useState(0);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [settingsChanged, setSettingsChanged] = useState(false);
 
   // Load user settings from Supabase
   useEffect(() => {
@@ -33,45 +34,82 @@ const PomodoroTimer: React.FC = () => {
   const loadUserSettings = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('pomodoro_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('pomodoro_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    if (error) {
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading settings:', error);
+        return;
+      }
+
+      if (data) {
+        setWorkTime(data.work_duration);
+        setBreakTime(data.short_break_duration);
+        setLongBreakTime(data.long_break_duration);
+        setSessionsUntilLongBreak(data.sessions_until_long_break);
+        setMinutes(data.work_duration);
+        setSettingsChanged(false);
+      }
+    } catch (error) {
       console.error('Error loading settings:', error);
-      return;
-    }
-
-    if (data) {
-      setWorkTime(data.work_duration);
-      setBreakTime(data.short_break_duration);
-      setLongBreakTime(data.long_break_duration);
-      setSessionsUntilLongBreak(data.sessions_until_long_break);
-      setMinutes(data.work_duration);
     }
   };
 
   const saveUserSettings = async () => {
     if (!user) return;
 
-    const { error } = await supabase
-      .from('pomodoro_settings')
-      .upsert({
-        user_id: user.id,
-        work_duration: workTime,
-        short_break_duration: breakTime,
-        long_break_duration: longBreakTime,
-        sessions_until_long_break: sessionsUntilLongBreak,
-      });
+    try {
+      const { error } = await supabase
+        .from('pomodoro_settings')
+        .upsert({
+          user_id: user.id,
+          work_duration: workTime,
+          short_break_duration: breakTime,
+          long_break_duration: longBreakTime,
+          sessions_until_long_break: sessionsUntilLongBreak,
+        });
 
-    if (error) {
+      if (error) {
+        console.error('Error saving settings:', error);
+        toast.error('Erreur lors de la sauvegarde des paramètres');
+      } else {
+        setSettingsChanged(false);
+        toast.success('Paramètres sauvegardés !');
+        // Update current timer if not running
+        if (!isActive && !currentSessionId) {
+          setMinutes(mode === 'work' ? workTime : breakTime);
+          setSeconds(0);
+        }
+      }
+    } catch (error) {
       console.error('Error saving settings:', error);
       toast.error('Erreur lors de la sauvegarde des paramètres');
-    } else {
-      toast.success('Paramètres sauvegardés !');
     }
+  };
+
+  // Mark settings as changed when user modifies them
+  const handleWorkTimeChange = (value: number[]) => {
+    setWorkTime(value[0]);
+    setSettingsChanged(true);
+  };
+
+  const handleBreakTimeChange = (value: number[]) => {
+    setBreakTime(value[0]);
+    setSettingsChanged(true);
+  };
+
+  const handleLongBreakTimeChange = (value: number[]) => {
+    setLongBreakTime(value[0]);
+    setSettingsChanged(true);
+  };
+
+  const handleSessionsChange = (value: number[]) => {
+    setSessionsUntilLongBreak(value[0]);
+    setSettingsChanged(true);
   };
 
   const startSession = async () => {
@@ -83,54 +121,63 @@ const PomodoroTimer: React.FC = () => {
     const duration = mode === 'work' ? workTime : 
                     sessionType === 'long_break' ? longBreakTime : breakTime;
 
-    const { data, error } = await supabase
-      .from('pomodoro_sessions')
-      .insert({
-        user_id: user.id,
-        session_type: sessionType,
-        duration_minutes: duration,
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('pomodoro_sessions')
+        .insert({
+          user_id: user.id,
+          session_type: sessionType,
+          duration_minutes: duration,
+        })
+        .select()
+        .single();
 
-    if (error) {
+      if (error) {
+        console.error('Error starting session:', error);
+        toast.error('Erreur lors du démarrage de la session');
+        return;
+      }
+
+      setCurrentSessionId(data.id);
+      setIsActive(true);
+      toast.success('Session démarrée !');
+    } catch (error) {
       console.error('Error starting session:', error);
       toast.error('Erreur lors du démarrage de la session');
-      return;
     }
-
-    setCurrentSessionId(data.id);
-    setIsActive(true);
-    toast.success('Session démarrée !');
   };
 
   const completeSession = async () => {
     if (!user || !currentSessionId) return;
 
-    const { error } = await supabase
-      .from('pomodoro_sessions')
-      .update({
-        completed: true,
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', currentSessionId);
+    try {
+      const { error } = await supabase
+        .from('pomodoro_sessions')
+        .update({
+          completed: true,
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', currentSessionId);
 
-    if (error) {
-      console.error('Error completing session:', error);
-    } else {
-      if (mode === 'work') {
-        setSessionCount(prev => prev + 1);
-        setMode('break');
-        const isLongBreak = (sessionCount + 1) % sessionsUntilLongBreak === 0;
-        setMinutes(isLongBreak ? longBreakTime : breakTime);
-        toast.success(isLongBreak ? 'Longue pause !' : 'Pause !');
+      if (error) {
+        console.error('Error completing session:', error);
       } else {
-        setMode('work');
-        setMinutes(workTime);
-        toast.success('Retour au travail !');
+        if (mode === 'work') {
+          setSessionCount(prev => prev + 1);
+          setMode('break');
+          const isLongBreak = (sessionCount + 1) % sessionsUntilLongBreak === 0;
+          setMinutes(isLongBreak ? longBreakTime : breakTime);
+          toast.success(isLongBreak ? 'Longue pause !' : 'Pause !');
+        } else {
+          setMode('work');
+          setMinutes(workTime);
+          toast.success('Retour au travail !');
+        }
+        setSeconds(0);
+        setCurrentSessionId(null);
       }
-      setSeconds(0);
-      setCurrentSessionId(null);
+    } catch (error) {
+      console.error('Error completing session:', error);
     }
   };
 
@@ -213,6 +260,7 @@ const PomodoroTimer: React.FC = () => {
                 onClick={toggleTimer}
                 size="lg"
                 className={mode === 'work' ? 'bg-medical-blue hover:bg-medical-blue/90' : 'bg-medical-green hover:bg-medical-green/90'}
+                disabled={settingsChanged && !currentSessionId}
               >
                 {isActive ? <Pause className="mr-2 h-5 w-5" /> : <Play className="mr-2 h-5 w-5" />}
                 {isActive ? 'Pause' : 'Démarrer'}
@@ -222,6 +270,14 @@ const PomodoroTimer: React.FC = () => {
                 Réinitialiser
               </Button>
             </div>
+
+            {settingsChanged && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-yellow-800 text-sm">
+                  Vous avez modifié les paramètres. Sauvegardez-les pour pouvoir démarrer une nouvelle session.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -237,34 +293,52 @@ const PomodoroTimer: React.FC = () => {
               <label className="block text-sm font-medium mb-2">Temps de travail: {workTime} min</label>
               <Slider
                 value={[workTime]}
-                onValueChange={(value) => setWorkTime(value[0])}
+                onValueChange={handleWorkTimeChange}
                 max={60}
                 min={5}
                 step={5}
+                disabled={isActive || currentSessionId !== null}
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Pause courte: {breakTime} min</label>
               <Slider
                 value={[breakTime]}
-                onValueChange={(value) => setBreakTime(value[0])}
+                onValueChange={handleBreakTimeChange}
                 max={15}
                 min={1}
                 step={1}
+                disabled={isActive || currentSessionId !== null}
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Pause longue: {longBreakTime} min</label>
               <Slider
                 value={[longBreakTime]}
-                onValueChange={(value) => setLongBreakTime(value[0])}
+                onValueChange={handleLongBreakTimeChange}
                 max={30}
                 min={10}
                 step={5}
+                disabled={isActive || currentSessionId !== null}
               />
             </div>
-            <Button onClick={saveUserSettings} className="w-full">
-              Sauvegarder les paramètres
+            <div>
+              <label className="block text-sm font-medium mb-2">Sessions avant pause longue: {sessionsUntilLongBreak}</label>
+              <Slider
+                value={[sessionsUntilLongBreak]}
+                onValueChange={handleSessionsChange}
+                max={8}
+                min={2}
+                step={1}
+                disabled={isActive || currentSessionId !== null}
+              />
+            </div>
+            <Button 
+              onClick={saveUserSettings} 
+              className="w-full"
+              disabled={!settingsChanged || isActive || currentSessionId !== null}
+            >
+              {settingsChanged ? 'Sauvegarder les paramètres' : 'Paramètres sauvegardés'}
             </Button>
           </CardContent>
         </Card>

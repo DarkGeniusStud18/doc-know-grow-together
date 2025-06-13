@@ -1,384 +1,548 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calculator, Heart, Activity, Thermometer, Droplets, History } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Calculator, Heart, Stethoscope, Activity, Brain, Zap } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
-interface CalculatorResult {
-  id: string;
-  calculator_type: string;
-  input_values: any;
-  result_value: number;
-  result_unit: string;
-  notes?: string;
-  created_at: string;
-}
-
-const MedicalCalculators: React.FC = () => {
-  const { user } = useAuth();
-  const [activeCalculator, setActiveCalculator] = useState<string | null>(null);
-  const [results, setResults] = useState<CalculatorResult[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-
-  // BMI Calculator state
-  const [bmiInputs, setBmiInputs] = useState({ weight: '', height: '' });
-  const [bmiResult, setBmiResult] = useState<number | null>(null);
-
-  // Heart Rate Calculator state
-  const [hrInputs, setHrInputs] = useState({ age: '', restingHR: '' });
-  const [hrResult, setHrResult] = useState<{ min: number; max: number } | null>(null);
-
-  // Body Surface Area Calculator state
-  const [bsaInputs, setBsaInputs] = useState({ weight: '', height: '' });
-  const [bsaResult, setBsaResult] = useState<number | null>(null);
-
-  // Creatinine Clearance Calculator state
-  const [crcInputs, setCrcInputs] = useState({ age: '', weight: '', creatinine: '', gender: 'male' });
-  const [crcResult, setCrcResult] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      loadResults();
-    }
-  }, [user]);
-
-  const loadResults = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('calculator_results')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (error) {
-      console.error('Error loading results:', error);
-    } else {
-      setResults(data || []);
-    }
-  };
-
-  const saveResult = async (calculatorType: string, inputValues: any, resultValue: number, resultUnit: string, notes?: string) => {
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('calculator_results')
-      .insert({
-        user_id: user.id,
-        calculator_type: calculatorType,
-        input_values: inputValues,
-        result_value: resultValue,
-        result_unit: resultUnit,
-        notes,
-      });
-
-    if (error) {
-      console.error('Error saving result:', error);
-    } else {
-      loadResults();
-      toast.success('Résultat sauvegardé !');
-    }
-  };
-
-  const calculateBMI = () => {
-    const weight = parseFloat(bmiInputs.weight);
-    const height = parseFloat(bmiInputs.height);
-
-    if (!weight || !height) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
-    }
-
-    const heightInMeters = height / 100;
-    const bmi = weight / (heightInMeters * heightInMeters);
-    setBmiResult(bmi);
-    
-    saveResult('bmi', { weight, height }, bmi, 'kg/m²');
-  };
-
-  const calculateTargetHeartRate = () => {
-    const age = parseInt(hrInputs.age);
-    const restingHR = parseInt(hrInputs.restingHR);
-
-    if (!age || !restingHR) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
-    }
-
-    const maxHR = 220 - age;
-    const hrReserve = maxHR - restingHR;
-    const targetMin = Math.round(restingHR + (hrReserve * 0.5));
-    const targetMax = Math.round(restingHR + (hrReserve * 0.85));
-
-    setHrResult({ min: targetMin, max: targetMax });
-    saveResult('target_heart_rate', { age, restingHR }, targetMin, 'bpm', `Zone cible: ${targetMin}-${targetMax} bpm`);
-  };
-
-  const calculateBSA = () => {
-    const weight = parseFloat(bsaInputs.weight);
-    const height = parseFloat(bsaInputs.height);
-
-    if (!weight || !height) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
-    }
-
-    // Formule de Dubois
-    const bsa = 0.007184 * Math.pow(weight, 0.425) * Math.pow(height, 0.725);
-    setBsaResult(bsa);
-    
-    saveResult('body_surface_area', { weight, height }, bsa, 'm²');
-  };
-
-  const calculateCreatinineClearance = () => {
-    const age = parseInt(crcInputs.age);
-    const weight = parseFloat(crcInputs.weight);
-    const creatinine = parseFloat(crcInputs.creatinine);
-
-    if (!age || !weight || !creatinine) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
-    }
-
-    // Formule de Cockcroft-Gault
-    let clearance = ((140 - age) * weight) / (72 * creatinine);
-    if (crcInputs.gender === 'female') {
-      clearance *= 0.85;
-    }
-
-    setCrcResult(clearance);
-    saveResult('creatinine_clearance', { age, weight, creatinine, gender: crcInputs.gender }, clearance, 'mL/min');
-  };
-
-  const getBMICategory = (bmi: number) => {
-    if (bmi < 18.5) return { category: 'Insuffisance pondérale', color: 'text-blue-600' };
-    if (bmi < 25) return { category: 'Poids normal', color: 'text-green-600' };
-    if (bmi < 30) return { category: 'Surpoids', color: 'text-yellow-600' };
-    return { category: 'Obésité', color: 'text-red-600' };
-  };
+const MedicalCalculators = () => {
+  const [selectedCalculator, setSelectedCalculator] = useState('bmi');
+  const [inputs, setInputs] = useState<Record<string, string>>({});
+  const [results, setResults] = useState<Record<string, any>>({});
 
   const calculators = [
     {
       id: 'bmi',
-      title: "IMC (Indice de Masse Corporelle)",
-      description: "Calculez l'indice de masse corporelle d'un individu avec précision",
-      icon: <Activity className="h-6 w-6 text-blue-500" />,
-      category: "Général",
+      name: 'IMC (Indice de Masse Corporelle)',
+      description: 'Calculez votre indice de masse corporelle',
+      icon: Activity,
+      color: 'bg-blue-500',
+      category: 'Anthropométrie'
     },
     {
-      id: 'heart_rate',
-      title: "Fréquence cardiaque cible",
-      description: "Déterminez votre zone de fréquence cardiaque optimale",
-      icon: <Heart className="h-6 w-6 text-red-500" />,
-      category: "Cardiologie",
+      id: 'cardiac-risk',
+      name: 'Risque Cardiovasculaire',
+      description: 'Évaluation du risque cardiovasculaire',
+      icon: Heart,
+      color: 'bg-red-500',
+      category: 'Cardiologie'
     },
     {
-      id: 'bsa',
-      title: "Surface corporelle",
-      description: "Calculez la surface corporelle selon la formule de Dubois",
-      icon: <Thermometer className="h-6 w-6 text-orange-500" />,
-      category: "Général",
+      id: 'gfr',
+      name: 'DFG (Débit de Filtration Glomérulaire)',
+      description: 'Calcul de la fonction rénale',
+      icon: Stethoscope,
+      color: 'bg-green-500',
+      category: 'Néphrologie'
     },
     {
-      id: 'creatinine',
-      title: "Clairance de la créatinine",
-      description: "Estimez la fonction rénale avec la formule de Cockcroft-Gault",
-      icon: <Droplets className="h-6 w-6 text-cyan-500" />,
-      category: "Néphrologie",
+      id: 'drug-dosage',
+      name: 'Dosage Médicamenteux',
+      description: 'Calcul de dosage selon le poids',
+      icon: Zap,
+      color: 'bg-purple-500',
+      category: 'Pharmacologie'
     },
+    {
+      id: 'apgar',
+      name: 'Score d\'Apgar',
+      description: 'Évaluation néonatale',
+      icon: Brain,
+      color: 'bg-orange-500',
+      category: 'Pédiatrie'
+    }
   ];
+
+  const getCalculatorForm = () => {
+    switch (selectedCalculator) {
+      case 'bmi':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="weight">Poids (kg)</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  placeholder="70"
+                  value={inputs.weight || ''}
+                  onChange={(e) => setInputs({...inputs, weight: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-blue-500 transition-all"
+                />
+              </div>
+              <div>
+                <Label htmlFor="height">Taille (cm)</Label>
+                <Input
+                  id="height"
+                  type="number"
+                  placeholder="175"
+                  value={inputs.height || ''}
+                  onChange={(e) => setInputs({...inputs, height: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-blue-500 transition-all"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'cardiac-risk':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="age">Âge</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  placeholder="45"
+                  value={inputs.age || ''}
+                  onChange={(e) => setInputs({...inputs, age: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-red-500 transition-all"
+                />
+              </div>
+              <div>
+                <Label htmlFor="gender">Sexe</Label>
+                <Select value={inputs.gender || ''} onValueChange={(value) => setInputs({...inputs, gender: value})}>
+                  <SelectTrigger className="bg-gray-50 border-2 focus:border-red-500">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Homme</SelectItem>
+                    <SelectItem value="female">Femme</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="systolic">Pression systolique</Label>
+                <Input
+                  id="systolic"
+                  type="number"
+                  placeholder="120"
+                  value={inputs.systolic || ''}
+                  onChange={(e) => setInputs({...inputs, systolic: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-red-500 transition-all"
+                />
+              </div>
+              <div>
+                <Label htmlFor="cholesterol">Cholestérol total</Label>
+                <Input
+                  id="cholesterol"
+                  type="number"
+                  placeholder="200"
+                  value={inputs.cholesterol || ''}
+                  onChange={(e) => setInputs({...inputs, cholesterol: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-red-500 transition-all"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'gfr':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="creatinine">Créatinine (mg/dL)</Label>
+                <Input
+                  id="creatinine"
+                  type="number"
+                  step="0.1"
+                  placeholder="1.0"
+                  value={inputs.creatinine || ''}
+                  onChange={(e) => setInputs({...inputs, creatinine: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-green-500 transition-all"
+                />
+              </div>
+              <div>
+                <Label htmlFor="age">Âge</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  placeholder="50"
+                  value={inputs.age || ''}
+                  onChange={(e) => setInputs({...inputs, age: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-green-500 transition-all"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="gender">Sexe</Label>
+              <Select value={inputs.gender || ''} onValueChange={(value) => setInputs({...inputs, gender: value})}>
+                <SelectTrigger className="bg-gray-50 border-2 focus:border-green-500">
+                  <SelectValue placeholder="Sélectionner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Homme</SelectItem>
+                  <SelectItem value="female">Femme</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+      
+      case 'drug-dosage':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="weight">Poids (kg)</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  placeholder="70"
+                  value={inputs.weight || ''}
+                  onChange={(e) => setInputs({...inputs, weight: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-purple-500 transition-all"
+                />
+              </div>
+              <div>
+                <Label htmlFor="dose">Dose (mg/kg)</Label>
+                <Input
+                  id="dose"
+                  type="number"
+                  step="0.1"
+                  placeholder="10"
+                  value={inputs.dose || ''}
+                  onChange={(e) => setInputs({...inputs, dose: e.target.value})}
+                  className="bg-gray-50 border-2 focus:border-purple-500 transition-all"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'apgar':
+        return (
+          <div className="space-y-4">
+            {['appearance', 'pulse', 'grimace', 'activity', 'respiration'].map((criterion) => (
+              <div key={criterion}>
+                <Label htmlFor={criterion} className="capitalize">
+                  {criterion === 'appearance' && 'Couleur'}
+                  {criterion === 'pulse' && 'Fréquence cardiaque'}
+                  {criterion === 'grimace' && 'Réactivité'}
+                  {criterion === 'activity' && 'Tonus musculaire'}
+                  {criterion === 'respiration' && 'Respiration'}
+                </Label>
+                <Select value={inputs[criterion] || ''} onValueChange={(value) => setInputs({...inputs, [criterion]: value})}>
+                  <SelectTrigger className="bg-gray-50 border-2 focus:border-orange-500">
+                    <SelectValue placeholder="Score 0-2" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0</SelectItem>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  const calculateResult = () => {
+    switch (selectedCalculator) {
+      case 'bmi':
+        if (inputs.weight && inputs.height) {
+          const weight = parseFloat(inputs.weight);
+          const height = parseFloat(inputs.height) / 100; // Convert cm to m
+          const bmi = weight / (height * height);
+          let category = '';
+          let color = '';
+          
+          if (bmi < 18.5) {
+            category = 'Insuffisance pondérale';
+            color = 'text-blue-600';
+          } else if (bmi < 25) {
+            category = 'Poids normal';
+            color = 'text-green-600';
+          } else if (bmi < 30) {
+            category = 'Surpoids';
+            color = 'text-yellow-600';
+          } else {
+            category = 'Obésité';
+            color = 'text-red-600';
+          }
+          
+          setResults({
+            value: bmi.toFixed(1),
+            category,
+            color,
+            unit: 'kg/m²'
+          });
+        }
+        break;
+      
+      case 'cardiac-risk':
+        if (inputs.age && inputs.gender && inputs.systolic && inputs.cholesterol) {
+          // Simplified Framingham risk calculation
+          let risk = 0;
+          const age = parseInt(inputs.age);
+          const systolic = parseInt(inputs.systolic);
+          const cholesterol = parseInt(inputs.cholesterol);
+          
+          if (inputs.gender === 'male') {
+            risk += age > 45 ? 2 : 0;
+          } else {
+            risk += age > 55 ? 2 : 0;
+          }
+          
+          risk += systolic > 140 ? 2 : systolic > 120 ? 1 : 0;
+          risk += cholesterol > 240 ? 2 : cholesterol > 200 ? 1 : 0;
+          
+          let riskLevel = '';
+          let color = '';
+          
+          if (risk <= 2) {
+            riskLevel = 'Faible';
+            color = 'text-green-600';
+          } else if (risk <= 4) {
+            riskLevel = 'Modéré';
+            color = 'text-yellow-600';
+          } else {
+            riskLevel = 'Élevé';
+            color = 'text-red-600';
+          }
+          
+          setResults({
+            value: risk,
+            category: riskLevel,
+            color,
+            unit: 'points'
+          });
+        }
+        break;
+      
+      case 'gfr':
+        if (inputs.creatinine && inputs.age && inputs.gender) {
+          const creatinine = parseFloat(inputs.creatinine);
+          const age = parseInt(inputs.age);
+          const genderFactor = inputs.gender === 'female' ? 0.85 : 1;
+          
+          const gfr = ((140 - age) * 72 * genderFactor) / creatinine;
+          
+          let category = '';
+          let color = '';
+          
+          if (gfr >= 90) {
+            category = 'Normal';
+            color = 'text-green-600';
+          } else if (gfr >= 60) {
+            category = 'Légèrement diminué';
+            color = 'text-yellow-600';
+          } else if (gfr >= 30) {
+            category = 'Modérément diminué';
+            color = 'text-orange-600';
+          } else {
+            category = 'Sévèrement diminué';
+            color = 'text-red-600';
+          }
+          
+          setResults({
+            value: gfr.toFixed(0),
+            category,
+            color,
+            unit: 'mL/min/1.73m²'
+          });
+        }
+        break;
+      
+      case 'drug-dosage':
+        if (inputs.weight && inputs.dose) {
+          const weight = parseFloat(inputs.weight);
+          const dose = parseFloat(inputs.dose);
+          const totalDose = weight * dose;
+          
+          setResults({
+            value: totalDose.toFixed(1),
+            category: 'Dose totale calculée',
+            color: 'text-purple-600',
+            unit: 'mg'
+          });
+        }
+        break;
+      
+      case 'apgar':
+        const scores = ['appearance', 'pulse', 'grimace', 'activity', 'respiration'];
+        const total = scores.reduce((sum, criterion) => {
+          return sum + (parseInt(inputs[criterion]) || 0);
+        }, 0);
+        
+        let category = '';
+        let color = '';
+        
+        if (total >= 7) {
+          category = 'Normal';
+          color = 'text-green-600';
+        } else if (total >= 4) {
+          category = 'Surveillance nécessaire';
+          color = 'text-yellow-600';
+        } else {
+          category = 'Réanimation nécessaire';
+          color = 'text-red-600';
+        }
+        
+        setResults({
+          value: total,
+          category,
+          color,
+          unit: '/10'
+        });
+        break;
+    }
+    
+    toast.success('Calcul effectué avec succès');
+  };
+
+  const currentCalculator = calculators.find(calc => calc.id === selectedCalculator);
+  const IconComponent = currentCalculator?.icon || Calculator;
 
   return (
     <MainLayout requireAuth={true}>
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Calculator className="h-8 w-8 text-medical-blue" />
-            <div>
-              <h1 className="text-2xl font-bold">Calculateurs médicaux</h1>
-              <p className="text-gray-500">Collection de calculateurs pour les calculs cliniques</p>
-            </div>
-          </div>
-          <Button variant="outline" onClick={() => setShowHistory(!showHistory)}>
-            <History className="mr-2 h-4 w-4" />
-            Historique
-          </Button>
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-medical-blue to-medical-teal bg-clip-text text-transparent">
+            Calculatrices Médicales
+          </h1>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Outils de calcul médical avancés pour l'aide à la décision clinique
+          </p>
         </div>
 
-        {showHistory && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Historique des calculs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {results.length > 0 ? (
-                <div className="space-y-3">
-                  {results.map((result) => (
-                    <div key={result.id} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="font-medium">{result.calculator_type.replace('_', ' ').toUpperCase()}</span>
-                          <span className="ml-2 text-lg font-bold text-blue-600">
-                            {result.result_value.toFixed(2)} {result.result_unit}
-                          </span>
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Calculator Selection */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-medical-navy">Sélectionner un calculateur</h2>
+            <div className="space-y-3">
+              {calculators.map((calc) => {
+                const IconComponent = calc.icon;
+                return (
+                  <Card 
+                    key={calc.id} 
+                    className={`cursor-pointer transition-all duration-300 hover:shadow-lg border-2 ${
+                      selectedCalculator === calc.id 
+                        ? 'border-medical-blue shadow-lg bg-gradient-to-r from-blue-50 to-teal-50' 
+                        : 'border-gray-200 hover:border-medical-blue/50'
+                    }`}
+                    onClick={() => {
+                      setSelectedCalculator(calc.id);
+                      setInputs({});
+                      setResults({});
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start space-x-3">
+                        <div className={`w-10 h-10 rounded-lg ${calc.color} flex items-center justify-center flex-shrink-0`}>
+                          <IconComponent className="h-5 w-5 text-white" />
                         </div>
-                        <span className="text-sm text-gray-500">
-                          {new Date(result.created_at).toLocaleDateString()}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 truncate">{calc.name}</h3>
+                          <p className="text-sm text-gray-500 mt-1">{calc.description}</p>
+                          <Badge variant="outline" className="mt-2 text-xs">
+                            {calc.category}
+                          </Badge>
+                        </div>
                       </div>
-                      {result.notes && (
-                        <p className="text-sm text-gray-600 mt-1">{result.notes}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-gray-500">Aucun calcul enregistré</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {calculators.map((calculator) => (
-            <Card key={calculator.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white shadow-sm">
-                      {calculator.icon}
-                    </div>
+          {/* Calculator Form and Results */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Current Calculator */}
+            <Card className="border-2 border-medical-blue/20 bg-gradient-to-br from-white to-gray-50/50">
+              <CardHeader className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-t-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                    <IconComponent className="h-6 w-6" />
                   </div>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                    {calculator.category}
-                  </span>
+                  <div>
+                    <CardTitle className="text-xl">{currentCalculator?.name}</CardTitle>
+                    <CardDescription className="text-white/80">
+                      {currentCalculator?.description}
+                    </CardDescription>
+                  </div>
                 </div>
-                <CardTitle className="text-lg">{calculator.title}</CardTitle>
-                <CardDescription>{calculator.description}</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
+                {getCalculatorForm()}
+                
+                <Separator className="my-6" />
+                
                 <Button 
-                  className="w-full" 
-                  onClick={() => setActiveCalculator(activeCalculator === calculator.id ? null : calculator.id)}
+                  onClick={calculateResult}
+                  className="w-full bg-gradient-to-r from-medical-blue to-medical-teal hover:from-medical-blue/90 hover:to-medical-teal/90 text-white font-medium py-3 rounded-lg transition-all duration-300 transform hover:scale-[1.02]"
+                  size="lg"
                 >
-                  {activeCalculator === calculator.id ? 'Fermer' : 'Utiliser'}
+                  <Calculator className="h-5 w-5 mr-2" />
+                  Calculer
                 </Button>
-
-                {activeCalculator === calculator.id && (
-                  <div className="mt-4 space-y-3">
-                    {calculator.id === 'bmi' && (
-                      <>
-                        <Input
-                          placeholder="Poids (kg)"
-                          value={bmiInputs.weight}
-                          onChange={(e) => setBmiInputs({ ...bmiInputs, weight: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Taille (cm)"
-                          value={bmiInputs.height}
-                          onChange={(e) => setBmiInputs({ ...bmiInputs, height: e.target.value })}
-                        />
-                        <Button onClick={calculateBMI} className="w-full">Calculer l'IMC</Button>
-                        {bmiResult && (
-                          <div className="p-3 bg-blue-50 rounded-lg">
-                            <p className="font-medium">IMC: {bmiResult.toFixed(1)} kg/m²</p>
-                            <p className={`text-sm ${getBMICategory(bmiResult).color}`}>
-                              {getBMICategory(bmiResult).category}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {calculator.id === 'heart_rate' && (
-                      <>
-                        <Input
-                          placeholder="Âge (années)"
-                          value={hrInputs.age}
-                          onChange={(e) => setHrInputs({ ...hrInputs, age: e.target.value })}
-                        />
-                        <Input
-                          placeholder="FC de repos (bpm)"
-                          value={hrInputs.restingHR}
-                          onChange={(e) => setHrInputs({ ...hrInputs, restingHR: e.target.value })}
-                        />
-                        <Button onClick={calculateTargetHeartRate} className="w-full">Calculer</Button>
-                        {hrResult && (
-                          <div className="p-3 bg-red-50 rounded-lg">
-                            <p className="font-medium">Zone cible: {hrResult.min} - {hrResult.max} bpm</p>
-                            <p className="text-sm text-gray-600">50-85% de la FC maximale</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {calculator.id === 'bsa' && (
-                      <>
-                        <Input
-                          placeholder="Poids (kg)"
-                          value={bsaInputs.weight}
-                          onChange={(e) => setBsaInputs({ ...bsaInputs, weight: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Taille (cm)"
-                          value={bsaInputs.height}
-                          onChange={(e) => setBsaInputs({ ...bsaInputs, height: e.target.value })}
-                        />
-                        <Button onClick={calculateBSA} className="w-full">Calculer la SC</Button>
-                        {bsaResult && (
-                          <div className="p-3 bg-orange-50 rounded-lg">
-                            <p className="font-medium">Surface corporelle: {bsaResult.toFixed(2)} m²</p>
-                            <p className="text-sm text-gray-600">Formule de Dubois</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {calculator.id === 'creatinine' && (
-                      <>
-                        <Input
-                          placeholder="Âge (années)"
-                          value={crcInputs.age}
-                          onChange={(e) => setCrcInputs({ ...crcInputs, age: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Poids (kg)"
-                          value={crcInputs.weight}
-                          onChange={(e) => setCrcInputs({ ...crcInputs, weight: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Créatinine (mg/dL)"
-                          value={crcInputs.creatinine}
-                          onChange={(e) => setCrcInputs({ ...crcInputs, creatinine: e.target.value })}
-                        />
-                        <select 
-                          className="w-full p-2 border rounded"
-                          value={crcInputs.gender}
-                          onChange={(e) => setCrcInputs({ ...crcInputs, gender: e.target.value })}
-                        >
-                          <option value="male">Homme</option>
-                          <option value="female">Femme</option>
-                        </select>
-                        <Button onClick={calculateCreatinineClearance} className="w-full">Calculer la clairance</Button>
-                        {crcResult && (
-                          <div className="p-3 bg-cyan-50 rounded-lg">
-                            <p className="font-medium">Clairance: {crcResult.toFixed(1)} mL/min</p>
-                            <p className="text-sm text-gray-600">Formule de Cockcroft-Gault</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
               </CardContent>
             </Card>
-          ))}
+
+            {/* Results */}
+            {results.value && (
+              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                <CardHeader>
+                  <CardTitle className="text-green-800 flex items-center">
+                    <Activity className="h-5 w-5 mr-2" />
+                    Résultats
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center space-y-4">
+                    <div className="text-5xl font-bold text-green-600">
+                      {results.value}
+                      <span className="text-lg text-gray-500 ml-2">{results.unit}</span>
+                    </div>
+                    <div className={`text-xl font-semibold ${results.color}`}>
+                      {results.category}
+                    </div>
+                    
+                    {/* Additional information based on calculator */}
+                    {selectedCalculator === 'bmi' && (
+                      <div className="mt-4 p-4 bg-white rounded-lg border">
+                        <h4 className="font-semibold mb-2">Interprétation IMC</h4>
+                        <div className="text-sm space-y-1 text-left">
+                          <div>• &lt; 18.5 : Insuffisance pondérale</div>
+                          <div>• 18.5 - 24.9 : Poids normal</div>
+                          <div>• 25.0 - 29.9 : Surpoids</div>
+                          <div>• ≥ 30.0 : Obésité</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedCalculator === 'gfr' && (
+                      <div className="mt-4 p-4 bg-white rounded-lg border">
+                        <h4 className="font-semibold mb-2">Classification DFG</h4>
+                        <div className="text-sm space-y-1 text-left">
+                          <div>• ≥ 90 : Normal</div>
+                          <div>• 60-89 : Légèrement diminué</div>
+                          <div>• 30-59 : Modérément diminué</div>
+                          <div>• &lt; 30 : Sévèrement diminué</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </MainLayout>

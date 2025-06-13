@@ -1,0 +1,28 @@
+
+{
+  "short_name": "MedCollab",
+  "name": "MedCollab - Plateforme Collaborative Médicale",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "type": "image/png", 
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1E40AF",
+  "background_color": "#FFFFFF",
+  "orientation": "portrait",
+  "scope": "/",
+  "categories": ["education", "medical", "productivity"],
+  "description": "Plateforme collaborative pour étudiants et professionnels de santé",
+  "lang": "fr"
+}

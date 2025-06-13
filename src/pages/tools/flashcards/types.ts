@@ -1,5 +1,4 @@
 
-// Types et interfaces pour le générateur de fiches d'étude
 export interface Flashcard {
   id: string;
   question: string;
@@ -15,9 +14,9 @@ export interface FlashcardCategory {
 
 export interface FlashcardDeck {
   id: string;
-  title: string;
-  description: string;
+  name: string;
+  description?: string;
   flashcards: Flashcard[];
-  createdAt: Date;
-  category?: string;
+  created_at: string;
+  updated_at: string;
 }

@@ -21,6 +21,18 @@ import Notes from '@/pages/Notes';
 import StudyGroups from '@/pages/StudyGroups';
 import StudyGroupDetail from '@/pages/StudyGroupDetail';
 import Tools from '@/pages/Tools';
+import FlashcardGenerator from '@/pages/tools/flashcards/FlashcardGenerator';
+import PomodoroTimer from '@/pages/tools/PomodoroTimer';
+import StudyTimer from '@/pages/tools/StudyTimer';
+import StudyPlanner from '@/pages/tools/StudyPlanner';
+import StudyGoals from '@/pages/tools/StudyGoals';
+import TaskList from '@/pages/tools/TaskList';
+import MedicalCalculators from '@/pages/tools/MedicalCalculators';
+import ResearchAssistant from '@/pages/tools/ResearchAssistant';
+import QuizGenerator from '@/pages/tools/QuizGenerator';
+import PerformanceTracker from '@/pages/tools/PerformanceTracker';
+import InteractivePresentations from '@/pages/tools/InteractivePresentations';
+import ClinicalCasesExplorer from '@/pages/tools/ClinicalCasesExplorer';
 import ExamSimulator from '@/pages/ExamSimulator';
 import ExamHistory from '@/pages/ExamHistory';
 import ClinicalCases from '@/pages/ClinicalCases';
@@ -60,6 +72,18 @@ function App() {
               <Route path="/study-groups" element={<StudyGroups />} />
               <Route path="/study-groups/:id" element={<StudyGroupDetail />} />
               <Route path="/tools" element={<Tools />} />
+              <Route path="/tools/flashcard-generator" element={<FlashcardGenerator />} />
+              <Route path="/tools/pomodoro" element={<PomodoroTimer />} />
+              <Route path="/tools/study-timer" element={<StudyTimer />} />
+              <Route path="/tools/study-planner" element={<StudyPlanner />} />
+              <Route path="/tools/study-goals" element={<StudyGoals />} />
+              <Route path="/tools/task-list" element={<TaskList />} />
+              <Route path="/tools/medical-calculator" element={<MedicalCalculators />} />
+              <Route path="/tools/research-assistant" element={<ResearchAssistant />} />
+              <Route path="/tools/quiz-generator" element={<QuizGenerator />} />
+              <Route path="/tools/performance-tracker" element={<PerformanceTracker />} />
+              <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
+              <Route path="/tools/clinical-cases" element={<ClinicalCasesExplorer />} />
               <Route path="/exam-simulator" element={<ExamSimulator />} />
               <Route path="/exam-history" element={<ExamHistory />} />
               <Route path="/clinical-cases" element={<ClinicalCases />} />

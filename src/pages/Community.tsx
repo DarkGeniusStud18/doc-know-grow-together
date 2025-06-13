@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import MainLayout from '@/components/layout/MainLayout';
@@ -13,24 +12,26 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
-import { Search, Plus, MessageSquare, Users, Pin, Clock } from 'lucide-react';
+import { Search, Plus, MessageSquare, Users, Pin, Clock, TrendingUp, Flame } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type CommunityTopic = {
   id: string;
-  user_id: string; // Use user_id instead of author_id to match actual DB
+  user_id: string;
   title: string;
   content: string;
   category: string;
   created_at: string;
   updated_at: string;
-  is_pinned?: boolean; // Make optional since it might not exist in DB
+  is_pinned?: boolean;
   author_name?: string;
   response_count?: number;
+  popularity_score?: number;
+  chat_message_count?: number;
+  last_activity?: string;
 };
 
-// Categories for community topics
 const TOPIC_CATEGORIES = [
   'Discussion générale',
   'Questions cliniques',
@@ -56,8 +57,22 @@ const Community: React.FC = () => {
     category: ''
   });
 
+  // Calculate popularity score based on various metrics
+  const calculatePopularityScore = (topic: CommunityTopic) => {
+    const now = new Date();
+    const createdDate = new Date(topic.created_at);
+    const daysSinceCreated = (now.getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+    
+    const responseWeight = (topic.response_count || 0) * 10;
+    const chatWeight = (topic.chat_message_count || 0) * 5;
+    const freshnessWeight = Math.max(0, 100 - daysSinceCreated * 2);
+    const pinnedBonus = topic.is_pinned ? 50 : 0;
+    
+    return responseWeight + chatWeight + freshnessWeight + pinnedBonus;
+  };
+
   const fetchTopics = async () => {
-    // First fetch the topics
+    // Fetch topics
     const { data: topics, error: topicsError } = await supabase
       .from('community_topics')
       .select('*')
@@ -67,27 +82,39 @@ const Community: React.FC = () => {
       throw new Error(`Error fetching topics: ${topicsError.message}`);
     }
     
-    // Then for each topic, fetch the author profile and response count
+    // Enrich topics with additional data and calculate popularity
     const enrichedTopics = await Promise.all(topics.map(async (topic) => {
       // Get author profile
-      const { data: authorProfile, error: profileError } = await supabase
+      const { data: authorProfile } = await supabase
         .from('profiles')
         .select('display_name')
         .eq('id', topic.user_id)
         .single();
       
       // Get response count
-      const { count: responseCount, error: responsesError } = await supabase
+      const { count: responseCount } = await supabase
         .from('community_responses')
         .select('*', { count: 'exact', head: true })
         .eq('topic_id', topic.id);
         
-      return {
+      // Get chat message count from community_responses (using as chat messages for now)
+      const { count: chatMessageCount } = await supabase
+        .from('community_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('topic_id', topic.id);
+        
+      const enrichedTopic: CommunityTopic = {
         ...topic,
-        author_name: profileError ? 'Unknown' : authorProfile?.display_name,
-        response_count: responsesError ? 0 : responseCount,
-        is_pinned: topic.is_pinned ?? false // Default to false if not in DB
+        author_name: authorProfile?.display_name || 'Unknown',
+        response_count: responseCount || 0,
+        chat_message_count: chatMessageCount || 0,
+        is_pinned: topic.is_pinned ?? false
       };
+      
+      // Calculate popularity score
+      enrichedTopic.popularity_score = calculatePopularityScore(enrichedTopic);
+      
+      return enrichedTopic;
     }));
     
     return enrichedTopics;
@@ -95,8 +122,38 @@ const Community: React.FC = () => {
 
   const { data: topics = [], isLoading, error } = useQuery({
     queryKey: ['communityTopics'],
-    queryFn: fetchTopics
+    queryFn: fetchTopics,
+    refetchInterval: 30000 // Refetch every 30 seconds to update popularity
   });
+
+  // Auto-pin popular topics
+  useEffect(() => {
+    const autoPinPopularTopics = async () => {
+      if (!topics.length) return;
+      
+      // Sort by popularity and get top 3
+      const sortedByPopularity = [...topics]
+        .filter(t => !t.is_pinned)
+        .sort((a, b) => (b.popularity_score || 0) - (a.popularity_score || 0))
+        .slice(0, 3);
+      
+      // Auto-pin if popularity score is high enough
+      for (const topic of sortedByPopularity) {
+        if ((topic.popularity_score || 0) > 200) { // Threshold for auto-pinning
+          try {
+            await supabase
+              .from('community_topics')
+              .update({ is_pinned: true })
+              .eq('id', topic.id);
+          } catch (error) {
+            console.error('Error auto-pinning topic:', error);
+          }
+        }
+      }
+    };
+
+    autoPinPopularTopics();
+  }, [topics]);
 
   const createTopicMutation = useMutation({
     mutationFn: async (topic: { title: string, content: string, category: string }) => {
@@ -105,7 +162,7 @@ const Community: React.FC = () => {
       const { error } = await supabase
         .from('community_topics')
         .insert({
-          user_id: user.id, // Use user_id instead of author_id
+          user_id: user.id,
           title: topic.title,
           content: topic.content,
           category: topic.category
@@ -143,7 +200,7 @@ const Community: React.FC = () => {
     });
   };
 
-  // Filter topics based on search, category, and tab
+  // Filter and sort topics
   const filteredTopics = topics.filter(topic => {
     const matchesQuery = topic.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         topic.content.toLowerCase().includes(searchQuery.toLowerCase());
@@ -153,22 +210,18 @@ const Community: React.FC = () => {
     return matchesQuery && matchesCategory;
   });
 
-  // Sort topics based on active tab
   const sortedTopics = [...filteredTopics].sort((a, b) => {
     if (activeTab === 'pinned') {
-      // Show pinned topics first
       if ((a.is_pinned ?? false) && !(b.is_pinned ?? false)) return -1;
       if (!(a.is_pinned ?? false) && (b.is_pinned ?? false)) return 1;
     }
     
     if (activeTab === 'recent') {
-      // Sort by created_at (most recent first)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
     
     if (activeTab === 'popular') {
-      // Sort by response count (most responses first)
-      return (b.response_count || 0) - (a.response_count || 0);
+      return (b.popularity_score || 0) - (a.popularity_score || 0);
     }
     
     return 0;
@@ -299,7 +352,10 @@ const Community: React.FC = () => {
               <div className="flex justify-between items-center mb-6">
                 <TabsList>
                   <TabsTrigger value="recent" className="text-sm">Récents</TabsTrigger>
-                  <TabsTrigger value="popular" className="text-sm">Populaires</TabsTrigger>
+                  <TabsTrigger value="popular" className="text-sm flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    Populaires
+                  </TabsTrigger>
                   <TabsTrigger value="pinned" className="text-sm">Épinglés</TabsTrigger>
                 </TabsList>
                 
@@ -323,6 +379,7 @@ const Community: React.FC = () => {
                   isLoading={isLoading} 
                   error={error ? String(error) : null}
                   onCreateTopic={() => setShowDialog(true)}
+                  showPopularityScore={true}
                 />
               </TabsContent>
               
@@ -347,9 +404,10 @@ interface TopicsListProps {
   isLoading: boolean;
   error: string | null;
   onCreateTopic: () => void;
+  showPopularityScore?: boolean;
 }
 
-const TopicsList: React.FC<TopicsListProps> = ({ topics, isLoading, error, onCreateTopic }) => {
+const TopicsList: React.FC<TopicsListProps> = ({ topics, isLoading, error, onCreateTopic, showPopularityScore = false }) => {
   const navigate = useNavigate();
   
   if (isLoading) {
@@ -365,17 +423,7 @@ const TopicsList: React.FC<TopicsListProps> = ({ topics, isLoading, error, onCre
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <div className="text-red-500 mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -412,18 +460,26 @@ const TopicsList: React.FC<TopicsListProps> = ({ topics, isLoading, error, onCre
         <Card key={topic.id} className="overflow-hidden hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex flex-wrap justify-between items-start gap-2">
-              <Badge variant="outline" className="mb-2">
-                {topic.category}
-              </Badge>
-              
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline">{topic.category}</Badge>
                 {(topic.is_pinned ?? false) && (
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <Pin className="h-3 w-3" />
                     Épinglé
                   </Badge>
                 )}
+                {showPopularityScore && (topic.popularity_score || 0) > 150 && (
+                  <Badge className="bg-orange-500 flex items-center gap-1">
+                    <Flame className="h-3 w-3" />
+                    Tendance
+                  </Badge>
+                )}
               </div>
+              {showPopularityScore && (
+                <Badge variant="outline" className="text-xs">
+                  Score: {Math.round(topic.popularity_score || 0)}
+                </Badge>
+              )}
             </div>
             <CardTitle className="text-lg">{topic.title}</CardTitle>
           </CardHeader>
@@ -442,9 +498,17 @@ const TopicsList: React.FC<TopicsListProps> = ({ topics, isLoading, error, onCre
                 </div>
               </div>
               
-              <div className="flex items-center mt-2 sm:mt-0">
-                <MessageSquare className="h-4 w-4 mr-1 opacity-70" />
-                <span>{topic.response_count || 0} réponse{topic.response_count !== 1 ? 's' : ''}</span>
+              <div className="flex items-center gap-4 mt-2 sm:mt-0">
+                <div className="flex items-center">
+                  <MessageSquare className="h-4 w-4 mr-1 opacity-70" />
+                  <span>{(topic.response_count || 0)} réponse{(topic.response_count || 0) !== 1 ? 's' : ''}</span>
+                </div>
+                {(topic.chat_message_count || 0) > 0 && (
+                  <div className="flex items-center">
+                    <MessageSquare className="h-4 w-4 mr-1 opacity-70" />
+                    <span>{topic.chat_message_count} chat</span>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
