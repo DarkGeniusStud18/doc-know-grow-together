@@ -11,6 +11,7 @@ interface AuthUser extends User {
   university?: string;
   specialty?: string;
   createdAt: Date;
+  email: string; // Make email required
 }
 
 interface AuthContextType {
@@ -86,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const authUserWithProfile: AuthUser = {
         ...authUser,
+        email: authUser.email || '', // Ensure email is always a string
         displayName: profile?.display_name || authUser.email?.split('@')[0] || 'User',
         profileImage: profile?.profile_image,
         role: profile?.role || 'student',
