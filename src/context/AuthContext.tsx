@@ -1,209 +1,133 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/lib/auth/types';
-import { AuthContextProps } from './auth/types';
-import { convertToCustomUser } from './auth/utils/userConverter';
-import { getDemoUser } from './auth/utils/demoUsers';
-import { useAuthOperations } from './auth/hooks/useAuthOperations';
+import { User } from '@supabase/supabase-js';
 
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+interface AuthUser extends User {
+  displayName: string;
+  profileImage?: string;
+  role: 'student' | 'professional';
+  kycStatus: 'not_submitted' | 'pending' | 'verified' | 'rejected';
+}
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+interface AuthContextType {
+  user: AuthUser | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
+  logout: (redirectPath?: string) => void;
+  updateCurrentUser: (updates: Partial<AuthUser>) => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
-
-  const authOperations = useAuthOperations(setUser, setSession);
 
   useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
+    // Get initial session
+    const getInitialSession = async () => {
       try {
-        console.log('Initializing auth...');
-        
-        // Check for demo user first
-        const demoUser = localStorage.getItem('demoUser');
-        if (demoUser && mounted) {
-          console.log('Found demo user:', demoUser);
-          if (demoUser === 'student') {
-            setUser(getDemoUser('student'));
-          } else if (demoUser === 'professional') {
-            setUser(getDemoUser('professional'));
-          }
-          setLoading(false);
-          setInitialized(true);
-          return;
-        }
-
-        // Get current session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
-          if (mounted) {
-            setLoading(false);
-            setInitialized(true);
-          }
+          setLoading(false);
           return;
         }
 
-        if (session?.user && mounted) {
-          console.log('Found existing session, converting user...');
-          setSession(session);
-          
-          try {
-            const customUser = await convertToCustomUser(session.user);
-            if (customUser && mounted) {
-              setUser(customUser);
-              console.log('User authenticated and profile loaded');
-            } else if (mounted) {
-              console.error('Failed to convert user');
-              setUser(null);
-              setSession(null);
-            }
-          } catch (conversionError) {
-            console.error('Error converting user:', conversionError);
-            if (mounted) {
-              setUser(null);
-              setSession(null);
-            }
-          }
-        }
-
-        if (mounted) {
+        if (session?.user) {
+          await loadUserProfile(session.user);
+        } else {
           setLoading(false);
-          setInitialized(true);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (mounted) {
-          setLoading(false);
-          setInitialized(true);
-        }
+        console.error('Error in getInitialSession:', error);
+        setLoading(false);
       }
     };
 
-    // Set up auth state listener
+    getInitialSession();
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.id);
+      console.log('Auth state changed:', event, session?.user?.id);
       
-      if (!mounted || !initialized) return;
-
-      if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setUser(null);
-        localStorage.removeItem('demoUser');
-        // Force navigation to home page after signout
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 100);
-        return;
-      }
-
       if (event === 'SIGNED_IN' && session?.user) {
-        setSession(session);
-        
-        try {
-          console.log('Converting user after auth state change...');
-          const customUser = await convertToCustomUser(session.user);
-          if (customUser && mounted) {
-            setUser(customUser);
-            console.log('User profile loaded successfully');
-            // Force navigation to dashboard after successful signin
-            setTimeout(() => {
-              window.location.href = '/dashboard';
-            }, 100);
-          } else if (mounted) {
-            console.error('Failed to load user profile');
-            setUser(null);
-          }
-        } catch (error) {
-          console.error('Error converting user:', error);
-          if (mounted) {
-            setUser(null);
-          }
-        }
-      }
-
-      if (event === 'TOKEN_REFRESHED' && session) {
-        console.log('Token refreshed successfully');
-        setSession(session);
-        if (session.user && !user && mounted) {
-          try {
-            const customUser = await convertToCustomUser(session.user);
-            if (customUser) {
-              setUser(customUser);
-            }
-          } catch (error) {
-            console.error('Error refreshing user profile:', error);
-          }
-        }
+        await loadUserProfile(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setLoading(false);
       }
     });
 
-    // Initialize auth state
-    initializeAuth();
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Handle demo user navigation
-  useEffect(() => {
-    if (user && !loading) {
-      const demoUser = localStorage.getItem('demoUser');
-      if (demoUser && window.location.pathname === '/login') {
-        // Navigate to dashboard for demo users
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 100);
-      }
-    }
-  }, [user, loading]);
+  const loadUserProfile = async (authUser: User) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
 
-  const updateCurrentUser = (updatedUser: User) => {
-    setUser(updatedUser);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading profile:', error);
+        setLoading(false);
+        return;
+      }
+
+      const authUserWithProfile: AuthUser = {
+        ...authUser,
+        displayName: profile?.display_name || authUser.email?.split('@')[0] || 'User',
+        profileImage: profile?.profile_image,
+        role: profile?.role || 'student',
+        kycStatus: profile?.kyc_status || 'not_submitted'
+      };
+
+      setUser(authUserWithProfile);
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const value = {
-    user,
-    session,
-    loading,
-    ...authOperations,
-    updateCurrentUser,
-    // Add legacy method aliases for backward compatibility
-    signUp: authOperations.signUpWithEmail,
-    signIn: authOperations.signInWithEmail,
-    signOut: authOperations.signOut,
-    register: async (email: string, password: string, role: any, displayName: string) => {
-      const result = await authOperations.signUpWithEmail(email, password, { display_name: displayName, role });
-      return !result.error;
-    },
-    login: async (email: string, password: string) => {
-      const result = await authOperations.signInWithEmail(email, password);
-      return !result.error;
-    },
-    logout: async (redirectPath?: string) => {
-      await authOperations.signOut();
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const logout = (redirectPath?: string) => {
+    signOut().then(() => {
+      if (redirectPath) {
+        window.location.href = redirectPath;
+      }
+    });
+  };
+
+  const updateCurrentUser = (updates: Partial<AuthUser>) => {
+    if (user) {
+      setUser({ ...user, ...updates });
     }
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, signOut, logout, updateCurrentUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
