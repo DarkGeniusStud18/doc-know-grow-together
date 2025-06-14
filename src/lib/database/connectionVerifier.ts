@@ -114,8 +114,8 @@ export class DatabaseConnectionVerifier {
     this.tests.push(test);
 
     try {
-      // Test de lecture
-      const { error: selectError } = await supabase
+      // Test de lecture avec type assertion pour contourner les types stricts
+      const { error: selectError } = await (supabase as any)
         .from(tableName)
         .select('count(*)', { count: 'exact' });
 
@@ -150,7 +150,7 @@ export class DatabaseConnectionVerifier {
     this.tests.push(test);
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from(tableName)
         .select('count(*)', { count: 'exact' });
 
@@ -218,7 +218,7 @@ export class DatabaseConnectionVerifier {
    */
   async testSpecificConnection(tableName: string, userId?: string): Promise<boolean> {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from(tableName)
         .select('count(*)', { count: 'exact' });
 
