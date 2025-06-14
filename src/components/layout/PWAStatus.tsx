@@ -60,12 +60,49 @@ export const PWAStatus: React.FC<PWAEvents> = ({
   });
 
   /**
-   * Vérifie si une notification peut être affichée (anti-spam)
+   * Vérifie si une notification peut être affichée avec gestion de quota journalier
    */
   const canShowNotification = (type: string, cooldownMs: number = 30000) => {
     if (!notificationsEnabled || notificationsDisabled) return false;
     
     const now = Date.now();
+    const today = new Date().toDateString();
+    
+    // Gestion spéciale pour les notifications de connexion restaurée
+    if (type === 'connection-restored') {
+      const countKey = `connection-restored-count-${today}`;
+      const lastDateKey = `connection-restored-last-date`;
+      
+      const lastDate = localStorage.getItem(lastDateKey);
+      let todayCount = parseInt(localStorage.getItem(countKey) || '0');
+      
+      // Réinitialiser le compteur si c'est un nouveau jour
+      if (lastDate !== today) {
+        todayCount = 0;
+        localStorage.setItem(lastDateKey, today);
+      }
+      
+      // Maximum 2 notifications par jour
+      if (todayCount >= 2) {
+        console.log('PWAStatus: Quota journalier de notifications de connexion atteint (2/jour)');
+        return false;
+      }
+      
+      // Vérifier le cooldown minimum de 30 minutes entre notifications
+      const lastNotification = parseInt(localStorage.getItem(`last-${type}-notification`) || '0');
+      const minCooldown = 30 * 60 * 1000; // 30 minutes
+      
+      if (now - lastNotification < minCooldown) {
+        return false;
+      }
+      
+      // Incrémenter le compteur et enregistrer
+      localStorage.setItem(countKey, (todayCount + 1).toString());
+      localStorage.setItem(`last-${type}-notification`, now.toString());
+      return true;
+    }
+    
+    // Logique normale pour les autres types de notifications
     const lastNotification = parseInt(localStorage.getItem(`last-${type}-notification`) || '0');
     
     if (now - lastNotification < cooldownMs) {
@@ -77,7 +114,7 @@ export const PWAStatus: React.FC<PWAEvents> = ({
   };
 
   /**
-   * Gestion des notifications de changement de connexion avec anti-spam
+   * Gestion des notifications de changement de connexion avec quota journalier
    */
   useEffect(() => {
     const handleConnectionNotification = () => {
@@ -87,7 +124,7 @@ export const PWAStatus: React.FC<PWAEvents> = ({
       if (now - lastNotificationTime < 5000) return;
       
       if (pwaState.isOnline) {
-        if (canShowNotification('connection-restored', 30000)) {
+        if (canShowNotification('connection-restored')) {
           toast.success('Connexion restaurée', {
             description: 'Synchronisation automatique en cours...',
             duration: 3000
