@@ -14,76 +14,48 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate', // Mise à jour automatique de la PWA
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // Limite de 5MB pour le cache
-        skipWaiting: true, // Force l'activation du nouveau service worker
-        clientsClaim: true, // Prend le contrôle des clients immédiatement
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
-            // Cache des documents HTML
             urlPattern: ({ request }) => request.destination === 'document',
             handler: 'NetworkFirst',
             options: {
               cacheName: 'medcollab-documents',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 jours
+                maxAgeSeconds: 60 * 60 * 24 * 7
               }
             }
           },
           {
-            // Cache des ressources Supabase
             urlPattern: /^https:\/\/yblwafdsidkuzgzfazpf\.supabase\.co\/.*$/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'medcollab-supabase',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 1 jour
+                maxAgeSeconds: 60 * 60 * 24
               },
               networkTimeoutSeconds: 10
             }
           },
           {
-            // Cache des images
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'medcollab-images',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 jours
+                maxAgeSeconds: 60 * 60 * 24 * 30
               }
-            }
-          },
-          {
-            // Cache des polices
-            urlPattern: /\.(?:woff|woff2|ttf|eot)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'medcollab-fonts',
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
-              }
-            }
-          },
-          {
-            // Cache des API externes
-            urlPattern: /^https:\/\/api\.*/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'medcollab-external-api',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 // 1 heure
-              },
-              networkTimeoutSeconds: 5
             }
           }
         ]
@@ -106,44 +78,44 @@ export default defineConfig(({ mode }) => ({
             short_name: 'Dashboard',
             description: 'Accéder au tableau de bord principal',
             url: '/dashboard',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
           },
           {
             name: 'Outils d\'étude',
             short_name: 'Outils',
             description: 'Accéder aux outils d\'apprentissage',
             url: '/tools',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
           },
           {
             name: 'Communauté',
             short_name: 'Communauté',
             description: 'Rejoindre les discussions communautaires',
             url: '/community',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
           }
         ],
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'pwa-192x192.png',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'

@@ -12,15 +12,15 @@ if (!rootElement) {
 }
 
 /**
- * Enregistrement du Service Worker PWA en production uniquement
+ * Enregistrement du Service Worker PWA pour la production Netlify
  * Fournit des fonctionnalités hors ligne et de mise en cache avancées
  */
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', async () => {
     try {
-      console.log('PWA: Enregistrement du Service Worker...');
+      console.log('PWA: Enregistrement du Service Worker pour Netlify...');
       
-      // Enregistrement du service worker principal
+      // Enregistrement du service worker généré par Vite PWA
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none' // Toujours vérifier les mises à jour
@@ -38,7 +38,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               console.log('PWA: Nouvelle version prête - rechargement recommandé');
               
-              // Optionnel : Afficher une notification de mise à jour
+              // Notification de mise à jour disponible
               if (window.confirm('Une nouvelle version de MedCollab est disponible. Recharger maintenant ?')) {
                 window.location.reload();
               }
@@ -65,7 +65,6 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   // Gestion des événements de connexion réseau
   window.addEventListener('online', () => {
     console.log('PWA: Connexion réseau restaurée');
-    // Optionnel : Synchroniser les données en attente
   });
 
   window.addEventListener('offline', () => {
@@ -89,7 +88,7 @@ root.render(
   </React.StrictMode>
 );
 
-// Ajout de métadonnées PWA dans le DOM
+// Ajout de métadonnées PWA dans le DOM pour la production
 if (import.meta.env.PROD) {
   // Ajout de la balise meta pour le theme-color dynamique
   const themeColorMeta = document.createElement('meta');
@@ -109,5 +108,5 @@ if (import.meta.env.PROD) {
   appleStatusBarMeta.content = 'black-translucent';
   document.head.appendChild(appleStatusBarMeta);
 
-  console.log('PWA: Métadonnées mobiles ajoutées');
+  console.log('PWA: Métadonnées mobiles ajoutées pour Netlify');
 }

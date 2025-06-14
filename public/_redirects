@@ -4,13 +4,17 @@
 # Route pour accéder aux Netlify Functions - Très important!
 /.netlify/functions/*  /.netlify/functions/:splat  200!
 
+# PWA Service Worker
+/sw.js  /sw.js  200
+/manifest.json  /manifest.json  200
+
 # Security Headers
 /*
   X-Frame-Options: DENY
   X-XSS-Protection: 1; mode=block
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:; manifest-src 'self';
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 
 # Toutes les autres routes sont gérées par l'application React
