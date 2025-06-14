@@ -24,6 +24,9 @@ export const initializeDatabaseServices = async (userId?: string) => {
   console.log('Database Services: Initialisation des services');
   
   if (userId) {
+    // Import the verifier here to avoid circular dependency issues
+    const { dbConnectionVerifier } = await import('./connectionVerifier');
+    
     // Vérifier les connexions essentielles
     const connectionOk = await dbConnectionVerifier.verifyAllConnections(userId);
     
