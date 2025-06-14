@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ...authOperations
   };
 
-  console.log('AuthProvider: Rendu du fournisseur avec utilisateur:', user?.id || 'aucun');
+  console.log('AuthProvider: Rendu du fournisseur avec utilisateur:', user?.id || 'aucun', 'loading:', loading);
 
   return (
     <AuthContext.Provider value={contextValue}>

@@ -3,7 +3,7 @@
  * Hook personnalisé pour la gestion de l'authentification Supabase
  * Sépare la logique d'authentification du contexte principal pour améliorer la maintenabilité
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,6 +32,8 @@ export const useSupabaseAuth = () => {
   // États pour la gestion de l'authentification
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * Charge le profil utilisateur depuis Supabase avec gestion d'erreur robuste
@@ -53,7 +55,6 @@ export const useSupabaseAuth = () => {
       // Gestion des erreurs - ignore l'erreur si le profil n'existe pas encore
       if (error && error.code !== 'PGRST116') {
         console.error('AuthHook: Erreur lors du chargement du profil:', error);
-        setLoading(false);
         return;
       }
 
@@ -74,14 +75,20 @@ export const useSupabaseAuth = () => {
       setUser(authUserWithProfile);
     } catch (error) {
       console.error('AuthHook: Erreur dans loadUserProfile:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   // Initialisation et écoute des changements d'authentification
   useEffect(() => {
+    if (initialized) return;
+
     console.log('AuthHook: Initialisation du hook d\'authentification');
+
+    // Timeout de sécurité pour éviter les chargements infinis
+    loadingTimeoutRef.current = setTimeout(() => {
+      console.warn('AuthHook: Timeout de chargement atteint, arrêt du loading');
+      setLoading(false);
+    }, 5000); // 5 secondes maximum
 
     /**
      * Récupération de la session initiale avec gestion d'erreur
@@ -100,12 +107,14 @@ export const useSupabaseAuth = () => {
         // Chargement du profil si une session existe
         if (session?.user) {
           await loadUserProfile(session.user);
-        } else {
-          setLoading(false);
         }
+        
+        setLoading(false);
+        setInitialized(true);
       } catch (error) {
         console.error('AuthHook: Erreur dans getInitialSession:', error);
         setLoading(false);
+        setInitialized(true);
       }
     };
 
@@ -115,22 +124,38 @@ export const useSupabaseAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('AuthHook: Changement d\'état d\'authentification:', event);
       
+      // Clear timeout when auth state changes
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      
       // Gestion des différents événements d'authentification
       if (event === 'SIGNED_IN' && session?.user) {
+        setLoading(true);
         await loadUserProfile(session.user);
+        setLoading(false);
       } else if (event === 'SIGNED_OUT') {
         console.log('AuthHook: Déconnexion de l\'utilisateur');
         setUser(null);
         setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        // Don't reload profile on token refresh, just update the user state if needed
+        console.log('AuthHook: Token rafraîchi');
       }
+      
+      setInitialized(true);
     });
 
     // Fonction de nettoyage pour éviter les fuites mémoire
     return () => {
       console.log('AuthHook: Nettoyage de l\'abonnement d\'authentification');
       subscription.unsubscribe();
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
     };
-  }, []);
+  }, [initialized]);
 
   return {
     user,
