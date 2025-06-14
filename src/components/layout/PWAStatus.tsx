@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { usePWAState } from './pwa-status/hooks/usePWAState';
 import { usePWAActions } from './pwa-status/hooks/usePWAActions';
+import { ConnectionIndicator } from './pwa-status/components/ConnectionIndicator';
 import { InstallPrompt } from './pwa-status/components/InstallPrompt';
 import { UpdateNotification } from './pwa-status/components/UpdateNotification';
 
@@ -137,7 +138,11 @@ export const PWAStatus: React.FC<PWAEvents> = ({
 
   return (
     <>
-      {/* Connection indicator removed - no longer displayed */}
+      {/* Indicateur de statut de connexion - toujours visible */}
+      <ConnectionIndicator 
+        isOnline={pwaState.isOnline} 
+        isInstalled={pwaState.isInstalled} 
+      />
 
       {/* Prompt d'installation PWA - seulement si notifications activées */}
       {notificationsEnabled && pwaState.showInstallPrompt && !pwaState.isInstalled && pwaState.installPromptEvent && (
