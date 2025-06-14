@@ -17,18 +17,19 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [redirected, setRedirected] = useState(false);
   
-  // Check for query parameters like verified=true
   const searchParams = new URLSearchParams(location.search);
   const verified = searchParams.get('verified') === 'true';
   
-  // Redirect if user is already logged in - but only after auth loading is complete
+  // Redirection si déjà connecté
   useEffect(() => {
-    if (!authLoading && user) {
-      console.log('User already logged in, redirecting to dashboard');
+    if (!authLoading && user && !redirected) {
+      console.log('Login: Utilisateur déjà connecté, redirection');
+      setRedirected(true);
       navigate('/dashboard', { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, redirected]);
   
   const handleFormSubmit = async (data: { email: string; password: string }) => {
     if (isLoading) return;
@@ -36,21 +37,18 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      console.log('Attempting login for:', data.email);
       const result = await signInWithEmail(data.email, data.password);
       
       if (!result.error) {
-        console.log('Login successful, user should be set in context');
-        // Don't navigate immediately, let the auth context handle it
-        // The useEffect above will handle navigation when user state updates
+        console.log('Login: Connexion réussie');
+        // La redirection sera gérée par l'effet ci-dessus
       } else {
-        console.error('Login failed:', result.error);
         toast.error('Erreur de connexion', { 
           description: 'Veuillez vérifier vos identifiants et réessayer.'
         });
       }
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Login: Erreur:', error);
       toast.error('Erreur de connexion', { 
         description: 'Veuillez vérifier vos identifiants et réessayer.'
       });
@@ -68,49 +66,44 @@ const Login: React.FC = () => {
       const result = await signInAsDemo(type);
       
       if (!result.error) {
-        console.log('Demo login successful, user should be set in context');
-        // Don't navigate immediately, let the auth context handle it
-        // The useEffect above will handle navigation when user state updates
+        console.log('Login: Connexion démo réussie');
+        // La redirection sera gérée par l'effet ci-dessus
       } else {
-        toast.error('Erreur de connexion démo', { 
-          description: 'Veuillez réessayer plus tard.' 
-        });
+        toast.error('Erreur de connexion démo');
       }
     } catch (error: any) {
-      console.error('Demo login error:', error);
-      toast.error('Erreur de connexion démo', { 
-        description: 'Veuillez réessayer plus tard.' 
-      });
+      console.error('Login: Erreur démo:', error);
+      toast.error('Erreur de connexion démo');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Show loading screen only during initial auth check
+  // Écran de chargement initial
   if (authLoading) {
     return (
       <MainLayout requireAuth={false}>
         <div className="min-h-[calc(100vh-120px)] flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            <p className="text-lg text-gray-600">Vérification de la session...</p>
+            <p className="text-lg text-gray-600">Vérification...</p>
           </div>
         </div>
       </MainLayout>
     );
   }
 
-  // If user is authenticated after loading is complete, don't render the form
+  // Si déjà connecté, ne pas afficher le formulaire
   if (user) {
     return null;
   }
   
   return (
     <MainLayout requireAuth={false}>
-      <div className="min-h-[calc(100vh-120px)] md:min-h-[80vh] flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center p-4">
         {verified && <VerificationAlert />}
         
-        <Card className="w-full max-w-md animate-fade-in shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">Connexion</CardTitle>
             <CardDescription className="text-center">
@@ -124,7 +117,7 @@ const Login: React.FC = () => {
             
             <div className="mt-6 text-center text-sm">
               <span className="text-gray-500">Vous n'avez pas de compte?</span>{' '}
-              <Link to="/register" className="text-medical-teal hover:underline font-medium transition-colors hover:text-medical-blue">
+              <Link to="/register" className="text-medical-teal hover:underline font-medium">
                 S'inscrire
               </Link>
             </div>

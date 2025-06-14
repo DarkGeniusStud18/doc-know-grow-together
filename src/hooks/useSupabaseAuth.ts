@@ -1,7 +1,7 @@
 
 /**
  * Hook personnalisé pour la gestion de l'authentification Supabase
- * Sépare la logique d'authentification du contexte principal pour améliorer la maintenabilité
+ * Version corrigée pour éviter les boucles infinies et les erreurs React
  */
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
@@ -9,7 +9,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Interface étendue pour l'utilisateur authentifié avec données de profil
- * Combine les données Supabase Auth avec les informations de profil personnalisées
  */
 export interface AuthUser extends User {
   displayName: string;
@@ -23,42 +22,32 @@ export interface AuthUser extends User {
 }
 
 /**
- * Hook pour gérer l'état d'authentification et les opérations utilisateur
- * Centralise toute la logique d'authentification et de gestion des profils
- * 
- * @returns Objet contenant l'utilisateur, l'état de chargement et les méthodes d'authentification
+ * Hook pour gérer l'état d'authentification - version corrigée
  */
 export const useSupabaseAuth = () => {
-  // États pour la gestion de l'authentification
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
-  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initRef = useRef(false);
 
   /**
-   * Charge le profil utilisateur depuis Supabase avec gestion d'erreur robuste
-   * Combine les données d'authentification avec les informations de profil
-   * 
-   * @param authUser - Utilisateur authentifié depuis Supabase Auth
+   * Charge le profil utilisateur depuis Supabase
    */
-  const loadUserProfile = async (authUser: User) => {
+  const loadUserProfile = async (authUser: User): Promise<AuthUser | null> => {
     try {
-      console.log('AuthHook: Chargement du profil pour l\'utilisateur:', authUser.id);
+      console.log('AuthHook: Chargement du profil pour:', authUser.id);
       
-      // Récupération du profil utilisateur avec gestion des erreurs
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
         .single();
 
-      // Gestion des erreurs - ignore l'erreur si le profil n'existe pas encore
       if (error && error.code !== 'PGRST116') {
-        console.error('AuthHook: Erreur lors du chargement du profil:', error);
-        return;
+        console.error('AuthHook: Erreur profil:', error);
+        return null;
       }
 
-      // Construction de l'objet utilisateur avec profil complet et données par défaut
       const authUserWithProfile: AuthUser = {
         ...authUser,
         email: authUser.email || '',
@@ -71,91 +60,95 @@ export const useSupabaseAuth = () => {
         createdAt: profile?.created_at ? new Date(profile.created_at) : new Date()
       };
 
-      console.log('AuthHook: Profil utilisateur chargé avec succès');
-      setUser(authUserWithProfile);
+      return authUserWithProfile;
     } catch (error) {
       console.error('AuthHook: Erreur dans loadUserProfile:', error);
+      return null;
     }
   };
 
-  // Initialisation et écoute des changements d'authentification
+  // Initialisation unique
   useEffect(() => {
-    if (initialized) return;
+    if (initRef.current) return;
+    initRef.current = true;
 
-    console.log('AuthHook: Initialisation du hook d\'authentification');
+    console.log('AuthHook: Initialisation unique');
 
-    // Timeout de sécurité pour éviter les chargements infinis
-    loadingTimeoutRef.current = setTimeout(() => {
-      console.warn('AuthHook: Timeout de chargement atteint, arrêt du loading');
-      setLoading(false);
-    }, 5000); // 5 secondes maximum
+    let mounted = true;
 
-    /**
-     * Récupération de la session initiale avec gestion d'erreur
-     * Vérifie s'il y a déjà une session active au chargement
-     */
-    const getInitialSession = async () => {
+    const initAuth = async () => {
       try {
+        // Timeout de sécurité
+        const timeoutId = setTimeout(() => {
+          if (mounted) {
+            console.warn('AuthHook: Timeout d\'initialisation');
+            setLoading(false);
+            setInitialized(true);
+          }
+        }, 5000);
+
+        // Récupération de la session initiale
         const { data: { session }, error } = await supabase.auth.getSession();
         
+        if (!mounted) return;
+        
+        clearTimeout(timeoutId);
+
         if (error) {
-          console.error('AuthHook: Erreur lors de la récupération de la session:', error);
+          console.error('AuthHook: Erreur session:', error);
           setLoading(false);
+          setInitialized(true);
           return;
         }
 
-        // Chargement du profil si une session existe
         if (session?.user) {
-          await loadUserProfile(session.user);
+          const userProfile = await loadUserProfile(session.user);
+          if (mounted && userProfile) {
+            setUser(userProfile);
+          }
         }
-        
-        setLoading(false);
-        setInitialized(true);
+
+        if (mounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
       } catch (error) {
-        console.error('AuthHook: Erreur dans getInitialSession:', error);
-        setLoading(false);
-        setInitialized(true);
+        console.error('AuthHook: Erreur d\'initialisation:', error);
+        if (mounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
       }
     };
 
-    getInitialSession();
+    initAuth();
 
-    // Configuration de l'écoute des changements d'état d'authentification
+    // Écoute des changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AuthHook: Changement d\'état d\'authentification:', event);
+      if (!mounted) return;
+
+      console.log('AuthHook: Changement d\'état:', event);
       
-      // Clear timeout when auth state changes
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-      
-      // Gestion des différents événements d'authentification
       if (event === 'SIGNED_IN' && session?.user) {
         setLoading(true);
-        await loadUserProfile(session.user);
-        setLoading(false);
+        const userProfile = await loadUserProfile(session.user);
+        if (mounted) {
+          setUser(userProfile);
+          setLoading(false);
+        }
       } else if (event === 'SIGNED_OUT') {
-        console.log('AuthHook: Déconnexion de l\'utilisateur');
-        setUser(null);
-        setLoading(false);
-      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        // Don't reload profile on token refresh, just update the user state if needed
-        console.log('AuthHook: Token rafraîchi');
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+        }
       }
-      
-      setInitialized(true);
     });
 
-    // Fonction de nettoyage pour éviter les fuites mémoire
     return () => {
-      console.log('AuthHook: Nettoyage de l\'abonnement d\'authentification');
+      mounted = false;
       subscription.unsubscribe();
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
     };
-  }, [initialized]);
+  }, []);
 
   return {
     user,
