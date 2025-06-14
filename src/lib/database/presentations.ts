@@ -14,17 +14,6 @@ export const presentationService = {
     return data || [];
   },
 
-  async getPresentation(id: string): Promise<Presentation | null> {
-    const { data, error } = await supabase
-      .from('presentations')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
-  },
-
   async createPresentation(presentation: Omit<Presentation, 'id' | 'created_at' | 'updated_at'>): Promise<Presentation> {
     const { data, error } = await supabase
       .from('presentations')

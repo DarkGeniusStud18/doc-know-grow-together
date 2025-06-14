@@ -6,17 +6,32 @@ interface LoadingScreenProps {
   children: React.ReactNode;
 }
 
+/**
+ * Écran de chargement avec animation pour l'application MedCollab
+ * Affiche une animation de chargement pendant 1.5 seconde au démarrage
+ * Utilise Framer Motion pour des transitions fluides
+ */
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ children }) => {
+  // État pour contrôler l'affichage de l'écran de chargement
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading time (minimum 1 second)
+    console.log('LoadingScreen: Initialisation du composant');
+    
+    // Durée minimale de chargement pour une expérience utilisateur optimale
     const timer = setTimeout(() => {
+      console.log('LoadingScreen: Fin du chargement');
       setIsLoading(false);
     }, 1500);
 
-    return () => clearTimeout(timer);
+    // Nettoyage du timer pour éviter les fuites mémoire
+    return () => {
+      console.log('LoadingScreen: Nettoyage du timer');
+      clearTimeout(timer);
+    };
   }, []);
+
+  console.log('LoadingScreen: Rendu du composant, état de chargement:', isLoading);
 
   return (
     <>
@@ -29,6 +44,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ children }) => {
             className="fixed inset-0 z-50 flex items-center justify-center bg-white"
           >
             <div className="flex flex-col items-center">
+              {/* Logo animé avec SVG personnalisé */}
               <div className="w-32 h-32 mb-8">
                 <svg 
                   className="w-full h-full" 
@@ -57,19 +73,44 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ children }) => {
                   />
                 </svg>
               </div>
+              
+              {/* Titre animé de l'application */}
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="text-2xl font-bold text-medical-navy"
+                className="text-center"
               >
-                MedCollab
+                <h1 className="text-3xl font-bold text-medical-navy mb-2">
+                  MedCollab
+                </h1>
+                <p className="text-medical-teal font-medium">
+                  Chargement de votre plateforme médicale...
+                </p>
               </motion.div>
-              <div className="mt-2 text-sm text-gray-500">Chargement en cours...</div>
+              
+              {/* Indicateur de progression visuel */}
+              <motion.div
+                className="mt-8 w-48 h-1 bg-gray-200 rounded-full overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <motion.div
+                  className="h-full bg-medical-teal rounded-full"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ 
+                    duration: 1.5, 
+                    ease: "easeInOut" 
+                  }}
+                />
+              </motion.div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-      {children}
+      {/* Contenu principal affiché après le chargement */}
+      {!isLoading && children}
     </>
   );
 };

@@ -1,8 +1,8 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-// vite.config.ts
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
@@ -14,53 +14,146 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      registerType: 'autoUpdate', // Mise à jour automatique de la PWA
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // Limite de 5MB pour le cache
+        skipWaiting: true, // Force l'activation du nouveau service worker
+        clientsClaim: true, // Prend le contrôle des clients immédiatement
+        runtimeCaching: [
+          {
+            // Cache des documents HTML
+            urlPattern: ({ request }) => request.destination === 'document',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'medcollab-documents',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 jours
+              }
+            }
+          },
+          {
+            // Cache des ressources Supabase
+            urlPattern: /^https:\/\/yblwafdsidkuzgzfazpf\.supabase\.co\/.*$/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'medcollab-supabase',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 // 1 jour
+              },
+              networkTimeoutSeconds: 10
+            }
+          },
+          {
+            // Cache des images
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'medcollab-images',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 jours
+              }
+            }
+          },
+          {
+            // Cache des polices
+            urlPattern: /\.(?:woff|woff2|ttf|eot)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'medcollab-fonts',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
+              }
+            }
+          },
+          {
+            // Cache des API externes
+            urlPattern: /^https:\/\/api\.*/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'medcollab-external-api',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 // 1 heure
+              },
+              networkTimeoutSeconds: 5
+            }
+          }
+        ]
+      },
       manifest: {
-        name: 'MedCollab',
+        name: 'MedCollab - Plateforme Médicale Collaborative',
         short_name: 'MedCollab',
+        description: 'Plateforme collaborative pour étudiants et professionnels de santé avec outils d\'étude avancés',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#1f2937',
+        orientation: 'portrait-primary',
+        scope: '/',
+        lang: 'fr',
+        categories: ['education', 'medical', 'productivity'],
+        shortcuts: [
+          {
+            name: 'Tableau de bord',
+            short_name: 'Dashboard',
+            description: 'Accéder au tableau de bord principal',
+            url: '/dashboard',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Outils d\'étude',
+            short_name: 'Outils',
+            description: 'Accéder aux outils d\'apprentissage',
+            url: '/tools',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Communauté',
+            short_name: 'Communauté',
+            description: 'Rejoindre les discussions communautaires',
+            url: '/community',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+          }
+        ],
         icons: [
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },
-      workbox: {
-        navigateFallback: '/index.html',
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === 'document',
-            handler: 'NetworkFirst',
-          },
-          {
-            urlPattern: /^https:\/\/yblwafdsidkuzgzfazpf\.supabase\.co\/.*$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day
-              }
-            }
-          }
-        ]
+      devOptions: {
+        enabled: mode === 'development',
+        type: 'module',
+        navigateFallback: 'index.html',
       }
     }),
     mode === 'development' &&
@@ -71,4 +164,23 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    global: 'globalThis',
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          query: ['@tanstack/react-query'],
+          supabase: ['@supabase/supabase-js'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          charts: ['recharts'],
+          utils: ['date-fns', 'clsx', 'tailwind-merge']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  }
 }));

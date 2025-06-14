@@ -8,6 +8,7 @@ import ProfileSettings from '@/components/settings/ProfileSettings';
 import AccountSettings from '@/components/settings/AccountSettings';
 import NotificationSettings from '@/components/settings/NotificationSettings';
 import DisplaySettings from '@/components/settings/DisplaySettings';
+import PerformanceSettings from '@/components/settings/PerformanceSettings';
 import RoleSwitcher from '@/components/profile/RoleSwitcher';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ const Settings = () => {
             <TabsTrigger value="subscription">Abonnement</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="display">Affichage</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile" className="space-y-4">
@@ -125,6 +127,10 @@ const Settings = () => {
           
           <TabsContent value="display" className="space-y-4">
             <DisplaySettings />
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-4">
+            <PerformanceSettings />
           </TabsContent>
         </Tabs>
       </div>

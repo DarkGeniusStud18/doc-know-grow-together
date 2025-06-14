@@ -1,32 +1,113 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import LoadingScreen from './components/layout/LoadingScreen.tsx'
-import { HelmetProvider } from 'react-helmet-async'
-import * as serviceWorkerRegistration from './serviceWorkerRegistration'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { HelmetProvider } from 'react-helmet-async';
 
-// Ensure root element exists
+// Vérification de l'existence de l'élément racine DOM
 const rootElement = document.getElementById("root");
 if (!rootElement) {
-  throw new Error("Root element not found");
+  throw new Error("Élément racine non trouvé - impossible de monter l'application React");
 }
 
-createRoot(rootElement).render(
-  <HelmetProvider>
-    <LoadingScreen>
+/**
+ * Enregistrement du Service Worker PWA en production uniquement
+ * Fournit des fonctionnalités hors ligne et de mise en cache avancées
+ */
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', async () => {
+    try {
+      console.log('PWA: Enregistrement du Service Worker...');
+      
+      // Enregistrement du service worker principal
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none' // Toujours vérifier les mises à jour
+      });
+      
+      console.log('PWA: Service Worker enregistré avec succès:', registration.scope);
+      
+      // Gestion des mises à jour du service worker
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          console.log('PWA: Nouvelle version du Service Worker détectée');
+          
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('PWA: Nouvelle version prête - rechargement recommandé');
+              
+              // Optionnel : Afficher une notification de mise à jour
+              if (window.confirm('Une nouvelle version de MedCollab est disponible. Recharger maintenant ?')) {
+                window.location.reload();
+              }
+            }
+          });
+        }
+      });
+      
+      // Vérification périodique des mises à jour (toutes les 30 minutes)
+      setInterval(async () => {
+        try {
+          await registration.update();
+          console.log('PWA: Vérification de mise à jour effectuée');
+        } catch (error) {
+          console.log('PWA: Erreur lors de la vérification de mise à jour:', error);
+        }
+      }, 30 * 60 * 1000);
+      
+    } catch (registrationError) {
+      console.error('PWA: Échec de l\'enregistrement du Service Worker:', registrationError);
+    }
+  });
+
+  // Gestion des événements de connexion réseau
+  window.addEventListener('online', () => {
+    console.log('PWA: Connexion réseau restaurée');
+    // Optionnel : Synchroniser les données en attente
+  });
+
+  window.addEventListener('offline', () => {
+    console.log('PWA: Connexion réseau perdue - mode hors ligne activé');
+  });
+}
+
+// Configuration de l'environnement de développement pour PWA
+if ('serviceWorker' in navigator && import.meta.env.DEV) {
+  console.log('PWA: Mode développement - Service Worker géré par Vite');
+}
+
+// Création et montage de l'application React
+const root = createRoot(rootElement);
+
+root.render(
+  <React.StrictMode>
+    <HelmetProvider>
       <App />
-    </LoadingScreen>
-  </HelmetProvider>
+    </HelmetProvider>
+  </React.StrictMode>
 );
 
-// Register service worker for PWA functionality
-serviceWorkerRegistration.register({
-  onSuccess: () => {
-    console.log('PWA installed successfully');
-  },
-  onUpdate: (registration) => {
-    console.log('PWA update available');
-    // You can show a notification to user about the update
-  }
-});
+// Ajout de métadonnées PWA dans le DOM
+if (import.meta.env.PROD) {
+  // Ajout de la balise meta pour le theme-color dynamique
+  const themeColorMeta = document.createElement('meta');
+  themeColorMeta.name = 'theme-color';
+  themeColorMeta.content = '#1f2937';
+  document.head.appendChild(themeColorMeta);
+
+  // Ajout de la balise meta pour apple-mobile-web-app-capable
+  const appleMobileMeta = document.createElement('meta');
+  appleMobileMeta.name = 'apple-mobile-web-app-capable';
+  appleMobileMeta.content = 'yes';
+  document.head.appendChild(appleMobileMeta);
+
+  // Ajout de la balise meta pour apple-mobile-web-app-status-bar-style
+  const appleStatusBarMeta = document.createElement('meta');
+  appleStatusBarMeta.name = 'apple-mobile-web-app-status-bar-style';
+  appleStatusBarMeta.content = 'black-translucent';
+  document.head.appendChild(appleStatusBarMeta);
+
+  console.log('PWA: Métadonnées mobiles ajoutées');
+}

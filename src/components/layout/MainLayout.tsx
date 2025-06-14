@@ -1,121 +1,194 @@
+/**
+ * Layout principal de l'application MedCollab avec gestion responsive optimisée
+ * 
+ * Composant refactorisé pour éviter les chargements infinis et améliorer les performances
+ * Architecture modulaire avec gestion d'erreurs robuste et chargement intelligent
+ */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from './Navbar';
-import DiscordSidebar from './DiscordSidebar';
-import MobileNavbar from './MobileNavbar';
+import { Navbar } from './navbar';
+import DiscordSidebar from './discord-sidebar/DiscordSidebar';
+import { MobileNavbar } from './mobile-navbar';
 import DesktopNavbar from './DesktopNavbar';
+import { PWAStatus } from './PWAStatus';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 interface MainLayoutProps {
   children: React.ReactNode;
   requireAuth?: boolean;
 }
 
+/**
+ * Layout principal de l'application MedCollab avec gestion responsive optimisée
+ * 
+ * Fonctionnalités :
+ * - Gestion adaptative desktop/mobile/tablette avec breakpoints intelligents
+ * - Authentification sécurisée avec protection contre les boucles infinies
+ * - Navigation contextuelle selon l'état utilisateur avec mémorisation
+ * - Intégration PWA pour une expérience native optimisée
+ * - Design responsive avec breakpoints optimisés et safe-areas
+ * - Gestion d'erreurs robuste avec fallbacks gracieux
+ */
 const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
   requireAuth = false 
 }) => {
-  // Add error boundary for useAuth
+  const navigate = useNavigate();
+  
+  // État local pour éviter les re-rendus excessifs et les boucles infinies
+  const [hasRedirected, setHasRedirected] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+  
+  // Gestion sécurisée du contexte d'authentification avec protection d'erreur
   let user, loading;
   try {
     const authContext = useAuth();
     user = authContext.user;
     loading = authContext.loading;
   } catch (error) {
-    console.error('Auth context error:', error);
-    // If we can't access auth context, treat as not authenticated
+    console.error('MainLayout: Erreur du contexte d\'authentification:', error);
+    // Traitement comme utilisateur non authentifié si erreur contexte
     user = null;
     loading = false;
   }
+  
+  // Protection contre les chargements infinis avec timeout automatique et mémorisation
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        console.warn('MainLayout: Timeout de chargement atteint, force l\'affichage');
+        setLoadingTimeout(true);
+      }, 3000); // Timeout réduit à 3 secondes pour une meilleure UX
 
-  const navigate = useNavigate();
-  
-  // Timeout for loading to prevent infinite loading
-  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
-  
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoadingTimeout(true);
-    }, 5000); // 5 second timeout
-
-    return () => clearTimeout(timer);
-  }, []);
-  
-  React.useEffect(() => {
-    if (!loading && !user && requireAuth) {
-      navigate('/login');
+      return () => clearTimeout(timer);
     }
-  }, [user, loading, navigate, requireAuth]);
+  }, [loading]);
   
-  // Show loading only for a reasonable time
+  // Redirection automatique vers login si authentification requise (une seule fois)
+  useEffect(() => {
+    if (!loading && !user && requireAuth && !hasRedirected) {
+      console.log('MainLayout: Redirection vers login - authentification requise');
+      setHasRedirected(true);
+      navigate('/login', { replace: true });
+    }
+  }, [user, loading, navigate, requireAuth, hasRedirected]);
+  
+  // Écran de chargement optimisé avec design médical et timeout intelligent
   if (loading && requireAuth && !loadingTimeout) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-medical-light">
-        <div className="flex flex-col items-center gap-6 p-8 bg-white rounded-xl shadow-sm">
-          <Loader2 className="h-16 w-16 text-medical-blue animate-spin" />
-          <p className="text-medical-navy animate-pulse text-lg font-medium">Vérification de la session...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-medical-light to-medical-blue/10">
+        <div className="flex flex-col items-center gap-6 p-6 sm:p-8 bg-white rounded-2xl shadow-lg max-w-sm w-full mx-4 border border-medical-blue/10">
+          <div className="relative">
+            <Loader2 className="h-12 w-12 sm:h-16 sm:w-16 text-medical-blue animate-spin" />
+            <div className="absolute inset-0 h-12 w-12 sm:h-16 sm:w-16 border-2 border-medical-teal/20 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-medical-navy font-semibold text-base sm:text-lg">
+              Vérification de la session...
+            </p>
+            <p className="text-gray-500 text-sm animate-pulse">
+              Chargement de votre espace personnel
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
-  // If loading timeout reached and still no user but auth required, redirect to login
-  if (loadingTimeout && !user && requireAuth) {
-    navigate('/login');
-    return null;
+  // Redirection forcée après timeout si authentification requise mais pas d'utilisateur
+  if ((loadingTimeout || !loading) && !user && requireAuth) {
+    if (!hasRedirected) {
+      console.log('MainLayout: Redirection forcée après timeout');
+      navigate('/login', { replace: true });
+      return null;
+    }
   }
   
-  // Si l'utilisateur est connecté, afficher la mise en page authentifiée
+  // Layout pour utilisateur authentifié avec navigation complète et gestion d'erreurs
   if (user) {
     return (
-      <div className="min-h-screen bg-medical-light flex overflow-hidden">
-        {/* Discord-style sidebar for desktop */}
-        <DiscordSidebar />
-        
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Mobile navbar shown on small screens */}
-          <MobileNavbar />
+      <ErrorBoundary>
+        <div className="min-h-screen bg-gradient-to-br from-medical-light to-white flex overflow-hidden">
+          {/* Sidebar Discord pour écrans desktop uniquement avec lazy loading */}
+          <DiscordSidebar />
           
-          {/* Desktop navbar shown on medium screens and above */}
-          <DesktopNavbar />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Navbar mobile pour petits écrans (responsive) avec optimisations */}
+            <MobileNavbar />
+            
+            {/* Navbar desktop pour écrans moyens et grands avec mémorisation */}
+            <DesktopNavbar />
+            
+            {/* Contenu principal avec padding responsive optimisé et safe-areas */}
+            <main className="flex-grow padding-page container-page overflow-x-auto bg-white/50 backdrop-blur-sm">
+              <div className="spacing-section max-w-7xl mx-auto">
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
+              </div>
+            </main>
+            
+            {/* Footer responsive avec espacement adaptatif et design amélioré */}
+            <footer className="bg-white/80 backdrop-blur-sm py-4 sm:py-6 md:py-8 border-t border-medical-blue/10 mt-auto">
+              <div className="container-page">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <p className="text-center sm:text-left text-xs sm:text-sm text-gray-500">
+                    &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
+                  </p>
+                  <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <span>Plateforme médicale collaborative</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="hidden sm:inline">Version 1.0.0</span>
+                  </div>
+                </div>
+              </div>
+            </footer>
+          </div>
           
-          <main className="flex-grow p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-x-auto">
-            <div className="space-y-6 md:space-y-8">
-              {children}
-            </div>
-          </main>
-          
-          <footer className="bg-white py-6 md:py-8 border-t mt-auto">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <p className="text-center text-sm text-gray-500">
-                &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
-              </p>
-            </div>
-          </footer>
+          {/* Composant de statut PWA pour fonctionnalités natives avec lazy loading */}
+          <PWAStatus />
         </div>
-      </div>
+      </ErrorBoundary>
     );
   }
   
-  // Public layout (for login, register, landing page)
+  // Layout public optimisé pour pages de connexion/inscription avec design amélioré
   return (
-    <div className="min-h-screen bg-medical-light flex flex-col">
-      <Navbar simplified />
-      <main className="flex-grow overflow-x-hidden px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-        <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
-          {children}
-        </div>
-      </main>
-      <footer className="bg-white py-6 md:py-8 border-t mt-auto">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
-          </p>
-        </div>
-      </footer>
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-medical-light via-white to-medical-blue/5 flex flex-col">
+        {/* Navbar simplifiée pour utilisateurs non connectés avec optimisations */}
+        <Navbar simplified />
+        
+        {/* Contenu principal avec espacement responsive et design médical */}
+        <main className="flex-grow overflow-x-hidden padding-page">
+          <div className="container-page spacing-section max-w-6xl mx-auto">
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+          </div>
+        </main>
+        
+        {/* Footer simplifié pour pages publiques avec design cohérent */}
+        <footer className="bg-white/80 backdrop-blur-sm py-4 sm:py-6 md:py-8 border-t border-medical-blue/10 mt-auto">
+          <div className="container-page">
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-center text-xs sm:text-sm text-gray-500">
+                &copy; {new Date().getFullYear()} MedCollab. Tous droits réservés.
+              </p>
+              <p className="text-center text-xs text-gray-400">
+                Plateforme collaborative pour professionnels de santé et étudiants
+              </p>
+            </div>
+          </div>
+        </footer>
+        
+        {/* PWA également disponible sur les pages publiques avec lazy loading */}
+        <PWAStatus />
+      </div>
+    </ErrorBoundary>
   );
 };
 

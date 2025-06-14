@@ -11,12 +11,10 @@ export const studyPlanService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    
-    // Transform the data to match our StudyPlan interface
     return (data || []).map(plan => ({
       ...plan,
       subjects: Array.isArray(plan.subjects) ? plan.subjects : []
-    })) as StudyPlan[];
+    }));
   },
 
   async getActiveStudyPlan(userId: string): Promise<StudyPlan | null> {
@@ -25,20 +23,24 @@ export const studyPlanService = {
       .select('*')
       .eq('user_id', userId)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error;
-    
-    if (!data) return null;
-    
-    // Transform the data to match our StudyPlan interface
-    return {
+    if (error) throw error;
+    return data ? {
       ...data,
       subjects: Array.isArray(data.subjects) ? data.subjects : []
-    } as StudyPlan;
+    } : null;
   },
 
   async createStudyPlan(plan: Omit<StudyPlan, 'id' | 'created_at' | 'updated_at'>): Promise<StudyPlan> {
+    // If this is being set as active, deactivate other plans first
+    if (plan.is_active) {
+      await supabase
+        .from('study_plans')
+        .update({ is_active: false })
+        .eq('user_id', plan.user_id);
+    }
+
     const { data, error } = await supabase
       .from('study_plans')
       .insert([plan])
@@ -46,12 +48,10 @@ export const studyPlanService = {
       .single();
 
     if (error) throw error;
-    
-    // Transform the data to match our StudyPlan interface
     return {
       ...data,
       subjects: Array.isArray(data.subjects) ? data.subjects : []
-    } as StudyPlan;
+    };
   },
 
   async updateStudyPlan(id: string, updates: Partial<StudyPlan>): Promise<StudyPlan> {
@@ -63,12 +63,10 @@ export const studyPlanService = {
       .single();
 
     if (error) throw error;
-    
-    // Transform the data to match our StudyPlan interface
     return {
       ...data,
       subjects: Array.isArray(data.subjects) ? data.subjects : []
-    } as StudyPlan;
+    };
   },
 
   async deleteStudyPlan(id: string): Promise<void> {

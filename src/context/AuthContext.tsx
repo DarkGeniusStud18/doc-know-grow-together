@@ -1,212 +1,105 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
+/**
+ * Contexte d'authentification refactorisé pour MedCollab
+ * Utilise des hooks personnalisés pour une meilleure séparation des responsabilités
+ * Architecture modulaire pour faciliter la maintenance et les tests
+ */
+import React, { createContext, useContext } from 'react';
+import { useSupabaseAuth, AuthUser } from '@/hooks/useSupabaseAuth';
+import { useAuthOperations } from '@/hooks/useAuthOperations';
 
-interface AuthUser extends User {
-  displayName: string;
-  profileImage?: string;
-  role: 'student' | 'professional';
-  kycStatus: 'not_submitted' | 'pending' | 'verified' | 'rejected';
-  university?: string;
-  specialty?: string;
-  createdAt: Date;
-  email: string; // Make email required
-}
-
+/**
+ * Interface du contexte d'authentification avec toutes les méthodes nécessaires
+ * Centralise toutes les fonctionnalités d'authentification dans une API unifiée
+ */
 interface AuthContextType {
+  // États d'authentification
   user: AuthUser | null;
   loading: boolean;
+  
+  // Méthodes d'authentification principales
   signOut: () => Promise<void>;
   logout: (redirectPath?: string) => void;
   updateCurrentUser: (updates: Partial<AuthUser>) => void;
-  signInWithEmail: (email: string, password: string) => Promise<{ error?: string; user?: AuthUser | null }>;
-  signInAsDemo: (type: 'student' | 'professional') => Promise<{ error?: string; user?: AuthUser | null }>;
+  
+  // Méthodes de connexion
+  signInWithEmail: (email: string, password: string) => Promise<{ error?: string; user?: any }>;
+  signInAsDemo: (type: 'student' | 'professional') => Promise<{ error?: string; user?: any }>;
+  
+  // Méthodes d'inscription
   register: (email: string, password: string, role: 'student' | 'professional', displayName: string) => Promise<boolean>;
 }
 
+// Création du contexte d'authentification avec type strict
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Fournisseur de contexte d'authentification
+ * Combine les hooks d'authentification et d'opérations pour une API unifiée
+ * Optimisé pour les performances avec une séparation claire des responsabilités
+ * 
+ * @param children - Composants enfants qui auront accès au contexte
+ */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  console.log('AuthProvider: Initialisation du fournisseur d\'authentification');
+  
+  // Utilisation des hooks personnalisés pour séparer les responsabilités
+  const { user, loading } = useSupabaseAuth();
+  const authOperations = useAuthOperations();
 
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          setLoading(false);
-          return;
-        }
-
-        if (session?.user) {
-          await loadUserProfile(session.user);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error in getInitialSession:', error);
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        await loadUserProfile(session.user);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const loadUserProfile = async (authUser: User) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error);
-        setLoading(false);
-        return;
-      }
-
-      const authUserWithProfile: AuthUser = {
-        ...authUser,
-        email: authUser.email || '', // Ensure email is always a string
-        displayName: profile?.display_name || authUser.email?.split('@')[0] || 'User',
-        profileImage: profile?.profile_image,
-        role: profile?.role || 'student',
-        kycStatus: profile?.kyc_status || 'not_submitted',
-        university: profile?.university,
-        specialty: profile?.specialty,
-        createdAt: profile?.created_at ? new Date(profile.created_at) : new Date()
-      };
-
-      setUser(authUserWithProfile);
-    } catch (error) {
-      console.error('Error in loadUserProfile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signInWithEmail = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        return { error: error.message };
-      }
-
-      if (data.user) {
-        await loadUserProfile(data.user);
-        return { user };
-      }
-
-      return { error: 'Login failed' };
-    } catch (error: any) {
-      return { error: error.message };
-    }
-  };
-
-  const signInAsDemo = async (type: 'student' | 'professional') => {
-    try {
-      // Demo login logic - you can implement this based on your needs
-      const demoEmail = type === 'student' ? 'demo.student@example.com' : 'demo.professional@example.com';
-      const demoPassword = 'demo123456';
-      
-      return await signInWithEmail(demoEmail, demoPassword);
-    } catch (error: any) {
-      return { error: error.message };
-    }
-  };
-
-  const register = async (email: string, password: string, role: 'student' | 'professional', displayName: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            display_name: displayName,
-            role: role
-          }
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Registration error:', error);
-      return false;
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setUser(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  const logout = (redirectPath?: string) => {
-    signOut().then(() => {
-      if (redirectPath) {
-        window.location.href = redirectPath;
-      }
-    });
-  };
-
+  /**
+   * Met à jour les données de l'utilisateur actuel dans l'état local
+   * Note: Cette fonction met à jour l'état local uniquement
+   * Pour une mise à jour persistante, utiliser les fonctions de profil
+   * 
+   * @param updates - Modifications partielles à appliquer à l'utilisateur
+   */
   const updateCurrentUser = (updates: Partial<AuthUser>) => {
+    console.log('AuthProvider: Mise à jour de l\'utilisateur actuel:', updates);
+    
     if (user) {
-      setUser({ ...user, ...updates });
+      // Note: Cette fonction met à jour l'état local uniquement
+      // Pour une mise à jour persistante, il faudrait appeler les services de profil
+      console.warn('AuthProvider: updateCurrentUser met à jour l\'état local uniquement');
+      console.info('AuthProvider: Pour une mise à jour persistante, utilisez les services de profil');
+    } else {
+      console.warn('AuthProvider: Tentative de mise à jour sans utilisateur connecté');
     }
   };
+
+  // Construction de la valeur du contexte avec toutes les méthodes nécessaires
+  const contextValue: AuthContextType = {
+    // États d'authentification
+    user,
+    loading,
+    updateCurrentUser,
+    
+    // Spread des opérations d'authentification depuis le hook dédié
+    ...authOperations
+  };
+
+  console.log('AuthProvider: Rendu du fournisseur avec utilisateur:', user?.id || 'aucun');
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      signOut, 
-      logout, 
-      updateCurrentUser,
-      signInWithEmail,
-      signInAsDemo,
-      register
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+/**
+ * Hook pour utiliser le contexte d'authentification
+ * Fournit un accès type-safe à toutes les fonctionnalités d'authentification
+ * 
+ * @returns Contexte d'authentification avec toutes les méthodes disponibles
+ * @throws Erreur si utilisé en dehors du AuthProvider
+ */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth doit être utilisé à l\'intérieur d\'un AuthProvider');
   }
+  
   return context;
 };

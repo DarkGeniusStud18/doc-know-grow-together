@@ -1,245 +1,223 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { MusicTrack, MusicCategory } from '@/types/music';
+/**
+ * Modèles TypeScript pour la gestion de la musique d'étude
+ * 
+ * Définit les interfaces et services pour la bibliothèque musicale,
+ * les playlists et la synchronisation en temps réel
+ */
 
-export async function getAllTracks(): Promise<MusicTrack[]> {
-  try {
-    const { data, error } = await supabase
-      .from('music_tracks')
-      .select('*')
-      .order('title');
-    
-    if (error) throw error;
-    
-    return data.map(track => ({
-      id: track.id,
-      title: track.title,
-      artist: track.artist,
-      url: track.file_url,
-      coverImage: track.cover_image || '',
-      duration: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : undefined,
-      category: track.category
-    }));
-  } catch (error) {
-    console.error('Error fetching tracks:', error);
-    return [];
-  }
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+// Types de base pour les entités musicales
+export type MusicTrack = Database['public']['Tables']['music_tracks']['Row'];
+export type Playlist = Database['public']['Tables']['playlists']['Row'];
+export type PlaylistTrack = Database['public']['Tables']['playlist_tracks']['Row'];
+
+/**
+ * Interface étendue pour les pistes musicales avec métadonnées
+ * Enrichit les données de base avec des informations calculées
+ */
+export interface EnhancedMusicTrack extends MusicTrack {
+  formatted_duration?: string; // Durée formatée (ex: "3:45")
+  is_favorite?: boolean; // Statut favori de l'utilisateur
+  play_count?: number; // Nombre de lectures
+  last_played?: string; // Dernière écoute
 }
 
-export async function getTracksByCategory(): Promise<Record<string, MusicTrack[]>> {
+/**
+ * Interface pour les playlists avec informations étendues
+ * Inclut les statistiques et métadonnées calculées
+ */
+export interface EnhancedPlaylist extends Playlist {
+  track_count?: number; // Nombre de pistes
+  total_duration?: number; // Durée totale en secondes
+  formatted_duration?: string; // Durée formatée
+  tracks?: EnhancedMusicTrack[]; // Pistes incluses
+  is_collaborative?: boolean; // Playlist collaborative
+}
+
+/**
+ * Interface pour les filtres de recherche musicale
+ * Permet un filtrage avancé et une recherche optimisée
+ */
+export interface MusicFilters {
+  category?: string;
+  search?: string;
+  duration_min?: number;
+  duration_max?: number;
+  artist?: string;
+  is_favorite?: boolean;
+  tags?: string[];
+}
+
+/**
+ * Interface pour les paramètres de tri
+ * Définit les options de tri disponibles
+ */
+export interface SortOptions {
+  field: 'title' | 'artist' | 'duration' | 'created_at' | 'play_count';
+  direction: 'asc' | 'desc';
+}
+
+/**
+ * Récupère toutes les pistes musicales avec filtres optionnels
+ */
+export const getAllTracks = async (
+  filters?: MusicFilters, 
+  sort?: SortOptions
+): Promise<EnhancedMusicTrack[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('music_tracks')
-      .select('*')
-      .order('title');
-    
-    if (error) throw error;
-    
-    const tracksByCategory: Record<string, MusicTrack[]> = {};
-    data.forEach(track => {
-      if (!tracksByCategory[track.category]) {
-        tracksByCategory[track.category] = [];
+      .select('*');
+
+    // Application des filtres de recherche
+    if (filters) {
+      if (filters.category) {
+        query = query.eq('category', filters.category);
       }
       
-      tracksByCategory[track.category].push({
-        id: track.id,
-        title: track.title,
-        artist: track.artist,
-        url: track.file_url,
-        coverImage: track.cover_image || '',
-        duration: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : undefined,
-        category: track.category
-      });
-    });
-    
-    return tracksByCategory;
-  } catch (error) {
-    console.error('Error fetching tracks by category:', error);
-    return {};
-  }
-}
+      if (filters.search) {
+        query = query.or(
+          `title.ilike.%${filters.search}%,artist.ilike.%${filters.search}%`
+        );
+      }
+      
+      if (filters.duration_min) {
+        query = query.gte('duration', filters.duration_min);
+      }
+      
+      if (filters.duration_max) {
+        query = query.lte('duration', filters.duration_max);
+      }
+      
+      if (filters.artist) {
+        query = query.ilike('artist', `%${filters.artist}%`);
+      }
+    }
 
-export async function getTrackById(id: string): Promise<MusicTrack | null> {
-  try {
-    const { data, error } = await supabase
-      .from('music_tracks')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) throw error;
-    
-    if (!data) return null;
-    
-    return {
-      id: data.id,
-      title: data.title,
-      artist: data.artist,
-      url: data.file_url,
-      coverImage: data.cover_image || '',
-      duration: data.duration ? `${Math.floor(data.duration / 60)}:${String(data.duration % 60).padStart(2, '0')}` : undefined,
-      category: data.category
-    };
-  } catch (error) {
-    console.error('Error fetching track:', error);
-    return null;
-  }
-}
+    // Application du tri
+    if (sort) {
+      query = query.order(sort.field, { ascending: sort.direction === 'asc' });
+    } else {
+      // Tri par défaut par titre
+      query = query.order('title', { ascending: true });
+    }
 
-export async function createTrack(track: {
-  title: string;
-  artist: string;
-  category: string;
-  file_url: string;
-  cover_image?: string;
-  duration?: number;
-}): Promise<MusicTrack | null> {
-  try {
-    const { data, error } = await supabase
-      .from('music_tracks')
-      .insert([track])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    return {
-      id: data.id,
-      title: data.title,
-      artist: data.artist,
-      url: data.file_url,
-      coverImage: data.cover_image || '',
-      duration: data.duration ? `${Math.floor(data.duration / 60)}:${String(data.duration % 60).padStart(2, '0')}` : undefined,
-      category: data.category
-    };
-  } catch (error) {
-    console.error('Error creating track:', error);
-    return null;
-  }
-}
+    const { data, error } = await query;
 
-export async function updateTrack(id: string, updates: Partial<{
-  title: string;
-  artist: string;
-  category: string;
-  file_url: string;
-  cover_image?: string;
-  duration?: number;
-}>): Promise<MusicTrack | null> {
-  try {
-    const { data, error } = await supabase
-      .from('music_tracks')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    return {
-      id: data.id,
-      title: data.title,
-      artist: data.artist,
-      url: data.file_url,
-      coverImage: data.cover_image || '',
-      duration: data.duration ? `${Math.floor(data.duration / 60)}:${String(data.duration % 60).padStart(2, '0')}` : undefined,
-      category: data.category
-    };
-  } catch (error) {
-    console.error('Error updating track:', error);
-    return null;
-  }
-}
+    if (error) {
+      console.error('Erreur lors de la récupération des pistes:', error);
+      throw error;
+    }
 
-export async function deleteTrack(id: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('music_tracks')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
-    
-    return true;
+    // Enrichissement des données avec métadonnées calculées
+    return data?.map(track => enhanceTrackData(track)) || [];
   } catch (error) {
-    console.error('Error deleting track:', error);
-    return false;
+    console.error('Erreur dans getAllTracks:', error);
+    throw new Error('Impossible de récupérer les pistes musicales');
   }
-}
+};
 
-export async function createPlaylist(name: string, userId: string, isPublic: boolean = false): Promise<{ id: string, name: string } | null> {
-  try {
-    const { data, error } = await supabase
-      .from('playlists')
-      .insert([{ name, user_id: userId, is_public: isPublic }])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    return { id: data.id, name: data.name };
-  } catch (error) {
-    console.error('Error creating playlist:', error);
-    return null;
-  }
-}
-
-export async function getUserPlaylists(userId: string): Promise<{ id: string, name: string }[]> {
+/**
+ * Récupère les playlists de l'utilisateur
+ */
+export const getUserPlaylists = async (userId: string): Promise<{id: string, name: string}[]> => {
   try {
     const { data, error } = await supabase
       .from('playlists')
       .select('id, name')
       .eq('user_id', userId)
-      .order('name');
-    
-    if (error) throw error;
-    
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Erreur lors de la récupération des playlists:', error);
+      throw error;
+    }
+
     return data || [];
   } catch (error) {
-    console.error('Error fetching playlists:', error);
-    return [];
+    console.error('Erreur dans getUserPlaylists:', error);
+    throw new Error('Impossible de récupérer les playlists');
   }
-}
+};
 
-export async function addTrackToPlaylist(playlistId: string, trackId: string, position: number): Promise<boolean> {
+/**
+ * Crée une nouvelle playlist
+ */
+export const createPlaylist = async (name: string, userId: string): Promise<{id: string, name: string} | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('playlists')
+      .insert({
+        user_id: userId,
+        name,
+        is_public: false
+      })
+      .select('id, name')
+      .single();
+
+    if (error) {
+      console.error('Erreur lors de la création de la playlist:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Erreur dans createPlaylist:', error);
+    throw new Error('Impossible de créer la playlist');
+  }
+};
+
+/**
+ * Ajoute une piste à une playlist
+ */
+export const addTrackToPlaylist = async (
+  playlistId: string,
+  trackId: string,
+  position: number
+): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('playlist_tracks')
-      .insert([{ playlist_id: playlistId, track_id: trackId, position }]);
-    
-    if (error) throw error;
-    
+      .insert({
+        playlist_id: playlistId,
+        track_id: trackId, // Correction: utiliser track_id au lieu de music_track_id
+        position
+      });
+
+    if (error) {
+      console.error('Erreur lors de l\'ajout de la piste:', error);
+      throw error;
+    }
+
     return true;
   } catch (error) {
-    console.error('Error adding track to playlist:', error);
+    console.error('Erreur dans addTrackToPlaylist:', error);
     return false;
   }
-}
+};
 
-export async function getPlaylistTracks(playlistId: string): Promise<MusicTrack[]> {
-  try {
-    const { data, error } = await supabase
-      .from('playlist_tracks')
-      .select('track_id, music_tracks(*)')
-      .eq('playlist_id', playlistId)
-      .order('position');
-    
-    if (error) throw error;
-    
-    return data.map(item => {
-      const track = item.music_tracks;
-      return {
-        id: track.id,
-        title: track.title,
-        artist: track.artist,
-        url: track.file_url,
-        coverImage: track.cover_image || '',
-        duration: track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : undefined,
-        category: track.category
-      };
-    });
-  } catch (error) {
-    console.error('Error fetching playlist tracks:', error);
-    return [];
-  }
-}
+/**
+ * Enrichit les données d'une piste avec des métadonnées calculées
+ */
+const enhanceTrackData = (track: MusicTrack): EnhancedMusicTrack => {
+  return {
+    ...track,
+    formatted_duration: formatDuration(track.duration),
+    is_favorite: false, // À déterminer depuis les préférences utilisateur
+    play_count: 0, // À récupérer depuis les statistiques d'écoute
+  };
+};
+
+/**
+ * Formate une durée en secondes vers un format lisible
+ */
+const formatDuration = (duration: number | null): string => {
+  if (!duration || duration <= 0) return '0:00';
+  
+  const minutes = Math.floor(duration / 60);
+  const seconds = Math.floor(duration % 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};

@@ -1,62 +1,109 @@
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { checkPremiumStatus } from '@/lib/auth/services/subscription-service';
 
 /**
- * Hook to check if the current user has premium access
- * @returns Object containing isPremium status and loading state
+ * Hook pour vérifier et gérer le statut premium de l'utilisateur
+ * Utilise un système de cache pour optimiser les performances
+ * 
+ * @returns Objet contenant le statut premium et l'état de chargement
  */
 export const usePremiumStatus = () => {
   const { user } = useAuth();
+  
+  // États pour la gestion du statut premium
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // Create a cache key based on the user ID
+  // Clé de cache basée sur l'ID utilisateur
   const cacheKey = `premium_status_${user?.id || 'no_user'}`;
+  const cacheTimestampKey = `${cacheKey}_timestamp`;
+
+  /**
+   * Vérifie si le cache est valide (moins de 5 minutes)
+   * @returns true si le cache est valide, false sinon
+   */
+  const isCacheValid = useCallback((): boolean => {
+    const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
+    if (!cachedTimestamp) return false;
+
+    const timestamp = parseInt(cachedTimestamp, 10);
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000; // 5 minutes en millisecondes
+    
+    return (now - timestamp) < fiveMinutes;
+  }, [cacheTimestampKey]);
+
+  /**
+   * Met en cache le statut premium
+   * @param status - Statut premium à mettre en cache
+   */
+  const cacheStatus = useCallback((status: boolean): void => {
+    localStorage.setItem(cacheKey, String(status));
+    localStorage.setItem(cacheTimestampKey, String(Date.now()));
+    console.log('PremiumStatus: Statut mis en cache:', status);
+  }, [cacheKey, cacheTimestampKey]);
+
+  /**
+   * Récupère le statut depuis le cache
+   * @returns Statut premium ou null si pas en cache
+   */
+  const getCachedStatus = useCallback((): boolean | null => {
+    const cachedStatus = localStorage.getItem(cacheKey);
+    return cachedStatus ? cachedStatus === 'true' : null;
+  }, [cacheKey]);
 
   useEffect(() => {
+    /**
+     * Vérifie le statut premium de l'utilisateur
+     * Utilise le cache si disponible et valide
+     */
     const checkStatus = async () => {
       if (!user) {
+        console.log('PremiumStatus: Pas d\'utilisateur connecté');
         setIsPremium(false);
         setIsLoading(false);
         return;
       }
 
       try {
-        // Try to get cached status first (valid for 5 minutes)
-        const cachedStatus = localStorage.getItem(cacheKey);
-        const cachedTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
-        
-        // If we have a cached value and it's less than 5 minutes old, use it
-        if (cachedStatus && cachedTimestamp) {
-          const timestamp = parseInt(cachedTimestamp, 10);
-          const now = Date.now();
-          const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-          
-          if (now - timestamp < fiveMinutes) {
-            setIsPremium(cachedStatus === 'true');
+        // Vérification du cache en premier
+        if (isCacheValid()) {
+          const cachedStatus = getCachedStatus();
+          if (cachedStatus !== null) {
+            console.log('PremiumStatus: Utilisation du cache:', cachedStatus);
+            setIsPremium(cachedStatus);
             setIsLoading(false);
             return;
           }
         }
         
-        // Otherwise, fetch from API
+        // Récupération depuis l'API si pas de cache valide
+        console.log('PremiumStatus: Vérification du statut depuis l\'API');
         const hasPremium = await checkPremiumStatus(user.id);
-        setIsPremium(hasPremium);
         
-        // Cache the result for 5 minutes
-        localStorage.setItem(cacheKey, String(hasPremium));
-        localStorage.setItem(`${cacheKey}_timestamp`, String(Date.now()));
+        setIsPremium(hasPremium);
+        cacheStatus(hasPremium);
+        
+        console.log('PremiumStatus: Statut vérifié:', hasPremium);
       } catch (error) {
-        console.error('Error checking premium status:', error);
+        console.error('PremiumStatus: Erreur lors de la vérification:', error);
         setIsPremium(false);
+        
+        // En cas d'erreur, utiliser le cache si disponible
+        const cachedStatus = getCachedStatus();
+        if (cachedStatus !== null) {
+          setIsPremium(cachedStatus);
+          console.log('PremiumStatus: Utilisation du cache de secours:', cachedStatus);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     checkStatus();
-  }, [user, cacheKey]);
+  }, [user, isCacheValid, getCachedStatus, cacheStatus]);
 
   return { isPremium, isLoading };
 };

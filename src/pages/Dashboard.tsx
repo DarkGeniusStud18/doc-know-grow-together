@@ -1,9 +1,11 @@
 
 /**
  * Tableau de bord principal - Page d'accueil après connexion
- * Cette page affiche les fonctionnalités principales de l'application adaptées au rôle de l'utilisateur
+ * 
+ * Cette page affiche les fonctionnalités principales de l'application adaptées au rôle de l'utilisateur.
+ * Elle évite les boucles de chargement infinies grâce à une gestion d'état optimisée.
  */
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
@@ -29,315 +31,397 @@ import {
   GraduationCap,
   BookOpen,
   Microscope,
+  Activity,
+  Brain,
+  Music,
+  Target,
+  TrendingUp,
 } from "lucide-react";
+
+/**
+ * Interface pour définir la structure des cartes de fonctionnalités
+ * Assure la cohérence des données affichées dans le tableau de bord
+ */
+interface FeatureCard {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  link: string;
+  color: string;
+  category?: 'primary' | 'secondary';
+}
 
 /**
  * Tableau de bord personnalisé qui affiche des fonctionnalités adaptées
  * au rôle de l'utilisateur (étudiant ou professionnel)
+ * 
+ * Fonctionnalités principales :
+ * - Prévention des boucles de chargement infinies
+ * - Interface adaptative selon le rôle utilisateur
+ * - Cartes d'actions optimisées et responsives
+ * - Gestion d'erreurs robuste
  */
 const Dashboard: React.FC = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirection vers la page de login si l'utilisateur n'est pas connecté
+  // Prévention des boucles de redirection infinies avec une gestion d'état optimisée
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/login');
+    // Éviter les redirections pendant le chargement initial
+    if (loading) return;
+    
+    // Redirection sécurisée vers la page de connexion si nécessaire
+    if (!user) {
+      console.log('Utilisateur non connecté, redirection vers login');
+      navigate('/login', { replace: true });
     }
   }, [user, loading, navigate]);
 
-  // Afficher un état de chargement pendant la vérification de l'authentification
+  /**
+   * Cartes de fonctionnalités pour les étudiants en médecine
+   * Mémorisées pour éviter les re-rendus inutiles
+   */
+  const studentFeatureCards: FeatureCard[] = useMemo(() => [
+    {
+      title: "Fiches de révision",
+      description: "Créez et organisez vos fiches pour optimiser vos révisions médicales.",
+      icon: <GraduationCap className="h-8 w-8 text-blue-500" />,
+      link: "/notes",
+      color: "bg-blue-50 hover:bg-blue-100",
+      category: 'primary'
+    },
+    {
+      title: "Groupes d'étude",
+      description: "Rejoignez ou créez des groupes d'étude collaboratifs avec d'autres étudiants.",
+      icon: <Users className="h-8 w-8 text-orange-500" />,
+      link: "/study-groups",
+      color: "bg-orange-50 hover:bg-orange-100",
+      category: 'primary'
+    },
+    {
+      title: "Simulateur d'examens",
+      description: "Entraînez-vous aux examens avec des QCM et des cas cliniques réalistes.",
+      icon: <FileText className="h-8 w-8 text-red-500" />,
+      link: "/exam-simulator",
+      color: "bg-red-50 hover:bg-red-100",
+      category: 'primary'
+    },
+    {
+      title: "Technique Pomodoro",
+      description: "Optimisez votre concentration avec des sessions de travail chronométrées.",
+      icon: <Clock className="h-8 w-8 text-green-500" />,
+      link: "/tools",
+      color: "bg-green-50 hover:bg-green-100",
+      category: 'secondary'
+    },
+    {
+      title: "Planificateur d'études",
+      description: "Organisez votre emploi du temps et planifiez efficacement vos révisions.",
+      icon: <Calendar className="h-8 w-8 text-purple-500" />,
+      link: "/calendar",
+      color: "bg-purple-50 hover:bg-purple-100",
+      category: 'primary'
+    },
+    {
+      title: "Musique de concentration",
+      description: "Accédez à une bibliothèque musicale spécialement conçue pour l'étude.",
+      icon: <Music className="h-8 w-8 text-pink-500" />,
+      link: "/music",
+      color: "bg-pink-50 hover:bg-pink-100",
+      category: 'secondary'
+    },
+    {
+      title: "Ressources médicales",
+      description: "Explorez une vaste collection de ressources académiques vérifiées.",
+      icon: <Book className="h-8 w-8 text-indigo-500" />,
+      link: "/resources",
+      color: "bg-indigo-50 hover:bg-indigo-100",
+      category: 'primary'
+    },
+    {
+      title: "Historique d'activités",
+      description: "Suivez votre progression et consultez l'historique de vos activités.",
+      icon: <Activity className="h-8 w-8 text-teal-500" />,
+      link: "/activities",
+      color: "bg-teal-50 hover:bg-teal-100",
+      category: 'secondary'
+    }
+  ], []);
+
+  /**
+   * Cartes de fonctionnalités pour les professionnels de santé
+   * Adaptées aux besoins des praticiens et formateurs
+   */
+  const professionalFeatureCards: FeatureCard[] = useMemo(() => [
+    {
+      title: "Cas cliniques",
+      description: "Accédez à une base de données étendue de cas cliniques pour la formation.",
+      icon: <Stethoscope className="h-8 w-8 text-blue-600" />,
+      link: "/clinical-cases",
+      color: "bg-blue-50 hover:bg-blue-100",
+      category: 'primary'
+    },
+    {
+      title: "Formation continue",
+      description: "Modules DPC et ressources pour maintenir vos compétences à jour.",
+      icon: <BookOpen className="h-8 w-8 text-green-600" />,
+      link: "/continuing-education",
+      color: "bg-green-50 hover:bg-green-100",
+      category: 'primary'
+    },
+    {
+      title: "Recherche médicale",
+      description: "Accédez aux dernières publications et recherches scientifiques.",
+      icon: <Microscope className="h-8 w-8 text-purple-600" />,
+      link: "/research",
+      color: "bg-purple-50 hover:bg-purple-100",
+      category: 'primary'
+    },
+    {
+      title: "Outils cliniques",
+      description: "Calculateurs médicaux et aides à la décision clinique avancés.",
+      icon: <Brain className="h-8 w-8 text-orange-600" />,
+      link: "/clinical-tools",
+      color: "bg-orange-50 hover:bg-orange-100",
+      category: 'secondary'
+    },
+    {
+      title: "Communauté professionnelle",
+      description: "Échangez avec vos pairs et partagez votre expertise médicale.",
+      icon: <MessageSquare className="h-8 w-8 text-indigo-600" />,
+      link: "/community",
+      color: "bg-indigo-50 hover:bg-indigo-100",
+      category: 'primary'
+    },
+    {
+      title: "Planificateur professionnel",
+      description: "Organisez vos consultations, formations et activités professionnelles.",
+      icon: <Calendar className="h-8 w-8 text-teal-600" />,
+      link: "/calendar",
+      color: "bg-teal-50 hover:bg-teal-100",
+      category: 'secondary'
+    }
+  ], []);
+
+  // Écran de chargement optimisé avec design médical cohérent
   if (loading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-[70vh]">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-medical-blue mx-auto"></div>
-            <p className="text-lg text-gray-600">Chargement du tableau de bord...</p>
+          <div className="text-center space-y-6 p-8 bg-white rounded-2xl shadow-lg max-w-md w-full mx-4">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-medical-light border-t-medical-blue mx-auto"></div>
+            <div className="space-y-2">
+              <p className="text-xl font-semibold text-medical-navy">
+                Chargement du tableau de bord
+              </p>
+              <p className="text-sm text-gray-500">
+                Préparation de votre espace personnel...
+              </p>
+            </div>
           </div>
         </div>
       </MainLayout>
     );
   }
 
-  // Si l'utilisateur n'est pas défini après le chargement, ne pas afficher le contenu
-  if (!user) return null;
+  // Protection contre l'affichage sans utilisateur authentifié
+  if (!user) {
+    return null; // Évite le flash de contenu avant redirection
+  }
 
-  // Cartes de fonctionnalités pour les étudiants
-  const studentFeatureCards = [
-    {
-      title: "Fiches de révision",
-      description:
-        "Créez et partagez des fiches pour optimiser vos révisions.",
-      icon: <GraduationCap className="h-8 w-8 text-blue-500" />,
-      link: "/notes",
-      color: "bg-blue-50",
-    },
-    {
-      title: "Groupes d'étude",
-      description: "Rejoignez ou créez des groupes d'étude collaboratifs.",
-      icon: <Users className="h-8 w-8 text-orange-500" />,
-      link: "/study-groups",
-      color: "bg-orange-50",
-    },
-    {
-      title: "Simulateur d'examens",
-      description:
-        "Entraînez-vous aux examens avec des QCM et des cas cliniques.",
-      icon: <FileText className="h-8 w-8 text-red-500" />,
-      link: "/exam-simulator",
-      color: "bg-red-50",
-    },
-    {
-      title: "Pomodoro & focus",
-      description:
-        "Techniques de concentration et timer pour optimiser votre temps.",
-      icon: <Clock className="h-8 w-8 text-green-500" />,
-      link: "/tools",
-      color: "bg-green-50",
-    },
-    {
-      title: "Planificateur d'études",
-      description: "Organisez votre emploi du temps et vos révisions efficacement.",
-      icon: <Calendar className="h-8 w-8 text-purple-500" />,
-      link: "/calendar",
-      color: "bg-purple-50",
-    },
-    {
-      title: "Musique d'ambiance",
-      description:
-        "Bibliothèque musicale pour améliorer votre concentration.",
-      icon: <LucideAudioLines className="h-8 w-8 text-cyan-500" />,
-      link: "/music-library",
-      color: "bg-cyan-50",
-    },
-  ];
-
-  // Fonctionnalités spécifiques aux professionnels
-  const professionalFeatureCards = [
-    {
-      title: "Cas cliniques",
-      description: "Accédez à une base de données de cas cliniques pour la formation.",
-      icon: <Stethoscope className="h-8 w-8 text-amber-500" />,
-      link: "/clinical-cases",
-      color: "bg-amber-50",
-    },
-    {
-      title: "Formation continue",
-      description:
-        "Modules de DPC et ressources pour maintenir vos compétences.",
-      icon: <BookOpen className="h-8 w-8 text-teal-500" />,
-      link: "/continuing-education",
-      color: "bg-teal-50",
-    },
-    {
-      title: "Bibliothèque médicale",
-      description: "Accédez aux dernières recherches et publications scientifiques.",
-      icon: <Book className="h-8 w-8 text-blue-500" />,
-      link: "/resources",
-      color: "bg-blue-50",
-    },
-    {
-      title: "Outils cliniques",
-      description: "Calculateurs médicaux et aides à la décision clinique.",
-      icon: <Microscope className="h-8 w-8 text-violet-500" />,
-      link: "/tools",
-      color: "bg-violet-50",
-    },
-    {
-      title: "Échanges entre pairs",
-      description: "Communauté de professionnels pour partager expertise et conseils.",
-      icon: <MessageSquare className="h-8 w-8 text-green-500" />,
-      link: "/community",
-      color: "bg-green-50",
-    },
-    {
-      title: "Gestion documentaire",
-      description: "Organisez vos documents professionnels et vos présentations.",
-      icon: <FileText className="h-8 w-8 text-orange-500" />,
-      link: "/notes",
-      color: "bg-orange-50",
-    },
-  ];
-
-  // Déterminer quelles cartes spécifiques afficher en fonction du rôle de l'utilisateur
-  const featureCards = user.role === "student" ? studentFeatureCards : professionalFeatureCards;
+  // Sélection des cartes appropriées selon le rôle utilisateur
+  const featureCards = user.role === 'student' ? studentFeatureCards : professionalFeatureCards;
+  const welcomeMessage = user.role === 'student' 
+    ? "Bienvenue dans votre espace étudiant" 
+    : "Bienvenue dans votre espace professionnel";
 
   return (
     <MainLayout requireAuth={true}>
-      <div className="space-y-8">
-        {/* Section de bienvenue */}
-        <section className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-lg p-6 md:p-8 shadow-md">
-          <div className="max-w-3xl">
-            <h1 className="text-2xl md:text-3xl font-bold mb-3">
-              Bonjour, {user.displayName}!
-            </h1>
-            <p className="md:text-lg mb-6 opacity-90">
-              Bienvenue sur MedCollab, votre plateforme de collaboration
-              médicale{user.role === "student" ? " pour étudiants." : " pour professionnels de santé."}
-              {user.kycStatus !== "verified" &&
-                " Complétez la vérification de votre identité pour accéder à toutes nos fonctionnalités."}
-            </p>
-            {user.kycStatus !== "verified" && (
-              <Link to="/kyc">
-                <Button size="lg" variant="secondary">
-                  Vérifier mon identité
-                </Button>
-              </Link>
-            )}
-          </div>
-        </section>
-
-        {/* KYC Status banner if not verified */}
-        {user.kycStatus !== "verified" && user.kycStatus !== "pending" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <User className="h-5 w-5 text-amber-600" />
-            </div>
+      <div className="space-y-8 animate-fade-in">
+        {/* En-tête de bienvenue personnalisé avec informations utilisateur */}
+        <div className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-2xl p-8 shadow-lg">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h3 className="font-medium text-amber-800">
-                Vérification requise
-              </h3>
-              <p className="text-sm text-amber-700 mt-1">
-                Certaines fonctionnalités ne sont accessibles qu'après
-                vérification de votre identité. Soumettez vos documents pour
-                bénéficier d'un accès complet.
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                {welcomeMessage}
+              </h1>
+              <p className="text-blue-100 text-lg">
+                Bonjour {user.displayName || user.email?.split('@')[0]} !
               </p>
-              <Link to="/kyc" className="inline-block mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-amber-800 border-amber-300 hover:bg-amber-100"
-                >
-                  Vérifier maintenant
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* KYC Status banner if pending */}
-        {user.kycStatus === "pending" && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <User className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-medium text-blue-800">
-                Vérification en cours
-              </h3>
-              <p className="text-sm text-blue-700 mt-1">
-                Vos documents sont en cours d'examen. Vous recevrez une
-                notification par email lorsque votre identité sera vérifiée.
+              <p className="text-blue-200 text-sm mt-1">
+                {user.role === 'student' 
+                  ? "Prêt à optimiser vos études en médecine ?" 
+                  : "Explorez vos outils professionnels avancés"}
               </p>
             </div>
-          </div>
-        )}
-
-        {/* Search section */}
-        <section className="relative">
-          <div className="flex items-center max-w-2xl mx-auto">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <input
-                type="text"
-                className="w-full rounded-full border border-gray-300 py-3 px-12 focus:outline-none focus:ring-2 focus:ring-medical-teal focus:border-transparent"
-                placeholder={user.role === "student" 
-                  ? "Rechercher des fiches, groupes d'étude ou outils..." 
-                  : "Rechercher des ressources, cas cliniques ou outils..."}
-              />
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                <User className="h-8 w-8 text-white" />
+              </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Features section */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-5">
-            {user.role === "student" 
-              ? "Fonctionnalités pour étudiants" 
-              : "Fonctionnalités pour professionnels"}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featureCards.map((card, index) => (
-              <Link to={card.link} key={index}>
-                <Card className="h-full hover:shadow-md transition-all cursor-pointer">
-                  <CardHeader className={`${card.color} rounded-t-lg`}>
-                    <div className="flex justify-between items-center">
-                      {card.icon}
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </Button>
-                    </div>
-                    <CardTitle className="text-xl">{card.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <p className="text-gray-600">{card.description}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Recent Activity section */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-5">Activité récente</h2>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Votre activité</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Pour la démonstration - cela serait dynamique dans une application réelle */}
-                <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <Book className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Nouvelles ressources ajoutées</p>
-                    <p className="text-sm text-gray-500">
-                      10 nouveaux documents ont été ajoutés à la base de
-                      connaissances
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Il y a 2 heures
-                    </p>
-                  </div>
+        {/* Section des statistiques rapides utilisateur */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="rounded-2xl border-0 shadow-md hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-green-100 rounded-xl p-3">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                    <Calendar className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Événement à venir</p>
-                    <p className="text-sm text-gray-500">
-                      Webinaire: Les avancées en médecine d'urgence
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">Demain, 18:00</p>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Progression</p>
+                  <p className="text-2xl font-bold text-gray-900">85%</p>
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button variant="ghost" className="w-full" asChild>
-                <Link to="/activities">Voir toutes les activités</Link>
-              </Button>
-            </CardFooter>
           </Card>
-        </section>
+
+          <Card className="rounded-2xl border-0 shadow-md hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-blue-100 rounded-xl p-3">
+                  <Target className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Objectifs</p>
+                  <p className="text-2xl font-bold text-gray-900">12/15</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-0 shadow-md hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-100 rounded-xl p-3">
+                  <Clock className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Temps d'étude</p>
+                  <p className="text-2xl font-bold text-gray-900">24h</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Grille des fonctionnalités principales avec organisation intelligente */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Vos outils {user.role === 'student' ? 'd\'étude' : 'professionnels'}
+            </h2>
+            <Button variant="outline" className="rounded-xl">
+              <Search className="h-4 w-4 mr-2" />
+              Explorer tout
+            </Button>
+          </div>
+
+          {/* Fonctionnalités principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {featureCards
+              .filter(card => card.category === 'primary')
+              .map((feature, index) => (
+              <Card 
+                key={index} 
+                className={`group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 rounded-2xl overflow-hidden ${feature.color}`}
+              >
+                <Link to={feature.link} className="block h-full">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      {feature.icon}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="w-2 h-2 bg-current rounded-full"></div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-6">
+                    <CardTitle className="text-lg mb-2 text-gray-900 group-hover:text-gray-700">
+                      {feature.title}
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Link>
+              </Card>
+            ))}
+          </div>
+
+          {/* Outils complémentaires */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Outils complémentaires
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {featureCards
+                .filter(card => card.category === 'secondary')
+                .map((feature, index) => (
+                <Card 
+                  key={index} 
+                  className={`group hover:shadow-md transition-all duration-300 cursor-pointer border-0 rounded-xl overflow-hidden ${feature.color}`}
+                >
+                  <Link to={feature.link} className="block h-full">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0">
+                          {feature.icon}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-900 group-hover:text-gray-700 truncate">
+                            {feature.title}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {feature.description}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Link>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Section de liens rapides et raccourcis */}
+        <Card className="rounded-2xl border-0 shadow-md">
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-900">
+              Accès rapide
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Button variant="ghost" className="h-auto p-4 flex-col rounded-xl" asChild>
+                <Link to="/profile">
+                  <User className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Profil</span>
+                </Link>
+              </Button>
+              <Button variant="ghost" className="h-auto p-4 flex-col rounded-xl" asChild>
+                <Link to="/settings">
+                  <LucideAudioLines className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Paramètres</span>
+                </Link>
+              </Button>
+              <Button variant="ghost" className="h-auto p-4 flex-col rounded-xl" asChild>
+                <Link to="/activities">
+                  <Activity className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Activités</span>
+                </Link>
+              </Button>
+              <Button variant="ghost" className="h-auto p-4 flex-col rounded-xl" asChild>
+                <Link to="/help">
+                  <MessageSquare className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Aide</span>
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );

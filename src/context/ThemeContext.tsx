@@ -4,11 +4,35 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Types de thème disponibles pour l'application
+ * - light: Thème clair (défaut)
+ * - dark: Thème sombre
+ * - system: Suit les préférences système de l'utilisateur
+ */
 type Theme = "light" | "dark" | "system";
+
+/**
+ * Types de police disponibles
+ * - default: Police système sans-serif
+ * - serif: Police avec empattements (Georgia, Times)
+ * - mono: Police monospace (Courier, Consolas)
+ */
 type Font = "default" | "serif" | "mono";
+
+/**
+ * Schémas de couleurs disponibles pour personnaliser l'interface
+ */
 type ColorScheme = "default" | "blue" | "green" | "purple" | "orange" | "red" | "indigo" | "pink" | "teal";
+
+/**
+ * Tailles de police disponibles pour l'accessibilité
+ */
 type FontSize = "small" | "normal" | "large" | "extra-large";
 
+/**
+ * Interface du contexte de thème avec toutes les options de personnalisation
+ */
 interface ThemeContextType {
   theme: Theme;
   font: Font;
@@ -27,47 +51,70 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/**
+ * Fournisseur de contexte de thème avec gestion des préférences utilisateur
+ * Synchronise automatiquement avec la base de données pour les utilisateurs connectés
+ * Utilise le localStorage pour les utilisateurs non connectés
+ */
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // Safe access to auth context - handle case where AuthProvider might not be available
-  let user = null;
-  try {
-    // Dynamic import of useAuth to avoid circular dependency issues
-    const { useAuth } = require("@/context/AuthContext");
-    const authContext = useAuth();
-    user = authContext?.user;
-  } catch (error) {
-    // Auth context not available yet, proceed without user
-    console.log('Auth context not available in ThemeProvider');
-  }
-
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  // Initialize with default values
-  const [theme, setThemeState] = useState<Theme>("light");
+  // Initialisation avec des valeurs par défaut optimisées pour l'expérience utilisateur
+  const [theme, setThemeState] = useState<Theme>("light"); // Thème clair par défaut
   const [font, setFontState] = useState<Font>("default");
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>("default");
   const [fontSize, setFontSizeState] = useState<FontSize>("normal");
   const [highContrast, setHighContrastState] = useState(false);
   const [reduceMotion, setReduceMotionState] = useState(false);
 
-  // Load user preferences from database
+  // Écoute des changements d'authentification pour synchroniser les préférences
   useEffect(() => {
+    /**
+     * Récupération de l'utilisateur initial au chargement de l'application
+     */
+    const getInitialUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id || null);
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur initial:', error);
+        setCurrentUserId(null);
+      }
+    };
+
+    getInitialUser();
+
+    // Abonnement aux changements d'état d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setCurrentUserId(session?.user?.id || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Chargement des préférences utilisateur depuis la base de données ou localStorage
+  useEffect(() => {
+    /**
+     * Chargement des préférences d'affichage utilisateur
+     * Priorité : Base de données > localStorage > Valeurs par défaut
+     */
     const loadUserPreferences = async () => {
-      if (!user) {
-        // Load from localStorage for unauthenticated users
-        const savedTheme = localStorage.getItem("theme") as Theme;
-        const savedFont = localStorage.getItem("font") as Font;
-        const savedColorScheme = localStorage.getItem("colorScheme") as ColorScheme;
-        const savedFontSize = localStorage.getItem("fontSize") as FontSize;
+      if (!currentUserId) {
+        // Chargement depuis localStorage pour les utilisateurs non connectés
+        const savedTheme = (localStorage.getItem("theme") as Theme) || "light";
+        const savedFont = (localStorage.getItem("font") as Font) || "default";
+        const savedColorScheme = (localStorage.getItem("colorScheme") as ColorScheme) || "default";
+        const savedFontSize = (localStorage.getItem("fontSize") as FontSize) || "normal";
         const savedHighContrast = localStorage.getItem("highContrast") === "true";
         const savedReduceMotion = localStorage.getItem("reduceMotion") === "true";
         
-        if (savedTheme) setThemeState(savedTheme);
-        if (savedFont) setFontState(savedFont);
-        if (savedColorScheme) setColorSchemeState(savedColorScheme);
-        if (savedFontSize) setFontSizeState(savedFontSize);
+        setThemeState(savedTheme);
+        setFontState(savedFont);
+        setColorSchemeState(savedColorScheme);
+        setFontSizeState(savedFontSize);
         setHighContrastState(savedHighContrast);
         setReduceMotionState(savedReduceMotion);
         
@@ -76,40 +123,58 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       try {
+        // Récupération des préférences depuis la base de données
         const { data, error } = await supabase
           .from('user_display_preferences')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', currentUserId)
           .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error loading display preferences:', error);
+          console.error('Erreur lors du chargement des préférences d\'affichage:', error);
           setLoading(false);
           return;
         }
 
         if (data) {
-          setThemeState(data.theme as Theme);
-          setFontState(data.font_family as Font);
-          setColorSchemeState(data.color_scheme as ColorScheme);
-          setFontSizeState(data.font_size as FontSize);
-          setHighContrastState(data.high_contrast);
-          setReduceMotionState(data.reduce_motion);
+          // Application des préférences sauvegardées
+          setThemeState((data.theme as Theme) || "light");
+          setFontState((data.font_family as Font) || "default");
+          setColorSchemeState((data.color_scheme as ColorScheme) || "default");
+          setFontSizeState((data.font_size as FontSize) || "normal");
+          setHighContrastState(data.high_contrast || false);
+          setReduceMotionState(data.reduce_motion || false);
+        } else {
+          // Création d'entrée par défaut si aucune préférence n'existe
+          await supabase
+            .from('user_display_preferences')
+            .insert({
+              user_id: currentUserId,
+              theme: 'light',
+              font_family: 'default',
+              color_scheme: 'default',
+              font_size: 'normal',
+              high_contrast: false,
+              reduce_motion: false
+            });
         }
       } catch (error) {
-        console.error('Error loading display preferences:', error);
+        console.error('Erreur lors du chargement des préférences d\'affichage:', error);
       } finally {
         setLoading(false);
       }
     };
 
     loadUserPreferences();
-  }, [user]);
+  }, [currentUserId]);
 
-  // Save preferences to database
+  /**
+   * Sauvegarde des préférences utilisateur
+   * Base de données pour utilisateurs connectés, localStorage sinon
+   */
   const savePreferences = async (updates: any) => {
-    if (!user) {
-      // Save to localStorage for unauthenticated users
+    if (!currentUserId) {
+      // Sauvegarde en localStorage pour les utilisateurs non connectés
       Object.keys(updates).forEach(key => {
         localStorage.setItem(key, updates[key]?.toString() || '');
       });
@@ -120,7 +185,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       const { error } = await supabase
         .from('user_display_preferences')
         .upsert({
-          user_id: user.id,
+          user_id: currentUserId,
           ...updates,
           updated_at: new Date().toISOString()
         }, {
@@ -128,14 +193,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         });
 
       if (error) {
-        console.error('Error saving display preferences:', error);
+        console.error('Erreur lors de la sauvegarde des préférences d\'affichage:', error);
       }
     } catch (error) {
-      console.error('Error saving display preferences:', error);
+      console.error('Erreur lors de la sauvegarde des préférences d\'affichage:', error);
     }
   };
 
-  // Apply theme effects
+  // Application dynamique du thème sur l'élément racine
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -143,6 +208,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
+      // Détection automatique du thème système
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches ? "dark" : "light";
       root.classList.add(systemTheme);
@@ -151,7 +217,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [theme]);
 
-  // Apply font effects
+  // Application dynamique de la police
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -171,7 +237,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [font]);
 
-  // Apply color scheme effects
+  // Application dynamique du schéma de couleurs
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -183,7 +249,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     root.classList.add(`color-${colorScheme}`);
   }, [colorScheme]);
 
-  // Apply font size effects
+  // Application dynamique de la taille de police
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -192,7 +258,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     root.classList.add(`text-${fontSize}`);
   }, [fontSize]);
 
-  // Apply accessibility effects
+  // Application des options d'accessibilité
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -211,7 +277,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [highContrast, reduceMotion]);
 
-  // Listen for system theme changes
+  // Écoute des changements de thème système
   useEffect(() => {
     if (typeof window === 'undefined' || theme !== "system") return;
 
@@ -226,6 +292,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
 
+  // Fonctions de mise à jour des préférences avec sauvegarde automatique
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     savePreferences({ theme: newTheme });
@@ -279,10 +346,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+/**
+ * Hook personnalisé pour accéder au contexte de thème
+ * Vérifie que le composant est bien dans un ThemeProvider
+ */
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    throw new Error("useTheme doit être utilisé dans un ThemeProvider");
   }
   return context;
 };

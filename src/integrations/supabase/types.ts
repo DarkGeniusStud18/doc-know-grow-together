@@ -220,6 +220,13 @@ export type Database = {
             referencedRelation: "community_topics"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_community_discussions_topic"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "community_topics"
+            referencedColumns: ["id"]
+          },
         ]
       }
       community_responses: {
@@ -266,6 +273,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_community_responses_topic"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "community_topics"
             referencedColumns: ["id"]
           },
         ]
@@ -361,6 +375,48 @@ export type Database = {
           },
         ]
       }
+      discussion_chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          topic_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          topic_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          topic_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_chat_messages_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "community_topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_discussion_chat_messages_topic"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "community_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edit_notifications: {
         Row: {
           created_at: string
@@ -386,6 +442,13 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "edit_notifications_edit_id_fkey"
+            columns: ["edit_id"]
+            isOneToOne: false
+            referencedRelation: "resource_edits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_edit_notifications_edit"
             columns: ["edit_id"]
             isOneToOne: false
             referencedRelation: "resource_edits"
@@ -535,6 +598,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_group_messages_group"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "group_messages_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
@@ -576,6 +646,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_group_resources_group"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_group_resources_resource"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "group_resources_added_by_fkey"
             columns: ["added_by"]
@@ -765,6 +849,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_playlist_tracks_playlist"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_playlist_tracks_track"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "music_tracks"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "playlist_tracks_playlist_id_fkey"
             columns: ["playlist_id"]
             isOneToOne: false
@@ -932,6 +1030,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_presentation_slides_presentation"
+            columns: ["presentation_id"]
+            isOneToOne: false
+            referencedRelation: "presentations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "presentation_slides_presentation_id_fkey"
             columns: ["presentation_id"]
             isOneToOne: false
@@ -1044,6 +1149,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_quiz_attempts_question"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_questions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quiz_attempts_question_id_fkey"
             columns: ["question_id"]
@@ -1188,6 +1300,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_resource_edits_article"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_resource_edits_resource"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "resource_edits_article_id_fkey"
             columns: ["article_id"]
             isOneToOne: false
@@ -1235,6 +1361,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_resource_files_resource"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "resource_files_resource_id_fkey"
             columns: ["resource_id"]
@@ -1379,6 +1512,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_study_group_members_group"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "study_group_members_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
@@ -1501,6 +1641,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_study_session_notes_session"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "study_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "study_session_notes_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -1598,6 +1745,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          category_id: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -1609,6 +1757,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -1620,6 +1769,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -1630,7 +1780,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_activities: {
         Row: {
@@ -1789,6 +1947,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_topic_popularity_score: {
+        Args: {
+          response_count: number
+          view_count: number
+          created_at: string
+          last_activity: string
+        }
+        Returns: number
+      }
       delete_group_message: {
         Args: { p_message_id: string; p_user_id: string }
         Returns: boolean

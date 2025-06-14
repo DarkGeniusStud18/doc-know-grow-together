@@ -14,16 +14,21 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       storageKey: 'medcollab-auth-token',
-      storage: localStorage,
+      storage: typeof window !== 'undefined' ? localStorage : undefined,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      debug: process.env.NODE_ENV === 'development'
+      debug: import.meta.env.DEV
+    },
+    global: {
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
     }
   }
 );
 
 // Enhanced auth event logging for debugging
-if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.DEV) {
   supabase.auth.onAuthStateChange((event, session) => {
     console.log('Supabase Auth Event:', event);
     console.log('Session:', session ? {
