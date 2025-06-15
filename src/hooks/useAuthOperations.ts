@@ -1,4 +1,3 @@
-
 /**
  * Hook personnalisé pour les opérations d'authentification
  * Gère les actions de connexion, déconnexion et inscription avec validation complète
@@ -104,40 +103,29 @@ export const useAuthOperations = () => {
 
   /**
    * Déconnexion de l'utilisateur avec nettoyage de session
-   * Efface toutes les données d'authentification locales
+   * Efface toutes les données d'authentification locales et redirige
    * 
-   * @returns Promise de déconnexion
+   * @returns Promise qui se résout après la tentative de déconnexion
    */
   const signOut = async () => {
     console.log('AuthOperations: Déconnexion de l\'utilisateur');
     setIsLoading(true);
-    try {
-      await serviceSignOut();
-      console.log('AuthOperations: Déconnexion réussie');
-    } catch (error) {
-      console.error('AuthOperations: Erreur de déconnexion:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    await serviceSignOut(); // Le service gère la redirection et les toasts
+    // Si la déconnexion échoue, le service n'aura pas redirigé, il faut donc arrêter le chargement.
+    setIsLoading(false);
   };
 
   /**
    * Déconnexion avec redirection optionnelle
-   * Permet de rediriger l'utilisateur après déconnexion
+   * Permet de rediriger l'utilisateur vers un chemin spécifique après déconnexion
    * 
    * @param redirectPath - Chemin de redirection optionnel
    */
   const logout = (redirectPath?: string) => {
     console.log('AuthOperations: Déconnexion avec redirection vers:', redirectPath);
-    
-    signOut().then(() => {
-      if (redirectPath) {
-        window.location.href = redirectPath;
-      }
-    }).catch((error) => {
-      console.error('AuthOperations: Erreur lors de la déconnexion avec redirection:', error);
-    });
+    setIsLoading(true);
+    // Le service gère la redirection. L'état de chargement sera résolu par le rechargement de la page.
+    serviceSignOut(redirectPath);
   };
 
   return {
