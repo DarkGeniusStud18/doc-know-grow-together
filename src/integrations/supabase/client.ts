@@ -1,22 +1,25 @@
-
 import { createClient } from '@supabase/supabase-js';
+import { Preferences } from '@capacitor/storage';
 import type { Database } from './types';
 
 let storage: any = typeof window !== 'undefined' ? localStorage : undefined;
 let storageKey = 'medcollab-auth-token';
 
 if (typeof window !== 'undefined') {
-  // Special handling for Capacitor & PWA storage
-  // Only load @capacitor/storage and helpers if in browser
   if ((window as any).Capacitor && navigator.userAgent.includes('Capacitor')) {
-    try {
-      // Use Capacitor Storage via Supabase's helper
-      const { CapacitorAuthHelper } = require('@supabase/auth-helpers-capacitor');
-      storage = CapacitorAuthHelper;
-      storageKey = 'supabase-session';
-    } catch (err) {
-      console.warn('Capacitor Storage not available:', err);
-    }
+    storage = {
+      getItem: async (key: string) => {
+        const { value } = await Preferences.get({ key });
+        return value;
+      },
+      setItem: async (key: string, value: string) => {
+        await Preferences.set({ key, value });
+      },
+      removeItem: async (key: string) => {
+        await Preferences.remove({ key });
+      }
+    };
+    storageKey = 'supabase-session';
   }
 }
 
@@ -48,11 +51,13 @@ export const supabase = createClient<Database>(
 if (import.meta.env.DEV) {
   supabase.auth.onAuthStateChange((event, session) => {
     console.log('Supabase Auth Event:', event);
-    console.log('Session:', session ? {
-      user: session.user?.id,
-      expires_at: session.expires_at,
-      access_token: session.access_token ? 'present' : 'missing'
-    } : 'No session');
+    console.log('Session:', session
+      ? {
+          user: session.user?.id,
+          expires_at: session.expires_at,
+          access_token: session.access_token ? 'present' : 'missing',
+        }
+      : 'No session'
+    );
   });
 }
-
