@@ -1,8 +1,14 @@
 
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+
+// Fonction utilitaire pour vérifier l'environnement d'exécution
+export const isNativeEnvironment = (): boolean => {
+  return typeof window !== 'undefined' && !!(window as any).Capacitor;
+};
 
 // Configuration par défaut pour le stockage
 let storage: any = typeof window !== 'undefined' ? localStorage : undefined;
@@ -106,11 +112,6 @@ if (import.meta.env.DEV) {
   });
 }
 
-// Fonction utilitaire pour vérifier l'environnement d'exécution
-export const isNativeEnvironment = (): boolean => {
-  return typeof window !== 'undefined' && !!(window as any).Capacitor;
-};
-
 // Fonction utilitaire pour obtenir des informations sur la plateforme
 export const getPlatformInfo = () => {
   if (typeof window === 'undefined') return { platform: 'server', isNative: false };
@@ -122,3 +123,4 @@ export const getPlatformInfo = () => {
     userAgent: navigator.userAgent
   };
 };
+
