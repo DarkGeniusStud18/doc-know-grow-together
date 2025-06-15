@@ -141,6 +141,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
+      external: ['@capacitor/storage'],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
