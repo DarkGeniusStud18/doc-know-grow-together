@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/lib/auth/types';
 import { getCurrentUser } from '@/lib/auth/user-service';
 
-export { User as AuthUser }; // Re-export for compatibility
+export type { User as AuthUser }; // Re-export for compatibility
 
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
