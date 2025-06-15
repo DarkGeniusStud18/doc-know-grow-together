@@ -1,106 +1,56 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { User } from '@supabase/supabase-js';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { User } from '@/lib/auth/types';
+import { getCurrentUser } from '@/lib/auth/user-service';
 
-export interface AuthUser extends User {
-  displayName: string;
-  profileImage?: string;
-  role: 'student' | 'professional';
-  kycStatus: 'not_submitted' | 'pending' | 'verified' | 'rejected';
-  university?: string;
-  specialty?: string;
-  createdAt: Date;
-  email: string;
-}
+export { User as AuthUser }; // Re-export for compatibility
 
 export const useSupabaseAuth = () => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
-  /**
-   * Charge le profil utilisateur depuis Supabase
-   */
-  const loadUserProfile = async (authUser: User): Promise<AuthUser | null> => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('AuthHook: Erreur profil:', error);
-        return null;
-      }
-
-      const authUserWithProfile: AuthUser = {
-        ...authUser,
-        email: authUser.email || '',
-        displayName: profile?.display_name || authUser.email?.split('@')[0] || 'Utilisateur',
-        profileImage: profile?.profile_image,
-        role: profile?.role || 'student',
-        kycStatus: profile?.kyc_status || 'not_submitted',
-        university: profile?.university,
-        specialty: profile?.specialty,
-        createdAt: profile?.created_at ? new Date(profile.created_at) : new Date()
-      };
-
-      return authUserWithProfile;
-    } catch (error) {
-      console.error('AuthHook: Erreur dans loadUserProfile:', error);
-      return null;
-    }
-  };
 
   useEffect(() => {
     let isMounted = true;
-    let authSubscription: any = null;
 
-    const fetchSession = async () => {
+    const checkUserSession = async () => {
       setLoading(true);
-
-      // Get current authenticated session
-      const { data: { session } } = await supabase.auth.getSession();
-
-      let userProfile: AuthUser | null = null;
-      if (session?.user) {
-        userProfile = await loadUserProfile(session.user);
-      }
-
+      const currentUser = await getCurrentUser();
       if (isMounted) {
-        setUser(userProfile);
+        setUser(currentUser);
         setLoading(false);
       }
     };
 
-    fetchSession();
+    checkUserSession();
 
-    // Auth state listeners
-    authSubscription = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
-      if (event === 'SIGNED_IN' && session?.user) {
-        loadUserProfile(session.user).then(data => {
-          if (isMounted) {
-            setUser(data);
-            setLoading(false);
-          }
-        });
-      } else if (event === 'SIGNED_OUT') {
+      console.log(`Supabase auth event: ${event}`);
+
+      if (event === 'SIGNED_OUT') {
+        // Also clear demo user from local storage
+        if(localStorage.getItem('demoUser')) {
+          localStorage.removeItem('demoUser');
+        }
         setUser(null);
-        setLoading(false);
+      } else if (session) {
+        // SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED, etc. will have a session.
+        const currentUser = await getCurrentUser();
+        if (isMounted) {
+          setUser(currentUser);
+        }
       }
     });
 
     return () => {
       isMounted = false;
-      authSubscription?.data?.subscription?.unsubscribe?.();
+      subscription?.unsubscribe();
     };
   }, []);
 
   return {
     user,
     loading,
-    loadUserProfile
   };
 };

@@ -3,15 +3,16 @@
  * Contexte d'authentification simplifié pour éviter les boucles infinies
  */
 import React, { createContext, useContext } from 'react';
-import { useSupabaseAuth, AuthUser } from '@/hooks/useSupabaseAuth';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useAuthOperations } from '@/hooks/useAuthOperations';
+import { User } from '@/lib/auth/types';
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
   logout: (redirectPath?: string) => void;
-  updateCurrentUser: (updates: Partial<AuthUser>) => void;
+  updateCurrentUser: (updates: Partial<User>) => void;
   signInWithEmail: (email: string, password: string) => Promise<{ error?: string; user?: any }>;
   signInAsDemo: (type: 'student' | 'professional') => Promise<{ error?: string; user?: any }>;
   register: (email: string, password: string, role: 'student' | 'professional', displayName: string) => Promise<boolean>;
@@ -25,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user, loading } = useSupabaseAuth();
   const authOperations = useAuthOperations();
 
-  const updateCurrentUser = (updates: Partial<AuthUser>) => {
+  const updateCurrentUser = (updates: Partial<User>) => {
     console.log('AuthProvider: updateCurrentUser (local only):', updates);
   };
 

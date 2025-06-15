@@ -4,7 +4,11 @@
  * Gère les actions de connexion, déconnexion et inscription avec validation complète
  */
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  signIn as serviceSignIn, 
+  signOut as serviceSignOut,
+  signUp as serviceSignUp
+} from '@/lib/auth/auth-service';
 
 /**
  * Hook pour les opérations d'authentification (connexion, déconnexion, inscription)
@@ -27,38 +31,13 @@ export const useAuthOperations = () => {
   const signInWithEmail = async (email: string, password: string) => {
     console.log('AuthOperations: Tentative de connexion pour:', email);
     setIsLoading(true);
-    
     try {
-      // Validation des données d'entrée
-      if (!email || !password) {
-        return { error: 'Email et mot de passe requis' };
+      const user = await serviceSignIn(email, password);
+      if (user) {
+        console.log('AuthOperations: Connexion réussie pour l\'utilisateur:', user.id);
+        return { user };
       }
-
-      // Tentative de connexion avec Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        console.error('AuthOperations: Erreur de connexion:', error.message);
-        
-        // Messages d'erreur spécifiques selon le type d'erreur
-        switch (error.message) {
-          case 'Invalid login credentials':
-            return { error: 'Email ou mot de passe incorrect' };
-          case 'Email not confirmed':
-            return { error: 'Veuillez confirmer votre email avant de vous connecter' };
-          default:
-            return { error: error.message };
-        }
-      }
-
-      if (data.user) {
-        console.log('AuthOperations: Connexion réussie pour l\'utilisateur:', data.user.id);
-        return { user: data.user };
-      }
-
+      // The toast is handled inside signIn service
       return { error: 'Échec de la connexion' };
     } catch (error: any) {
       console.error('AuthOperations: Erreur lors de la connexion:', error);
@@ -81,12 +60,12 @@ export const useAuthOperations = () => {
     // Configuration des comptes de démonstration
     const demoCredentials = {
       student: {
-        email: 'demo.student@medcollab.fr',
-        password: 'DemoMedCollab2024!'
+        email: 'student@example.com',
+        password: 'password'
       },
       professional: {
-        email: 'demo.professional@medcollab.fr', 
-        password: 'DemoMedCollab2024!'
+        email: 'doctor@example.com', 
+        password: 'password'
       }
     };
     
@@ -112,42 +91,9 @@ export const useAuthOperations = () => {
   ) => {
     console.log('AuthOperations: Inscription d\'un nouvel utilisateur:', email, role);
     setIsLoading(true);
-    
     try {
-      // Validation des données d'entrée
-      if (!email || !password || !displayName) {
-        console.error('AuthOperations: Données d\'inscription incomplètes');
-        return false;
-      }
-
-      if (password.length < 6) {
-        console.error('AuthOperations: Mot de passe trop court');
-        return false;
-      }
-
-      // Configuration de l'URL de redirection pour la confirmation d'email
-      const redirectUrl = `${window.location.origin}/login?verified=true`;
-
-      // Tentative d'inscription avec métadonnées utilisateur
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            display_name: displayName,
-            role: role
-          },
-          emailRedirectTo: redirectUrl
-        }
-      });
-
-      if (error) {
-        console.error('AuthOperations: Erreur lors de l\'inscription:', error);
-        return false;
-      }
-
-      console.log('AuthOperations: Inscription réussie pour:', email);
-      return true;
+        const result = await serviceSignUp({ email, password, role, displayName });
+        return !!result;
     } catch (error) {
       console.error('AuthOperations: Erreur d\'inscription:', error);
       return false;
@@ -165,13 +111,8 @@ export const useAuthOperations = () => {
   const signOut = async () => {
     console.log('AuthOperations: Déconnexion de l\'utilisateur');
     setIsLoading(true);
-    
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('AuthOperations: Erreur lors de la déconnexion:', error);
-        throw error;
-      }
+      await serviceSignOut();
       console.log('AuthOperations: Déconnexion réussie');
     } catch (error) {
       console.error('AuthOperations: Erreur de déconnexion:', error);
