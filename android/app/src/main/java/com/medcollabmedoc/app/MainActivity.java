@@ -1,4 +1,4 @@
-package com.vite_react_shadcn_ts;
+package com.medcollabmedoc.app;
 
 import com.getcapacitor.BridgeActivity;
 
