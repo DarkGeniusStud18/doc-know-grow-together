@@ -145,7 +145,11 @@ export default defineConfig(({ mode }) => ({
         '@capacitor/storage',
         '@capacitor/network',
         '@capacitor/push-notifications',
-        '@capacitor/share'
+        '@capacitor/share',
+        '@capacitor/haptics',
+        '@capacitor/app',
+        '@capacitor/keyboard',
+        '@capacitor/status-bar'
       ],
       output: {
         manualChunks: {
