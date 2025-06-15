@@ -1,22 +1,24 @@
+
 import { createClient } from '@supabase/supabase-js';
-import { Preferences } from '@capacitor/storage';
+import { Storage } from '@capacitor/storage';
 import type { Database } from './types';
 
 let storage: any = typeof window !== 'undefined' ? localStorage : undefined;
 let storageKey = 'medcollab-auth-token';
 
+// Capacitor detection (web/native)
 if (typeof window !== 'undefined') {
   if ((window as any).Capacitor && navigator.userAgent.includes('Capacitor')) {
     storage = {
       getItem: async (key: string) => {
-        const { value } = await Preferences.get({ key });
+        const { value } = await Storage.get({ key });
         return value;
       },
       setItem: async (key: string, value: string) => {
-        await Preferences.set({ key, value });
+        await Storage.set({ key, value });
       },
       removeItem: async (key: string) => {
-        await Preferences.remove({ key });
+        await Storage.remove({ key });
       }
     };
     storageKey = 'supabase-session';
