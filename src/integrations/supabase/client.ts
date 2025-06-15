@@ -48,6 +48,8 @@ if (typeof window !== 'undefined') {
     }).catch(err => {
       console.error('❌ Échec du chargement de Capacitor Storage:', err);
       console.log('🔄 Utilisation du localStorage comme fallback');
+      // Fallback vers localStorage si Capacitor Storage échoue
+      storage = localStorage;
     });
 
     // Clé de stockage spécifique pour l'environnement natif
@@ -60,19 +62,19 @@ const SUPABASE_URL = 'https://yblwafdsidkuzgzfazpf.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlibHdhZmRzaWRrdXpnemZhenBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4MDU2MzIsImV4cCI6MjA2MjM4MTYzMn0.5GiBnyp-NAAZbOcenQYWkqPt-x0jvOcW4InS1U-u-Ns';
 
-// Création du client Supabase avec configuration optimisée pour les environnements natifs
+// Création du client Supabase avec configuration optimisée pour les environnements natifs et web
 export const supabase = createClient<Database>(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
   {
     auth: {
-      // Configuration de persistance renforcée pour les applications natives
+      // Configuration de persistance renforcée pour les applications natives et web
       persistSession: true,
       autoRefreshToken: true,
       storageKey: storageKey,
       storage: storage,
       detectSessionInUrl: true,
-      flowType: 'pkce', // Recommandé pour les applications mobiles
+      flowType: isNativeEnvironment() ? 'pkce' : 'implicit', // PKCE pour mobile, implicit pour web
       debug: import.meta.env.DEV,
     },
     global: {

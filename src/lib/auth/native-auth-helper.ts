@@ -28,7 +28,7 @@ export const getNativeAuthConfig = () => {
 export const handleNativeAuthError = async (error: any, context: string) => {
   console.error(`❌ Erreur d'authentification native [${context}]:`, error);
   
-  // Feedback haptique pour les erreurs sur mobile
+  // Feedback haptique pour les erreurs sur mobile seulement
   if (isNativeEnvironment()) {
     try {
       const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
@@ -62,7 +62,7 @@ export const handleNativeAuthError = async (error: any, context: string) => {
 export const handleNativeAuthSuccess = async (user: any) => {
   console.log('✅ Authentification native réussie pour:', user?.email);
   
-  // Feedback haptique pour le succès sur mobile
+  // Feedback haptique pour le succès sur mobile seulement
   if (isNativeEnvironment()) {
     try {
       const { Haptics, ImpactStyle } = await import('@capacitor/haptics');

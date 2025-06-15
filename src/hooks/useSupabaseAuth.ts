@@ -23,7 +23,7 @@ export const useSupabaseAuth = () => {
     const checkUserSession = async () => {
       setLoading(true);
       
-      // Vérification de la connectivité en environnement natif
+      // Vérification de la connectivité en environnement natif seulement
       if (isNativeEnvironment()) {
         const networkStatus = await checkNetworkConnectivity();
         setIsConnected(networkStatus);
@@ -62,7 +62,7 @@ export const useSupabaseAuth = () => {
           console.log('🧹 Utilisateur démonstration supprimé du localStorage');
         }
         
-        // Nettoyage supplémentaire pour l'environnement natif
+        // Nettoyage supplémentaire pour l'environnement natif seulement
         if (isNativeEnvironment()) {
           try {
             const { Storage } = await import('@capacitor/storage');
@@ -85,19 +85,21 @@ export const useSupabaseAuth = () => {
           if (isMounted) {
             setUser(currentUser);
             
-            // Feedback natif pour les connexions réussies
-            if (event === 'SIGNED_IN' && currentUser) {
+            // Feedback natif pour les connexions réussies (natif seulement)
+            if (event === 'SIGNED_IN' && currentUser && isNativeEnvironment()) {
               await handleNativeAuthSuccess(currentUser);
             }
           }
         } catch (error) {
           console.error('❌ Erreur lors de la récupération de l\'utilisateur après authentification:', error);
-          await handleNativeAuthError(error, 'récupération utilisateur');
+          if (isNativeEnvironment()) {
+            await handleNativeAuthError(error, 'récupération utilisateur');
+          }
         }
       }
     });
 
-    // Configuration de la surveillance réseau pour les environnements natifs
+    // Configuration de la surveillance réseau pour les environnements natifs seulement
     let networkListener: any = null;
     if (isNativeEnvironment()) {
       import('@capacitor/network').then(({ Network }) => {
