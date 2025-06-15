@@ -20,6 +20,8 @@
     "@capacitor/haptics": "^7.0.1",
     "@capacitor/ios": "^7.3.0",
     "@capacitor/keyboard": "^7.0.1",
+    "@capacitor/network": "^7.0.1",
+    "@capacitor/share": "^7.0.1",
     "@capacitor/status-bar": "^7.0.1",
     "@capacitor/storage": "^1.2.5",
     "@hookform/resolvers": "^3.9.0",

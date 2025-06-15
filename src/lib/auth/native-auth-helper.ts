@@ -194,21 +194,21 @@ export const getDeviceCapabilities = async () => {
   
   try {
     // Vérification des capacités disponibles
-    const { Haptics } = await import('@capacitor/haptics');
+    await import('@capacitor/haptics');
     capabilities.hasHaptics = true;
   } catch (error) {
     console.log('🔇 Haptics non disponible');
   }
   
   try {
-    const { PushNotifications } = await import('@capacitor/push-notifications');
+    await import('@capacitor/push-notifications');
     capabilities.hasNotifications = true;
   } catch (error) {
     console.log('🔔 Push notifications non disponibles');
   }
   
   try {
-    const { Network } = await import('@capacitor/network');
+    await import('@capacitor/network');
     capabilities.hasNetwork = true;
   } catch (error) {
     console.log('🌐 Network API non disponible');
