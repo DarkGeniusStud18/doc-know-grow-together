@@ -144,8 +144,8 @@ export const nativeSignOut = async (): Promise<void> => {
     // Nettoyage du stockage local/natif
     if (isNativeEnvironment()) {
       try {
-        const { Storage } = await import('@capacitor/storage');
-        await Storage.clear(); // Nettoyage complet pour la sécurité
+        const { Preferences } = await import('@capacitor/preferences');
+        await Preferences.clear(); // Nettoyage complet pour la sécurité
         console.log('🧹 Stockage natif nettoyé après déconnexion');
       } catch (storageError) {
         console.log('⚠️ Erreur de nettoyage du stockage:', storageError);

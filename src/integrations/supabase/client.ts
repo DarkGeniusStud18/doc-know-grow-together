@@ -22,11 +22,11 @@ if (typeof window !== 'undefined') {
     console.log('🚀 Détection de l\'environnement Capacitor - Configuration du stockage natif');
     
     // Utilisation du stockage Capacitor pour une meilleure persistance native
-    import('@capacitor/storage').then(({ Storage }) => {
+    import('@capacitor/preferences').then(({ Preferences }) => {
       storage = {
         getItem: async (key: string) => {
           try {
-            const { value } = await Storage.get({ key });
+            const { value } = await Preferences.get({ key });
             console.log(`📦 Capacitor Storage - Récupération de la clé: ${key}`);
             return value;
           } catch (error) {
@@ -36,7 +36,7 @@ if (typeof window !== 'undefined') {
         },
         setItem: async (key: string, value: string) => {
           try {
-            await Storage.set({ key, value });
+            await Preferences.set({ key, value });
             console.log(`💾 Capacitor Storage - Sauvegarde de la clé: ${key}`);
           } catch (error) {
             console.error('❌ Erreur lors de la sauvegarde dans Capacitor Storage:', error);
@@ -44,7 +44,7 @@ if (typeof window !== 'undefined') {
         },
         removeItem: async (key: string) => {
           try {
-            await Storage.remove({ key });
+            await Preferences.remove({ key });
             console.log(`🗑️ Capacitor Storage - Suppression de la clé: ${key}`);
           } catch (error) {
             console.error('❌ Erreur lors de la suppression depuis Capacitor Storage:', error);

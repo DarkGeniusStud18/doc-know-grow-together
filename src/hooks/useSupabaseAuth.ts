@@ -65,8 +65,8 @@ export const useSupabaseAuth = () => {
         // Nettoyage supplémentaire pour l'environnement natif seulement
         if (isNativeEnvironment()) {
           try {
-            const { Storage } = await import('@capacitor/storage');
-            await Storage.remove({ key: 'demoUser' });
+            const { Preferences } = await import('@capacitor/preferences');
+            await Preferences.remove({ key: 'demoUser' });
             console.log('🧹 Utilisateur démonstration supprimé du stockage natif');
           } catch (error) {
             console.log('⚠️ Erreur lors du nettoyage du stockage natif:', error);

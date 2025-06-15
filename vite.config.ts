@@ -142,7 +142,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       external: [
-        '@capacitor/storage',
+        '@capacitor/preferences',
         '@capacitor/network',
         '@capacitor/push-notifications',
         '@capacitor/share',
