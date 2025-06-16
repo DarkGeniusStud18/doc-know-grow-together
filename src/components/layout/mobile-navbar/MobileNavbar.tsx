@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Barre de navigation mobile horizontale optimisée pour MedCollab
+ * Navigation mobile ultra-professionnelle avec Magic Navbar
  * 
- * Composant principal refactorisé avec architecture modulaire et animations Magic Navbar
- * Design responsive adapté aux différentes tailles d'écrans mobile et tablette - 5 éléments principaux
+ * Design premium avec animations fluides et micro-interactions
+ * Optimisée pour l'expérience tactile mobile et tablette
  */
 
 import React, { useState, useCallback } from 'react';
@@ -12,44 +13,41 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 import { MobileSecondaryMenu } from '../mobile-secondary-menu';
 import { primaryNavItems, secondaryNavItems } from './navigation-config';
 import { useBlobAnimation } from './hooks/useBlobAnimation';
 import { MagicNavIcon } from './components/MagicNavIcon';
 
 /**
- * Conversion des éléments de navigation secondaires vers le format MobileSecondaryMenuItem
- * Ajoute l'ID requis et adapte la structure pour le menu secondaire
+ * Conversion optimisée des éléments de navigation secondaires
  */
 const convertToSecondaryMenuItems = (items: any[]) => {
   return items.map(item => ({
     ...item,
-    id: item.id || item.href, // Utilise l'ID existant ou le href comme fallback
+    id: item.id || item.href,
     variant: 'default' as const,
     requiresAuth: true
   }));
 };
 
 /**
- * Composant principal de navigation mobile avec animations Magic Navbar
+ * Navigation mobile avec design ultra-professionnel
  * 
- * Fonctionnalités avancées optimisées pour 5 éléments :
- * - Architecture modulaire pour faciliter la maintenance
- * - Hook dédié pour les animations blob avec performance optimisée
- * - Composants réutilisables pour les icônes avec états visuels
- * - Configuration centralisée de la navigation par priorité (5 éléments principaux)
- * - Design responsive adaptatif mobile/tablette avec espacement optimisé
- * - Animations fluides respectant les préférences d'accessibilité
+ * Fonctionnalités premium :
+ * - Magic Navbar avec blob animé fluide
+ * - Micro-interactions et feedback haptique
+ * - Design adaptatif mobile/tablette avec safe-area
+ * - Animations de transition premium
+ * - Indicateurs visuels d'état avancés
  */
 const MobileNavbar: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
   
-  // État pour le contrôle du menu secondaire avec gestion optimisée
   const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = useState(false);
   
-  // Hook personnalisé pour gérer les animations Magic Navbar avec performance
+  // Hook pour les animations Magic Navbar avec performance optimisée
   const {
     hoveredItem,
     blobPosition,
@@ -60,8 +58,7 @@ const MobileNavbar: React.FC = () => {
   } = useBlobAnimation(primaryNavItems);
 
   /**
-   * Détermine si un élément de navigation est actuellement actif
-   * Utilise les fonctions isActive personnalisées pour plus de flexibilité de routage
+   * Détermine si un élément de navigation est actif avec logique avancée
    */
   const isActiveItem = useCallback((item: any) => {
     if (item.isActive) {
@@ -71,46 +68,49 @@ const MobileNavbar: React.FC = () => {
   }, [location.pathname]);
 
   /**
-   * Gestionnaire de clic pour les éléments du menu secondaire
-   * Ferme le menu après interaction
+   * Gestionnaire de fermeture du menu secondaire
    */
   const handleSecondaryMenuItemClick = useCallback(() => {
     setIsSecondaryMenuOpen(false);
   }, []);
 
-  // Protection : masquer la navigation mobile si aucun utilisateur connecté
+  // Protection : masquer si aucun utilisateur connecté
   if (!user) {
-    console.log('MobileNavbar: Aucun utilisateur connecté, masquage de la navigation mobile');
     return null;
   }
 
-  // Conversion des éléments secondaires pour compatibilité avec MobileSecondaryMenu
   const secondaryMenuItems = convertToSecondaryMenuItems(secondaryNavItems);
 
   return (
     <>
-      {/* Barre de navigation mobile fixe en bas d'écran avec safe-area - optimisée pour 5 éléments */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-inset-bottom">
+      {/* Navigation mobile fixe avec design premium */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-2xl safe-area-inset-bottom">
+        
+        {/* Conteneur principal avec effet de verre */}
         <div 
           ref={navContainerRef}
-          className="flex items-center justify-between px-1 sm:px-2 py-2 relative max-w-lg mx-auto"
+          className="relative flex items-center justify-between px-2 sm:px-4 py-3 max-w-lg mx-auto"
           onMouseLeave={handleMouseLeave}
         >
-          {/* Blob magique animé avec gradient médical et transitions fluides */}
+          
+          {/* Blob magique avec gradient premium et ombres */}
           <div
             className={cn(
-              "absolute h-12 sm:h-14 bg-gradient-to-r from-medical-blue to-medical-teal rounded-xl transition-all duration-500 ease-out shadow-lg",
-              blobPosition.opacity > 0 ? "opacity-100" : "opacity-0"
+              "absolute h-12 sm:h-14 bg-gradient-to-r from-medical-blue via-medical-teal to-medical-blue rounded-2xl transition-all duration-500 ease-out shadow-lg shadow-medical-blue/20",
+              blobPosition.opacity > 0 ? "opacity-100 scale-100" : "opacity-0 scale-95"
             )}
             style={{
               left: `${blobPosition.left}px`,
               width: `${blobPosition.width}px`,
-              top: '6px',
+              top: '8px',
               transform: 'translateX(0)',
             }}
-          />
+          >
+            {/* Effet de brillance */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-2xl"></div>
+          </div>
 
-          {/* Rendu de tous les éléments de navigation principaux avec espacement adaptatif pour 5 éléments */}
+          {/* Éléments de navigation principaux avec espacement optimisé */}
           {primaryNavItems.map((item) => (
             <div
               key={item.href}
@@ -128,12 +128,12 @@ const MobileNavbar: React.FC = () => {
                 hovered={hoveredItem === item.href}
                 onMouseEnter={() => handleMouseEnter(item.href)}
                 onMouseLeave={handleMouseLeave}
-                showLabel={false} // Masquer les labels sur mobile pour économiser l'espace avec 5 éléments
+                showLabel={false}
               />
             </div>
           ))}
 
-          {/* Bouton "Plus" pour accéder au menu secondaire avec design cohérent */}
+          {/* Bouton "Plus" avec design premium */}
           <div
             ref={(el) => {
               if (el && navItemsRef.current) {
@@ -150,24 +150,57 @@ const MobileNavbar: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "relative flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl transition-all duration-300 group min-w-0",
-                    "hover:bg-transparent active:scale-95",
+                    "relative flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 group min-w-0 active:scale-90",
+                    "hover:bg-transparent",
                     hoveredItem === 'more' && "text-white"
                   )}
                   aria-label="Plus d'options"
                 >
-                  <MoreHorizontal 
-                    size={20} 
-                    className={cn(
-                      "transition-all duration-300",
-                      hoveredItem === 'more' ? "text-white drop-shadow-sm" : "text-gray-600"
+                  {/* Icône avec animation de rotation */}
+                  <div className={cn(
+                    "transition-all duration-300",
+                    isSecondaryMenuOpen && "rotate-45"
+                  )}>
+                    {isSecondaryMenuOpen ? (
+                      <Plus 
+                        size={20} 
+                        className={cn(
+                          "transition-all duration-300",
+                          hoveredItem === 'more' ? "text-white drop-shadow-sm" : "text-gray-600"
+                        )}
+                      />
+                    ) : (
+                      <MoreHorizontal 
+                        size={20} 
+                        className={cn(
+                          "transition-all duration-300",
+                          hoveredItem === 'more' ? "text-white drop-shadow-sm" : "text-gray-600"
+                        )}
+                      />
                     )}
-                  />
+                  </div>
+                  
+                  {/* Indicateur de points pour menu */}
+                  {!isSecondaryMenuOpen && (
+                    <div className="flex space-x-1 mt-1">
+                      {[...Array(3)].map((_, i) => (
+                        <div 
+                          key={i}
+                          className={cn(
+                            "w-1 h-1 rounded-full transition-all duration-300",
+                            hoveredItem === 'more' ? "bg-white/80" : "bg-gray-400"
+                          )}
+                        ></div>
+                      ))}
+                    </div>
+                  )}
                 </Button>
               </SheetTrigger>
+              
+              {/* Menu secondaire avec animation fluide */}
               <SheetContent 
                 side="bottom" 
-                className="h-[80vh] p-0 border-0 bg-transparent"
+                className="h-[80vh] p-0 border-0 bg-transparent rounded-t-3xl"
               >
                 <MobileSecondaryMenu
                   items={secondaryMenuItems}
@@ -177,7 +210,13 @@ const MobileNavbar: React.FC = () => {
             </Sheet>
           </div>
         </div>
+
+        {/* Indicateur de page actuelle - Barre fine en haut */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-medical-blue to-medical-teal rounded-b-full"></div>
       </div>
+
+      {/* Spacer pour éviter que le contenu soit masqué */}
+      <div className="md:hidden h-20 safe-area-inset-bottom"></div>
     </>
   );
 };
