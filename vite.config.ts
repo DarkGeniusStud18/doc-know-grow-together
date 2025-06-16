@@ -13,35 +13,7 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: true,
       clientPort: 8080
-    },
-    // Amélioration de la stabilité du serveur de développement
-    fs: {
-      strict: false
     }
-  },
-  // Optimisation de la résolution des dépendances
-  optimizeDeps: {
-    include: [
-      'react', 
-      'react-dom', 
-      'react-router-dom',
-      '@tanstack/react-query',
-      '@supabase/supabase-js',
-      'lucide-react',
-      'date-fns',
-      'clsx',
-      'tailwind-merge'
-    ],
-    exclude: [
-      '@capacitor/preferences',
-      '@capacitor/network',
-      '@capacitor/push-notifications',
-      '@capacitor/share',
-      '@capacitor/haptics',
-      '@capacitor/app',
-      '@capacitor/keyboard',
-      '@capacitor/status-bar'
-    ]
   },
   plugins: [
     react(),
@@ -166,16 +138,7 @@ export default defineConfig(({ mode }) => ({
     global: 'globalThis',
     __WS_TOKEN__: mode === 'development' ? '"dev-token"' : 'undefined'
   },
-  // Configuration du CSS pour éviter les erreurs de traitement
-  css: {
-    postcss: {
-      plugins: []
-    },
-    devSourcemap: mode === 'development'
-  },
   build: {
-    // Optimisation pour éviter les erreurs de build
-    target: 'es2020',
     rollupOptions: {
       external: [
         '@capacitor/preferences',
@@ -199,15 +162,6 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
-    chunkSizeWarningLimit: 1000,
-    // Amélioration de la gestion des modules
-    commonjsOptions: {
-      include: [/node_modules/],
-      transformMixedEsModules: true
-    }
-  },
-  // Configuration pour éviter les erreurs de dépendances - Fixed TypeScript error
-  ssr: {
-    noExternal: mode === 'development' ? true : undefined
+    chunkSizeWarningLimit: 1000
   }
 }));
