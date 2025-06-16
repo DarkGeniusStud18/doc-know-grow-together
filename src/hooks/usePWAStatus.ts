@@ -1,40 +1,36 @@
 
 /**
- * Hook optimisé pour l'état PWA - Version corrigée
+ * Hook optimisé pour l'état PWA sans boucles infinies
  * 
- * Fournit un état PWA stable et fonctionnel
+ * Version simplifiée pour éviter les problèmes de re-render
  */
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface PWAState {
+interface PWAStatus {
   isOnline: boolean;
   isInstalled: boolean;
   canInstall: boolean;
-  updateAvailable: boolean;
 }
 
 /**
- * Hook principal pour gérer l'état PWA de manière optimisée
- * Version corrigée qui évite les re-renders excessifs
+ * Hook personnalisé pour gérer l'état PWA de manière stable
+ * Évite les boucles infinies en limitant les mises à jour
  */
-export const usePWAState = () => {
-  const [pwaState, setPwaState] = useState<PWAState>({
-    isOnline: navigator.onLine,
-    isInstalled: false,
-    canInstall: false,
-    updateAvailable: false
-  });
+export const usePWAStatus = (): PWAStatus => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
 
   // Gestionnaire stable pour les changements de connexion
   const handleOnlineChange = useCallback(() => {
-    setPwaState(prev => ({ ...prev, isOnline: navigator.onLine }));
+    setIsOnline(navigator.onLine);
   }, []);
 
   // Gestionnaire pour l'événement beforeinstallprompt
   const handleBeforeInstallPrompt = useCallback((e: Event) => {
     e.preventDefault();
-    setPwaState(prev => ({ ...prev, canInstall: true }));
+    setCanInstall(true);
   }, []);
 
   useEffect(() => {
@@ -42,10 +38,7 @@ export const usePWAState = () => {
     const checkInstallation = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isInWebAppiOS = (window.navigator as any).standalone === true;
-      setPwaState(prev => ({ 
-        ...prev, 
-        isInstalled: isStandalone || isInWebAppiOS 
-      }));
+      setIsInstalled(isStandalone || isInWebAppiOS);
     };
 
     // Vérification initiale
@@ -66,5 +59,9 @@ export const usePWAState = () => {
     };
   }, [handleOnlineChange, handleBeforeInstallPrompt]);
 
-  return { pwaState };
+  return {
+    isOnline,
+    isInstalled,
+    canInstall
+  };
 };

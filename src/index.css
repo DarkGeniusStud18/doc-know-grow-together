@@ -1,657 +1,292 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ==========================================================================
-   1. CSS Reset Code
-   ========================================================================== */
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
 
-/**
- * 1. Correct the line height in all browsers.
- * 2. Prevent adjustments of font size after orientation changes in iOS.
- */
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
 
-html {
-  line-height: 1.15; /* 1 */
-  -webkit-text-size-adjust: 100%; /* 2 */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+  --radius: 0.5rem;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
 }
 
-/* Sections
-   ========================================================================== */
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 224.3 76.3% 94.1%;
+  --sidebar-primary-foreground: 240 5.9% 10%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
 
-/**
- * Remove the margin in all browsers.
- */
+* {
+  border-color: hsl(var(--border));
+}
 
 body {
-  margin: 0;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  overflow-x: hidden;
+  max-width: 100vw;
 }
-
-/**
- * Render the `main` element consistently in IE.
- */
-
-main {
-  display: block;
-}
-
-/**
- * Correct the font size and margin on `h1` elements within `section` and
- * `article` contexts in Chrome, Firefox, and Safari.
- */
-
-h1 {
-  font-size: 2em;
-  margin: 0.67em 0;
-}
-
-/* Grouping content
-   ========================================================================== */
-
-/**
- * 1. Add the correct box sizing in Firefox.
- * 2. Show the overflow in Edge and IE.
- */
-
-hr {
-  box-sizing: content-box; /* 1 */
-  height: 0; /* 1 */
-  overflow: visible; /* 2 */
-}
-
-/**
- * 1. Correct the inheritance and scaling of font size in all browsers.
- * 2. The 68% value is approximate.
- */
-
-pre {
-  font-family: monospace, monospace; /* 1 */
-  font-size: 1em; /* 2 */
-}
-
-/* Text-level semantics
-   ========================================================================== */
-
-/**
- * Remove the gray background on active links in IE 10.
- */
-
-a {
-  background-color: transparent;
-}
-
-/**
- * 1. Remove the bottom border in Chrome 57-
- * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.
- */
-
-abbr[title] {
-  border-bottom: none; /* 1 */
-  text-decoration: underline; /* 2 */
-  text-decoration: underline dotted; /* 2 */
-}
-
-/**
- * Add the correct font weight in Chrome, Edge, and Safari.
- */
-
-b,
-strong {
-  font-weight: bolder;
-}
-
-/**
- * 1. Correct the inheritance and scaling of font size in all browsers.
- * 2. Correct the odd `em` font sizing in all browsers.
- */
-
-code,
-kbd,
-samp {
-  font-family: monospace, monospace; /* 1 */
-  font-size: 1em; /* 2 */
-}
-
-/**
- * Add the correct font size in all browsers.
- */
-
-small {
-  font-size: 80%;
-}
-
-/**
- * Prevent `sub` and `sup` elements from affecting the line height in all browsers.
- */
-
-sub,
-sup {
-  font-size: 75%;
-  line-height: 0;
-  position: relative;
-  vertical-align: baseline;
-}
-
-sub {
-  bottom: -0.25em;
-}
-
-sup {
-  top: -0.5em;
-}
-
-/* Embedded content
-   ========================================================================== */
-
-/**
- * Remove the border on images inside links in IE 10-.
- */
-
-img {
-  border-style: none;
-}
-
-/* Forms
-   ========================================================================== */
-
-/**
- * 1. Change the font styles in all browsers.
- * 2. Remove the margin in Firefox and Safari.
- */
-
-button,
-input,
-optgroup,
-select,
-textarea {
-  font-family: inherit; /* 1 */
-  font-size: 100%; /* 1 */
-  line-height: 1.15; /* 1 */
-  margin: 0; /* 2 */
-}
-
-/**
- * Show the overflow in IE.
- */
-
-button,
-input {
-  overflow: visible;
-}
-
-/**
- * Remove the inheritance of text transform in Edge, Firefox, and IE.
- */
-
-button,
-select {
-  text-transform: none;
-}
-
-/**
- * Correct the inability to style clickable types in iOS and Safari.
- */
-
-button,
-[type="button"],
-[type="reset"],
-[type="submit"] {
-  -webkit-appearance: button;
-}
-
-/**
- * Remove the inner border and padding in Firefox.
- */
-
-button::-moz-focus-inner,
-[type="button"]::-moz-focus-inner,
-[type="reset"]::-moz-focus-inner,
-[type="submit"]::-moz-focus-inner {
-  border-style: none;
-  padding: 0;
-}
-
-/**
- * Restore the focus styles unset by the previous rule.
- */
-
-button:-moz-focusring,
-[type="button"]:-moz-focusring,
-[type="reset"]:-moz-focusring,
-[type="submit"]:-moz-focusring {
-  outline: 1px dotted ButtonText;
-}
-
-/**
- * Correct the padding on iPhones less than iOS 7.
- */
-
-fieldset {
-  padding: 0.35em 0.75em 0.625em;
-}
-
-/**
- * 1. Correct the text wrapping in Edge and IE.
- * 2. Correct the color inheritance from `fieldset` elements in IE.
- */
-
-legend {
-  box-sizing: border-box; /* 1 */
-  color: inherit; /* 2 */
-  display: table; /* 1 */
-  max-width: 100%; /* 1 */
-  padding: 0; /* 1 */
-  white-space: normal; /* 1 */
-}
-
-/**
- * Add the correct vertical alignment in Chrome, Firefox, and Opera.
- */
-
-progress {
-  vertical-align: baseline;
-}
-
-/**
- * Remove the default vertical scrollbar in IE 10-.
- */
-
-textarea {
-  overflow: auto;
-}
-
-/**
- * 1. Add the correct box sizing in IE 10-.
- * 2. Remove the padding in IE 10-.
- */
-
-[type="checkbox"],
-[type="radio"] {
-  box-sizing: border-box; /* 1 */
-  padding: 0; /* 2 */
-}
-
-/**
- * Correct the cursor style of increment and decrement buttons in Chrome.
- */
-
-[type="number"]::-webkit-inner-spin-button,
-[type="number"]::-webkit-outer-spin-button {
-  height: auto;
-}
-
-/**
- * 1. Correct the odd appearance in Chrome and Safari.
- * 2. Correct the outline style in Safari.
- */
-
-[type="search"] {
-  -webkit-appearance: textfield; /* 1 */
-  outline-offset: -2px; /* 2 */
-}
-
-/**
- * Remove the inner padding in Chrome and Safari on macOS.
- */
-
-[type="search"]::-webkit-search-decoration {
-  -webkit-appearance: none;
-}
-
-/**
- * 1. Correct the inability to style clickable types in iOS and Safari.
- * 2. Change font properties to `inherit` in Safari.
- */
-
-::-webkit-file-upload-button {
-  -webkit-appearance: button; /* 1 */
-  font: inherit; /* 2 */
-}
-
-/* Interactive
-   ========================================================================== */
-
-/*
- * Add the correct display in Edge, IE 10-, and Firefox.
- */
-
-details {
-  display: block;
-}
-
-/*
- * Add the correct display in all browsers.
- */
-
-summary {
-  display: list-item;
-}
-
-/* Misc
-   ========================================================================== */
-
-/**
- * Add the correct display in IE 10-.
- */
-
-template {
-  display: none;
-}
-
-/**
- * Add the correct display in IE 10.
- */
-
-[hidden] {
-  display: none;
-}
-
-/* ==========================================================================
-   2. Custom CSS Variables - Version améliorée avec thème clair optimisé
-   ========================================================================== */
 
 @layer base {
-  :root {
-    /* Primary colors - Palette médicale optimisée */
-    --medical-blue: #0077B6;
-    --medical-teal: #00B4D8;
-    --medical-purple: #6f42c1;
-    --medical-pink: #e83e8c;
-
-    /* Secondary colors - Teintes douces pour le thème clair */
-    --light-blue: #E8F4FD;
-    --light-teal: #E0F7FB;
-    --light-purple: #F0E6FF;
-    --light-pink: #FDEDF4;
-
-    /* Neutral colors - Gris optimisés pour le contraste */
-    --gray-50: #FAFBFC;
-    --gray-100: #F5F7FA;
-    --gray-200: #E4E7EB;
-    --gray-300: #D1D5DB;
-    --gray-400: #9CA3AF;
-    --gray-500: #6B7280;
-    --gray-600: #4B5563;
-    --gray-700: #374151;
-    --gray-800: #1F2937;
-    --gray-900: #111827;
-
-    /* Font sizes - Tailles responsive */
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-lg: 1.125rem;
-    --font-size-xl: 1.25rem;
-    --font-size-2xl: 1.5rem;
-
-    /* Spacing - Espacement harmonieux */
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    --space-10: 2.5rem;
-    --space-12: 3rem;
-
-    /* Border radius - Bordures arrondies cohérentes */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.25rem;
-    --radius-2xl: 1.5rem;
-    --radius-3xl: 1.75rem;
-
-    /* Box shadow - Ombres subtiles et modernes */
-    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
-    /* Transition - Animations fluides */
-    --transition-fast: 150ms ease-in-out;
-    --transition-normal: 250ms ease-in-out;
-    --transition-slow: 350ms ease-in-out;
-
-    /* Thème clair par défaut - Variables CSS natives améliorées */
-    --background: 250 250 252; /* Blanc légèrement teinté */
-    --foreground: 15 23 42; /* Texte principal */
-    --card: 255 255 255; /* Cartes blanches pures */
-    --card-foreground: 15 23 42;
-    --popover: 255 255 255;
-    --popover-foreground: 15 23 42;
-    --primary: 0 119 182; /* Medical blue */
-    --primary-foreground: 255 255 255;
-    --secondary: 245 247 250; /* Gris très clair */
-    --secondary-foreground: 55 65 81;
-    --muted: 245 247 250;
-    --muted-foreground: 107 114 128;
-    --accent: 232 244 253; /* Light blue */
-    --accent-foreground: 0 119 182;
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
-    --border: 228 231 235; /* Bordures subtiles */
-    --input: 209 213 219; /* Bordures d'input */
-    --ring: 0 119 182; /* Focus ring */
-    --radius: 0.75rem; /* Bordures arrondies par défaut */
-  }
-
-  /* Dark theme - Variables pour le mode sombre */
-  .dark {
-    --background: 15 23 42;
-    --foreground: 248 250 252;
-    --card: 30 41 59;
-    --card-foreground: 248 250 252;
-    --popover: 30 41 59;
-    --popover-foreground: 248 250 252;
-    --primary: 0 180 216;
-    --primary-foreground: 15 23 42;
-    --secondary: 55 65 81;
-    --secondary-foreground: 203 213 225;
-    --muted: 55 65 81;
-    --muted-foreground: 148 163 184;
-    --accent: 55 65 81;
-    --accent-foreground: 0 180 216;
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
-    --border: 75 85 99;
-    --input: 75 85 99;
-    --ring: 0 180 216;
-  }
-
-  /* Styles de base améliorés */
   body {
-    @apply bg-gray-50 text-gray-900 font-sans antialiased leading-relaxed;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-
-  /* Amélioration des liens */
-  a {
-    @apply text-medical-blue hover:text-medical-teal transition-colors duration-200;
-  }
-
-  /* Amélioration des séparateurs */
-  hr {
-    @apply border-gray-200;
-  }
-
-  /* Amélioration des headings */
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-gray-900 font-semibold tracking-tight;
-  }
 }
 
-/* Classes utilitaires pour le design arrondi et moderne */
-.card-modern {
-  @apply bg-white rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-200;
+/* CSS personnalisé pour les tailles de police */
+.text-small {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem; /* 20px */
 }
 
-.button-modern {
-  @apply rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md;
+.text-normal {
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
 }
 
-.input-modern {
-  @apply rounded-xl border-2 border-gray-200 bg-white transition-all duration-200 hover:border-gray-300 focus:border-medical-blue focus:ring-2 focus:ring-medical-blue/20 shadow-sm focus:shadow-md;
+.text-large {
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.75rem; /* 28px */
 }
 
-/* Optimisations responsive globales pour les grilles multi-colonnes */
-.responsive-grid {
-  @apply grid grid-cols-2 gap-4 sm:gap-5;
+.text-extra-large {
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.875rem; /* 30px */
 }
 
-.responsive-grid-cards {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6;
-}
-
-.responsive-grid-compact {
-  @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5;
-}
-
-.responsive-grid-wide {
-  @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 lg:gap-8;
-}
-
-/* Optimisations pour les conteneurs de contenu */
-.container-responsive {
-  @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-10;
-}
-
-.container-mobile {
-  @apply w-full px-3 sm:px-5 md:px-6;
-}
-
-/* Classes utilitaires pour le responsive design amélioré */
-.mobile-col-2 {
-  @apply col-span-2 sm:col-span-1;
-}
-
-.mobile-col-full {
-  @apply col-span-full sm:col-span-2 lg:col-span-1;
-}
-
-.tablet-col-2 {
-  @apply col-span-1 sm:col-span-2 lg:col-span-1;
-}
-
-/* Optimisations spécifiques pour les composants MedCollab */
-.medical-card-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-7;
-}
-
-.tools-grid {
-  @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6;
-}
-
-.resource-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-7;
-}
-
-/* Animations et transitions améliorées */
-.smooth-transition {
-  @apply transition-all duration-300 ease-in-out;
-}
-
-.hover-scale {
-  @apply hover:scale-105 transition-transform duration-200;
-}
-
-.hover-lift {
-  @apply hover:-translate-y-1 hover:shadow-lg transition-all duration-200;
-}
-
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-medical-blue focus:ring-offset-2 focus:ring-offset-white;
-}
-
-/* Optimisations d'accessibilité */
-.screen-reader-only {
-  @apply sr-only;
-}
-
+/* CSS pour les contrastes élevés */
 .high-contrast {
-  @apply contrast-125;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --muted: 0 0% 90%;
+  --muted-foreground: 0 0% 20%;
+  --border: 0 0% 60%;
 }
 
-/* Styles pour la navigation mobile optimisée */
-.mobile-nav-container {
-  @apply fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-gray-100 shadow-lg;
+.high-contrast.dark {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --muted: 0 0% 20%;
+  --muted-foreground: 0 0% 80%;
+  --border: 0 0% 40%;
+}
+
+/* CSS pour la réduction des animations */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Amélioration des polices personnalisées */
+.font-sans {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.font-serif {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* Safe area pour les appareils mobiles */
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-inset-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.mobile-nav-grid {
-  @apply grid grid-cols-6 gap-1 px-3 py-3 max-w-lg mx-auto;
+.safe-area-inset-left {
+  padding-left: env(safe-area-inset-left);
 }
 
-.mobile-nav-item {
-  @apply flex flex-col items-center justify-center min-h-[52px] sm:min-h-[60px] px-2 py-2 rounded-2xl;
+.safe-area-inset-right {
+  padding-right: env(safe-area-inset-right);
 }
 
-/* Optimisations pour les formulaires responsives */
-.form-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6;
+/* Amélioration de la lisibilité sur mobile */
+@media (max-width: 768px) {
+  body {
+    font-size: 16px; /* Évite le zoom automatique sur iOS */
+  }
+  
+  input, textarea, select {
+    font-size: 16px; /* Évite le zoom automatique sur iOS */
+  }
 }
 
-.form-grid-thirds {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5;
+/* Amélioration du scroll horizontal sur mobile */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overflow-y: auto;
 }
 
-.form-full-width {
-  @apply col-span-full;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-/* Classes pour les espacements adaptatifs améliorés */
-.spacing-responsive {
-  @apply space-y-5 sm:space-y-6 lg:space-y-8;
+/* Amélioration des touches tactiles */
+@media (pointer: coarse) {
+  button, 
+  [role="button"], 
+  input[type="submit"], 
+  input[type="button"], 
+  input[type="reset"],
+  .clickable {
+    min-height: 44px; /* Taille minimale recommandée pour les touches tactiles */
+    min-width: 44px;
+  }
 }
 
-.spacing-compact {
-  @apply space-y-3 sm:space-y-4 lg:space-y-5;
+/* CSS pour les schémas de couleurs personnalisés */
+.color-blue {
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
 }
 
-.padding-responsive {
-  @apply p-4 sm:p-5 lg:p-6 xl:p-8;
+.color-green {
+  --primary: 142.1 76.2% 36.3%;
+  --primary-foreground: 355.7 100% 97.3%;
 }
 
-.margin-responsive {
-  @apply m-4 sm:m-5 lg:m-6 xl:m-8;
+.color-purple {
+  --primary: 262.1 83.3% 57.8%;
+  --primary-foreground: 210 40% 98%;
 }
 
-.padding-page {
-  @apply px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8;
+.color-orange {
+  --primary: 24.6 95% 53.1%;
+  --primary-foreground: 60 9.1% 97.8%;
 }
 
-.container-page {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+.color-red {
+  --primary: 0 84.2% 60.2%;
+  --primary-foreground: 210 40% 98%;
 }
 
-.spacing-section {
-  @apply space-y-6 sm:space-y-8 lg:space-y-10;
+.color-indigo {
+  --primary: 239 84% 67%;
+  --primary-foreground: 210 40% 98%;
 }
 
-/* Classes pour les composants modernes avec bordures arrondies */
-.component-modern {
-  @apply rounded-2xl border-2 border-gray-100 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:border-gray-200;
+.color-pink {
+  --primary: 322.9 84% 58%;
+  --primary-foreground: 210 40% 98%;
 }
 
-.surface-elevated {
-  @apply bg-white rounded-2xl border-2 border-gray-100 shadow-md;
+.color-teal {
+  --primary: 173.4 80.4% 40%;
+  --primary-foreground: 210 40% 98%;
 }
 
-.surface-interactive {
-  @apply bg-white rounded-xl border-2 border-gray-200 hover:border-medical-blue/30 transition-all duration-200 hover:shadow-md cursor-pointer;
+/* Amélioration des animations et transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 
-/* Améliorations pour le thème clair */
-.light-surface {
-  @apply bg-gray-50 border border-gray-200;
+.hover-scale:hover {
+  transform: scale(1.02);
 }
 
-.light-card {
-  @apply bg-white border-2 border-gray-100 shadow-sm;
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-.light-interactive {
-  @apply hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200;
+/* Amélioration de l'accessibilité pour le focus */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Style pour les onglets scrollables sur mobile */
+.tabs-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabs-scroll::-webkit-scrollbar {
+  display: none;
 }

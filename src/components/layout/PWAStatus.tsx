@@ -1,200 +1,42 @@
 
 /**
- * Composant de statut PWA refactorisé pour MedCollab
+ * Composant PWA Status optimisé sans boucles infinies
  * 
- * Version optimisée avec respect des préférences utilisateur
- * Gestion intelligente du statut PWA sans spam de notifications
+ * Version corrigée qui évite les re-renders excessifs
  */
 
-import React, { useState, useEffect } from 'react';
-import { toast } from '@/components/ui/sonner';
-import { usePWAState } from './pwa-status/hooks/usePWAState';
-import { usePWAActions } from './pwa-status/hooks/usePWAActions';
-import { ConnectionIndicator } from './pwa-status/components/ConnectionIndicator';
-import { InstallPrompt } from './pwa-status/components/InstallPrompt';
-import { UpdateNotification } from './pwa-status/components/UpdateNotification';
+import React from 'react';
+import { usePWAStatus } from '@/hooks/usePWAStatus';
 
 /**
- * Interface pour les événements PWA
+ * Composant d'affichage du statut PWA
+ * Version simplifiée pour éviter les problèmes de performance
  */
-interface PWAEvents {
-  onInstallPrompt?: () => void;
-  onInstallSuccess?: () => void;
-  onUpdateAvailable?: () => void;
-}
+const PWAStatus: React.FC = () => {
+  const { isOnline, isInstalled, canInstall } = usePWAStatus();
 
-/**
- * Composant principal de statut PWA refactorisé
- * 
- * Fonctionnalités optimisées avec respect des préférences utilisateur :
- * - Détection intelligente de l'installation PWA
- * - Gestion robuste des changements de connexion
- * - Notifications contextuelles respectant les préférences
- * - Prévention du spam de notifications
- */
-export const PWAStatus: React.FC<PWAEvents> = ({
-  onInstallPrompt,
-  onInstallSuccess,
-  onUpdateAvailable
-}) => {
-  // Vérification des préférences utilisateur
-  const notificationsEnabled = localStorage.getItem('pwa-notifications') !== 'false';
-  const notificationsDisabled = localStorage.getItem('pwa-notifications-disabled') === 'true';
-  
-  // États pour le contrôle de l'affichage
-  const [lastNotificationTime, setLastNotificationTime] = useState(0);
-
-  // Hook personnalisé pour la gestion de l'état PWA
-  const { pwaState, setPwaState } = usePWAState({
-    onInstallPrompt,
-    onInstallSuccess,
-    onUpdateAvailable
-  });
-
-  // Hook personnalisé pour les actions PWA
-  const { handleInstallApp, handleDismissInstall, handleUpdateApp } = usePWAActions({
-    installPromptEvent: pwaState.installPromptEvent,
-    setPwaState,
-    onInstallSuccess,
-    onUpdateAvailable
-  });
-
-  /**
-   * Vérifie si une notification peut être affichée avec gestion de quota journalier
-   */
-  const canShowNotification = (type: string, cooldownMs: number = 30000) => {
-    if (!notificationsEnabled || notificationsDisabled) return false;
-    
-    const now = Date.now();
-    const today = new Date().toDateString();
-    
-    // Gestion spéciale pour les notifications de connexion restaurée
-    if (type === 'connection-restored') {
-      const countKey = `connection-restored-count-${today}`;
-      const lastDateKey = `connection-restored-last-date`;
-      
-      const lastDate = localStorage.getItem(lastDateKey);
-      let todayCount = parseInt(localStorage.getItem(countKey) || '0');
-      
-      // Réinitialiser le compteur si c'est un nouveau jour
-      if (lastDate !== today) {
-        todayCount = 0;
-        localStorage.setItem(lastDateKey, today);
-      }
-      
-      // Maximum 2 notifications par jour
-      if (todayCount >= 2) {
-        console.log('PWAStatus: Quota journalier de notifications de connexion atteint (2/jour)');
-        return false;
-      }
-      
-      // Vérifier le cooldown minimum de 30 minutes entre notifications
-      const lastNotification = parseInt(localStorage.getItem(`last-${type}-notification`) || '0');
-      const minCooldown = 30 * 60 * 1000; // 30 minutes
-      
-      if (now - lastNotification < minCooldown) {
-        return false;
-      }
-      
-      // Incrémenter le compteur et enregistrer
-      localStorage.setItem(countKey, (todayCount + 1).toString());
-      localStorage.setItem(`last-${type}-notification`, now.toString());
-      return true;
-    }
-    
-    // Logique normale pour les autres types de notifications
-    const lastNotification = parseInt(localStorage.getItem(`last-${type}-notification`) || '0');
-    
-    if (now - lastNotification < cooldownMs) {
-      return false;
-    }
-    
-    localStorage.setItem(`last-${type}-notification`, now.toString());
-    return true;
-  };
-
-  /**
-   * Gestion des notifications de changement de connexion avec quota journalier
-   */
-  useEffect(() => {
-    const handleConnectionNotification = () => {
-      const now = Date.now();
-      
-      // Éviter les notifications trop fréquentes
-      if (now - lastNotificationTime < 5000) return;
-      
-      if (pwaState.isOnline) {
-        if (canShowNotification('connection-restored')) {
-          toast.success('Connexion restaurée', {
-            description: 'Synchronisation automatique en cours...',
-            duration: 3000
-          });
-        }
-      } else {
-        if (canShowNotification('connection-lost', 30000)) {
-          toast.warning('Mode hors ligne', {
-            description: 'Certaines fonctionnalités peuvent être limitées',
-            duration: 5000
-          });
-        }
-      }
-      
-      setLastNotificationTime(now);
-    };
-
-    // Déclencher les notifications seulement lors des changements significatifs
-    const timeSinceLastChange = Date.now() - pwaState.lastConnectionChange;
-    if (timeSinceLastChange < 3000) {
-      const timer = setTimeout(handleConnectionNotification, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [pwaState.isOnline, pwaState.lastConnectionChange, lastNotificationTime]);
-
-  /**
-   * Notification pour l'installation disponible avec anti-spam
-   */
-  useEffect(() => {
-    if (pwaState.showInstallPrompt && pwaState.installPromptEvent && notificationsEnabled && !notificationsDisabled) {
-      if (canShowNotification('install-prompt', 86400000)) { // 24 heures
-        toast.info('Installation disponible', {
-          description: 'Vous pouvez installer MedCollab sur votre appareil pour un accès rapide',
-          duration: 8000,
-          action: {
-            label: 'Installer',
-            onClick: handleInstallApp
-          }
-        });
-      }
-    }
-  }, [pwaState.showInstallPrompt, pwaState.installPromptEvent, handleInstallApp, notificationsEnabled, notificationsDisabled]);
-
-  // Si les notifications sont complètement désactivées, ne rien afficher
-  if (notificationsDisabled) {
-    return null;
-  }
-
+  // Masquer sur mobile/tablette car intégré dans MobileTopBar
   return (
-    <>
-      {/* Indicateur de statut de connexion - toujours visible */}
-      <ConnectionIndicator 
-        isOnline={pwaState.isOnline} 
-        isInstalled={pwaState.isInstalled} 
-      />
-
-      {/* Prompt d'installation PWA - seulement si notifications activées */}
-      {notificationsEnabled && pwaState.showInstallPrompt && !pwaState.isInstalled && pwaState.installPromptEvent && (
-        <InstallPrompt
-          installPromptEvent={pwaState.installPromptEvent}
-          onInstall={handleInstallApp}
-          onDismiss={handleDismissInstall}
-        />
-      )}
-
-      {/* Notification de mise à jour - seulement si notifications activées */}
-      {notificationsEnabled && pwaState.updateAvailable && (
-        <UpdateNotification onUpdate={handleUpdateApp} />
-      )}
-    </>
+    <div className="hidden lg:block fixed bottom-4 left-4 z-50">
+      <div className={`
+        flex items-center space-x-2 px-3 py-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm
+        ${isOnline 
+          ? 'bg-green-100/90 text-green-800 border border-green-200' 
+          : 'bg-red-100/90 text-red-800 border border-red-200 animate-pulse'
+        }
+      `}>
+        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}></div>
+        <span className="text-xs font-medium">
+          {isOnline ? 'En ligne' : 'Hors ligne'}
+        </span>
+        {isInstalled && (
+          <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+        )}
+        {canInstall && (
+          <div className="w-2 h-2 rounded-full bg-purple-600"></div>
+        )}
+      </div>
+    </div>
   );
 };
 

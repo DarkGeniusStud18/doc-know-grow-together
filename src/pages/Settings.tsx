@@ -1,5 +1,5 @@
 
-// Page principale des paramètres de l'application
+// Page principale des paramètres de l'application - Version mobile optimisée
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,7 @@ import { useQuery } from '@tanstack/react-query';
 
 /**
  * Page des paramètres utilisateur qui regroupe toutes les catégories de réglages
+ * Version responsive optimisée pour mobile et tablette
  */
 const Settings = () => {
   const { user } = useAuth();
@@ -43,44 +44,61 @@ const Settings = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto py-6">
-        <h1 className="text-2xl font-bold mb-6">Paramètres</h1>
+      <div className="container mx-auto py-4 sm:py-6 px-4 sm:px-6 max-w-6xl">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Paramètres</h1>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-4 flex flex-wrap gap-2">
-            <TabsTrigger value="profile">Profil</TabsTrigger>
-            <TabsTrigger value="account">Compte</TabsTrigger>
-            <TabsTrigger value="subscription">Abonnement</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="display">Affichage</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-          </TabsList>
+          {/* Onglets responsive avec scroll horizontal sur mobile */}
+          <div className="w-full overflow-x-auto mb-4 sm:mb-6">
+            <TabsList className="flex w-max sm:w-full min-w-full sm:min-w-0 bg-muted p-1 rounded-lg">
+              <TabsTrigger value="profile" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
+                Profil
+              </TabsTrigger>
+              <TabsTrigger value="account" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
+                Compte
+              </TabsTrigger>
+              <TabsTrigger value="subscription" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
+                Abonnement
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
+                Notifications
+              </TabsTrigger>
+              <TabsTrigger value="display" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
+                Affichage
+              </TabsTrigger>
+              <TabsTrigger value="performance" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
+                Performance
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
-          <TabsContent value="profile" className="space-y-4">
+          <TabsContent value="profile" className="space-y-4 sm:space-y-6 mt-0">
             <ProfileSettings />
           </TabsContent>
           
-          <TabsContent value="account" className="space-y-4">
+          <TabsContent value="account" className="space-y-4 sm:space-y-6 mt-0">
             <AccountSettings />
             <RoleSwitcher inSettings />
           </TabsContent>
           
-          <TabsContent value="subscription" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Abonnement</CardTitle>
+          <TabsContent value="subscription" className="space-y-4 sm:space-y-6 mt-0">
+            <Card className="w-full">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg sm:text-xl">Abonnement</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 {!user ? (
-                  <div className="text-center py-4">
-                    <p>Veuillez vous connecter pour voir les informations d'abonnement</p>
+                  <div className="text-center py-6 sm:py-8">
+                    <p className="text-sm sm:text-base text-muted-foreground">
+                      Veuillez vous connecter pour voir les informations d'abonnement
+                    </p>
                   </div>
                 ) : (
-                  <div>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-gray-500 text-sm">Statut actuel</p>
-                        <p className="font-medium">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p className="text-xs sm:text-sm text-muted-foreground font-medium">Statut actuel</p>
+                        <p className="text-base sm:text-lg font-semibold">
                           {isPremium 
                             ? <span className="text-green-600">Premium</span> 
                             : <span className="text-gray-600">Gratuit</span>
@@ -88,31 +106,34 @@ const Settings = () => {
                         </p>
                       </div>
                       {isPremium && subscription?.expiryDate && (
-                        <div>
-                          <p className="text-gray-500 text-sm">Date d'expiration</p>
-                          <p className="font-medium">{formatExpiryDate(subscription.expiryDate)}</p>
+                        <div className="space-y-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground font-medium">Date d'expiration</p>
+                          <p className="text-base sm:text-lg font-semibold">
+                            {formatExpiryDate(subscription.expiryDate)}
+                          </p>
                         </div>
                       )}
-                      <div className="bg-gray-50 p-4 rounded-md">
-                        <h3 className="font-medium mb-2">
-                          {isPremium 
-                            ? "Vous bénéficiez de tous les avantages premium" 
-                            : "Passez à l'abonnement premium pour débloquer toutes les fonctionnalités"
-                          }
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-4">
-                          {isPremium
-                            ? "Accédez à toutes les ressources premium, cas cliniques exclusifs et fonctionnalités avancées."
-                            : "Accédez aux ressources exclusives, cas cliniques détaillés et outils avancés pour votre formation médicale."
-                          }
-                        </p>
-                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 sm:p-6 rounded-lg border">
+                      <h3 className="font-semibold mb-2 sm:mb-3 text-base sm:text-lg">
+                        {isPremium 
+                          ? "Vous bénéficiez de tous les avantages premium" 
+                          : "Passez à l'abonnement premium pour débloquer toutes les fonctionnalités"
+                        }
+                      </h3>
+                      <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                        {isPremium
+                          ? "Accédez à toutes les ressources premium, cas cliniques exclusifs et fonctionnalités avancées."
+                          : "Accédez aux ressources exclusives, cas cliniques détaillés et outils avancés pour votre formation médicale."
+                        }
+                      </p>
                     </div>
                   </div>
                 )}
               </CardContent>
-              <CardFooter>
-                <Button asChild>
+              <CardFooter className="pt-4">
+                <Button asChild className="w-full sm:w-auto">
                   <Link to="/subscription">
                     {isPremium ? "Gérer mon abonnement" : "Découvrir nos offres"}
                   </Link>
@@ -121,15 +142,15 @@ const Settings = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="notifications" className="space-y-4">
+          <TabsContent value="notifications" className="space-y-4 sm:space-y-6 mt-0">
             <NotificationSettings />
           </TabsContent>
           
-          <TabsContent value="display" className="space-y-4">
+          <TabsContent value="display" className="space-y-4 sm:space-y-6 mt-0">
             <DisplaySettings />
           </TabsContent>
 
-          <TabsContent value="performance" className="space-y-4">
+          <TabsContent value="performance" className="space-y-4 sm:space-y-6 mt-0">
             <PerformanceSettings />
           </TabsContent>
         </Tabs>

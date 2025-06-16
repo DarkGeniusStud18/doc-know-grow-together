@@ -1,9 +1,8 @@
 
 /**
- * Indicateur de statut de connexion PWA
+ * Indicateur de statut de connexion PWA optimisé
  * 
- * Affiche de manière élégante le statut de connexion Internet
- * avec animations et design médical cohérent
+ * Version corrigée qui évite les boucles infinies et s'adapte au contexte
  */
 
 import React, { useMemo } from 'react';
@@ -12,6 +11,7 @@ import { Wifi, WifiOff, CheckCircle } from 'lucide-react';
 interface ConnectionIndicatorProps {
   isOnline: boolean;
   isInstalled: boolean;
+  compact?: boolean; // Nouvelle prop pour un affichage compact
 }
 
 /**
@@ -20,13 +20,20 @@ interface ConnectionIndicatorProps {
  */
 export const ConnectionIndicator: React.FC<ConnectionIndicatorProps> = ({
   isOnline,
-  isInstalled
+  isInstalled,
+  compact = false
 }) => {
   /**
-   * Mémorisation des styles d'indicateur pour éviter les re-calculs
+   * Styles adaptatifs selon le mode compact ou normal
    */
-  const connectionIndicatorStyles = useMemo(() => ({
-    container: `
+  const indicatorStyles = useMemo(() => ({
+    container: compact ? `
+      flex items-center space-x-2 px-2 py-1 rounded-full transition-all duration-300
+      ${isOnline 
+        ? 'bg-green-50 text-green-700' 
+        : 'bg-red-50 text-red-700'
+      }
+    ` : `
       flex items-center space-x-2 px-3 py-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm
       ${isOnline 
         ? 'bg-green-100/90 text-green-800 border border-green-200' 
@@ -34,24 +41,27 @@ export const ConnectionIndicator: React.FC<ConnectionIndicatorProps> = ({
       }
     `,
     icon: isOnline ? 'text-green-600' : 'text-red-600',
-    text: 'text-xs font-medium'
-  }), [isOnline]);
+    text: compact ? 'text-xs font-medium' : 'text-xs font-medium'
+  }), [isOnline, compact]);
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
-      <div className={connectionIndicatorStyles.container}>
-        {isOnline ? (
-          <Wifi size={16} className={connectionIndicatorStyles.icon} />
-        ) : (
-          <WifiOff size={16} className={connectionIndicatorStyles.icon} />
-        )}
-        <span className={connectionIndicatorStyles.text}>
-          {isOnline ? 'En ligne' : 'Hors ligne'}
-        </span>
-        {isInstalled && (
-          <CheckCircle size={14} className="text-blue-600 ml-1" />
-        )}
-      </div>
+    <div className={indicatorStyles.container}>
+      {!compact && (
+        <>
+          {isOnline ? (
+            <Wifi size={16} className={indicatorStyles.icon} />
+          ) : (
+            <WifiOff size={16} className={indicatorStyles.icon} />
+          )}
+        </>
+      )}
+      <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}></div>
+      <span className={indicatorStyles.text}>
+        {isOnline ? 'En ligne' : 'Hors ligne'}
+      </span>
+      {isInstalled && (
+        <CheckCircle size={12} className="text-blue-600" />
+      )}
     </div>
   );
 };

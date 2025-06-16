@@ -12,13 +12,13 @@ if (!rootElement) {
 }
 
 /**
- * Enregistrement du Service Worker PWA pour la production Netlify
- * Fournit des fonctionnalités hors ligne et de mise en cache avancées
+ * Enregistrement du Service Worker PWA UNIQUEMENT pour la production
+ * Évite les conflits avec le WebSocket de Vite en développement
  */
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', async () => {
     try {
-      console.log('PWA: Enregistrement du Service Worker pour Netlify...');
+      console.log('PWA: Enregistrement du Service Worker pour la production...');
       
       // Enregistrement du service worker généré par Vite PWA
       const registration = await navigator.serviceWorker.register('/sw.js', {
@@ -70,11 +70,8 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('offline', () => {
     console.log('PWA: Connexion réseau perdue - mode hors ligne activé');
   });
-}
-
-// Configuration de l'environnement de développement pour PWA
-if ('serviceWorker' in navigator && import.meta.env.DEV) {
-  console.log('PWA: Mode développement - Service Worker géré par Vite');
+} else if (import.meta.env.DEV) {
+  console.log('PWA: Mode développement - Service Worker désactivé pour éviter les conflits');
 }
 
 // Création et montage de l'application React
@@ -88,7 +85,7 @@ root.render(
   </React.StrictMode>
 );
 
-// Ajout de métadonnées PWA dans le DOM pour la production
+// Ajout de métadonnées PWA dans le DOM UNIQUEMENT pour la production
 if (import.meta.env.PROD) {
   // Ajout de la balise meta pour le theme-color dynamique
   const themeColorMeta = document.createElement('meta');
@@ -108,5 +105,5 @@ if (import.meta.env.PROD) {
   appleStatusBarMeta.content = 'black-translucent';
   document.head.appendChild(appleStatusBarMeta);
 
-  console.log('PWA: Métadonnées mobiles ajoutées pour Netlify');
+  console.log('PWA: Métadonnées mobiles ajoutées pour la production');
 }

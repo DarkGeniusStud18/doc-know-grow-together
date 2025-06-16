@@ -10,10 +10,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      overlay: true,
+      clientPort: 8080
+    }
   },
   plugins: [
     react(),
-    VitePWA({
+    mode === 'production' && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       workbox: {
@@ -121,15 +125,9 @@ export default defineConfig(({ mode }) => ({
             purpose: 'maskable'
           }
         ]
-      },
-      devOptions: {
-        enabled: mode === 'development',
-        type: 'module',
-        navigateFallback: 'index.html',
       }
     }),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -138,6 +136,7 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     global: 'globalThis',
+    __WS_TOKEN__: mode === 'development' ? '"dev-token"' : 'undefined'
   },
   build: {
     rollupOptions: {
