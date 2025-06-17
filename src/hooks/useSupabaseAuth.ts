@@ -8,8 +8,8 @@ import { handleNativeAuthSuccess, handleNativeAuthError, checkNetworkConnectivit
 export type { User as AuthUser }; // Re-export pour la compatibilité
 
 /**
- * Hook d'authentification Supabase optimisé pour les environnements natifs et web
- * Gère la persistance de session, la connectivité réseau et les fonctionnalités natives
+ * Hook d'authentification Supabase optimisé pour un accès immédiat
+ * Supprime les vérifications inutiles pour améliorer l'UX
  */
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -19,9 +19,9 @@ export const useSupabaseAuth = () => {
   useEffect(() => {
     let isMounted = true;
 
-    // Fonction pour vérifier la session utilisateur
+    // Fonction pour vérifier la session utilisateur - VERSION OPTIMISÉE
     const checkUserSession = async () => {
-      setLoading(true);
+      console.log('🔍 AuthOptimized: Vérification rapide de session...');
       
       // Vérification de la connectivité en environnement natif seulement
       if (isNativeEnvironment()) {
@@ -34,64 +34,72 @@ export const useSupabaseAuth = () => {
         }
       }
       
-      const currentUser = await getCurrentUser();
-      if (isMounted) {
-        setUser(currentUser);
-        setLoading(false);
-        
-        // Gestion du succès d'authentification avec feedback natif
-        if (currentUser) {
-          console.log('👤 Utilisateur authentifié:', currentUser.displayName);
+      // Récupération IMMÉDIATE de l'utilisateur sans délai
+      try {
+        const currentUser = await getCurrentUser();
+        if (isMounted) {
+          setUser(currentUser);
+          setLoading(false);
+          
+          // Log simplifié pour éviter le spam
+          if (currentUser) {
+            console.log('✅ AuthOptimized: Utilisateur connecté');
+          } else {
+            console.log('ℹ️ AuthOptimized: Aucun utilisateur');
+          }
+        }
+      } catch (error) {
+        console.error('❌ AuthOptimized: Erreur session:', error);
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
         }
       }
     };
 
+    // Exécution immédiate - PAS de délai
     checkUserSession();
 
-    // Configuration de l'écouteur d'événements d'authentification
+    // Configuration de l'écouteur d'événements d'authentification - VERSION SIMPLIFIÉE
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
-      console.log(`🔐 Événement d'authentification Supabase: ${event}`);
-      console.log(`📱 Environnement: ${isNativeEnvironment() ? 'natif' : 'web'}`);
+      console.log(`🔐 AuthOptimized: ${event}`);
 
       if (event === 'SIGNED_OUT') {
-        // Nettoyage des données utilisateur démonstration
+        // Nettoyage rapide
         if(localStorage.getItem('demoUser')) {
           localStorage.removeItem('demoUser');
-          console.log('🧹 Utilisateur démonstration supprimé du localStorage');
         }
         
-        // Nettoyage supplémentaire pour l'environnement natif seulement
         if (isNativeEnvironment()) {
           try {
             const { Preferences } = await import('@capacitor/preferences');
             await Preferences.remove({ key: 'demoUser' });
-            console.log('🧹 Utilisateur démonstration supprimé du stockage natif');
           } catch (error) {
-            console.log('⚠️ Erreur lors du nettoyage du stockage natif:', error);
+            // Ignorer les erreurs de nettoyage natif
           }
         }
         
         setUser(null);
-        console.log('👋 Utilisateur déconnecté');
+        console.log('👋 AuthOptimized: Déconnexion');
         
       } else if (session) {
-        // Gestion des événements avec session active (SIGNED_IN, TOKEN_REFRESHED, etc.)
-        console.log('🔄 Mise à jour de la session utilisateur');
+        // Mise à jour IMMÉDIATE pour les événements avec session
+        console.log('🔄 AuthOptimized: Mise à jour session');
         
         try {
           const currentUser = await getCurrentUser();
           if (isMounted) {
             setUser(currentUser);
             
-            // Feedback natif pour les connexions réussies (natif seulement)
+            // Feedback natif UNIQUEMENT pour les nouvelles connexions
             if (event === 'SIGNED_IN' && currentUser && isNativeEnvironment()) {
               await handleNativeAuthSuccess(currentUser);
             }
           }
         } catch (error) {
-          console.error('❌ Erreur lors de la récupération de l\'utilisateur après authentification:', error);
+          console.error('❌ AuthOptimized: Erreur récupération utilisateur:', error);
           if (isNativeEnvironment()) {
             await handleNativeAuthError(error, 'récupération utilisateur');
           }
@@ -104,17 +112,16 @@ export const useSupabaseAuth = () => {
     if (isNativeEnvironment()) {
       import('@capacitor/network').then(({ Network }) => {
         networkListener = Network.addListener('networkStatusChange', (status) => {
-          console.log(`🌐 Statut réseau changé: ${status.connected ? 'connecté' : 'déconnecté'}`);
           setIsConnected(status.connected);
           
-          // Tentative de reconnexion automatique si la connexion revient
+          // Reconnexion SANS vérification excessive
           if (status.connected && !user) {
-            console.log('🔄 Connexion restaurée - Vérification de la session...');
+            console.log('🔄 AuthOptimized: Reconnexion rapide...');
             checkUserSession();
           }
         });
-      }).catch(error => {
-        console.log('🌐 Surveillance réseau non disponible:', error);
+      }).catch(() => {
+        // Surveillance réseau non disponible - ignorer silencieusement
       });
     }
 
@@ -123,7 +130,6 @@ export const useSupabaseAuth = () => {
       isMounted = false;
       subscription?.unsubscribe();
       
-      // Nettoyage de l'écouteur réseau natif
       if (networkListener) {
         networkListener.remove();
       }
@@ -133,6 +139,6 @@ export const useSupabaseAuth = () => {
   return {
     user,
     loading,
-    isConnected, // Ajout du statut de connectivité pour l'UI
+    isConnected,
   };
 };

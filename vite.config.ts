@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    // Only enable PWA in production to avoid development conflicts
     mode === 'production' && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
@@ -26,43 +27,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         skipWaiting: true,
-        clientsClaim: true,
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === 'document',
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'medcollab-documents',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/yblwafdsidkuzgzfazpf\.supabase\.co\/.*$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'medcollab-supabase',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24
-              },
-              networkTimeoutSeconds: 10
-            }
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'medcollab-images',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30
-              }
-            }
-          }
-        ]
+        clientsClaim: true
       },
       manifest: {
         name: 'MedCollab - Plateforme Médicale Collaborative',
@@ -76,29 +41,6 @@ export default defineConfig(({ mode }) => ({
         scope: '/',
         lang: 'fr',
         categories: ['education', 'medical', 'productivity'],
-        shortcuts: [
-          {
-            name: 'Tableau de bord',
-            short_name: 'Dashboard',
-            description: 'Accéder au tableau de bord principal',
-            url: '/dashboard',
-            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Outils d\'étude',
-            short_name: 'Outils',
-            description: 'Accéder aux outils d\'apprentissage',
-            url: '/tools',
-            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Communauté',
-            short_name: 'Communauté',
-            description: 'Rejoindre les discussions communautaires',
-            url: '/community',
-            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
-          }
-        ],
         icons: [
           {
             src: '/pwa-192x192.png',
@@ -111,18 +53,6 @@ export default defineConfig(({ mode }) => ({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
-          },
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'maskable'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
           }
         ]
       }
@@ -135,33 +65,11 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    global: 'globalThis',
-    __WS_TOKEN__: mode === 'development' ? '"dev-token"' : 'undefined'
+    global: 'globalThis'
   },
   build: {
-    rollupOptions: {
-      external: [
-        '@capacitor/preferences',
-        '@capacitor/network',
-        '@capacitor/push-notifications',
-        '@capacitor/share',
-        '@capacitor/haptics',
-        '@capacitor/app',
-        '@capacitor/keyboard',
-        '@capacitor/status-bar'
-      ],
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          query: ['@tanstack/react-query'],
-          supabase: ['@supabase/supabase-js'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          charts: ['recharts'],
-          utils: ['date-fns', 'clsx', 'tailwind-merge']
-        }
-      }
-    },
-    chunkSizeWarningLimit: 1000
+    target: 'esnext',
+    chunkSizeWarningLimit: 1000,
+    sourcemap: false
   }
 }));

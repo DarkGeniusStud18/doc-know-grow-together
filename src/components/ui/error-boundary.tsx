@@ -1,189 +1,327 @@
 
 /**
- * Composant Error Boundary pour la gestion d'erreurs React
+ * Composant Error Boundary pour MedCollab
  * 
- * Capture les erreurs JavaScript dans l'arbre des composants
- * et affiche une interface utilisateur de secours élégante
+ * Gère les erreurs JavaScript non capturées dans l'arbre des composants React.
+ * Fournit une interface utilisateur de récupération gracieuse et des informations
+ * de débogage utiles pour les développeurs.
+ * 
+ * Fonctionnalités :
+ * - Capture des erreurs React non gérées
+ * - Interface de récupération conviviale
+ * - Logging détaillé pour le débogage
+ * - Options de rechargement et de signalement
+ * - Design responsive et accessible
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from './button';
+import { AlertTriangle, RefreshCw, Home, Mail } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
- * Interface des propriétés de l'Error Boundary
+ * Interface pour les props du composant ErrorBoundary
  */
 interface ErrorBoundaryProps {
+  /** Composants enfants à surveiller */
   children: ReactNode;
-  fallback?: ReactNode;
+  /** Message d'erreur personnalisé (optionnel) */
+  fallbackMessage?: string;
+  /** Fonction de callback lors d'une erreur (optionnel) */
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 /**
- * Interface de l'état de l'Error Boundary
+ * Interface pour l'état du composant ErrorBoundary
  */
 interface ErrorBoundaryState {
+  /** Indique si une erreur a été capturée */
   hasError: boolean;
-  error?: Error;
-  errorInfo?: ErrorInfo;
+  /** Détails de l'erreur capturée */
+  error: Error | null;
+  /** Informations supplémentaires sur l'erreur */
+  errorInfo: ErrorInfo | null;
+  /** ID unique de l'erreur pour le tracking */
+  errorId: string;
 }
 
 /**
- * Error Boundary pour capturer et gérer les erreurs React
- * 
- * Fonctionnalités :
- * - Capture automatique des erreurs JavaScript
- * - Interface utilisateur de secours élégante
- * - Boutons de récupération (actualiser/accueil)
- * - Logging des erreurs pour le débogage
- * - Design cohérent avec le thème médical
+ * Composant Error Boundary principal
+ * Classe component nécessaire pour implémenter componentDidCatch
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    
+    // Initialisation de l'état
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: ''
+    };
   }
 
   /**
-   * Méthode statique pour capturer les erreurs
+   * Méthode statique appelée lors de la capture d'une erreur
+   * Met à jour l'état pour déclencher l'affichage de l'interface d'erreur
    */
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Met à jour l'état pour afficher l'interface de secours
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    // Génération d'un ID unique pour l'erreur
+    const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    return {
+      hasError: true,
+      error,
+      errorId
+    };
   }
 
   /**
-   * Méthode pour capturer les informations d'erreur
+   * Méthode appelée après la capture d'une erreur
+   * Gère le logging et les callbacks personnalisés
    */
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Erreur capturée par ErrorBoundary:', error, errorInfo);
-    
-    // Mise à jour de l'état avec les informations d'erreur
-    this.setState({
-      error,
-      errorInfo
-    });
+    // Mise à jour de l'état avec les informations détaillées
+    this.setState({ errorInfo });
 
-    // Ici, vous pourriez envoyer l'erreur à un service de monitoring
-    // comme Sentry, LogRocket, etc.
+    // Logging détaillé de l'erreur
+    console.group('🚨 ErrorBoundary: Erreur capturée');
+    console.error('Erreur:', error);
+    console.error('Stack trace:', error.stack);
+    console.error('Informations du composant:', errorInfo.componentStack);
+    console.error('ID d\'erreur:', this.state.errorId);
+    console.groupEnd();
+
+    // Appel du callback personnalisé si fourni
+    if (this.props.onError) {
+      try {
+        this.props.onError(error, errorInfo);
+      } catch (callbackError) {
+        console.error('❌ ErrorBoundary: Erreur dans le callback onError:', callbackError);
+      }
+    }
+
+    // Envoi optionnel de l'erreur à un service de monitoring
+    // (Sentry, LogRocket, etc. - à implémenter selon les besoins)
+    this.reportErrorToService(error, errorInfo);
   }
 
   /**
-   * Méthode pour réinitialiser l'état d'erreur
+   * Fonction pour signaler l'erreur à un service de monitoring externe
+   * Placeholder pour l'intégration future avec des outils comme Sentry
    */
-  resetError = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+  private reportErrorToService = (error: Error, errorInfo: ErrorInfo) => {
+    // TODO: Intégrer avec un service de monitoring d'erreurs
+    console.log('📊 ErrorBoundary: Signalement de l\'erreur au service de monitoring');
+    
+    // Exemple d'implémentation future :
+    // if (window.Sentry) {
+    //   window.Sentry.captureException(error, {
+    //     contexts: {
+    //       react: {
+    //         componentStack: errorInfo.componentStack
+    //       }
+    //     },
+    //     tags: {
+    //       errorBoundary: true,
+    //       errorId: this.state.errorId
+    //     }
+    //   });
+    // }
   };
 
   /**
-   * Méthode pour recharger la page
+   * Fonction pour réinitialiser l'état d'erreur
+   * Permet à l'utilisateur de tenter une récupération
    */
-  reloadPage = () => {
+  private handleReset = () => {
+    console.log('🔄 ErrorBoundary: Réinitialisation de l\'état d\'erreur');
+    
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: ''
+    });
+  };
+
+  /**
+   * Fonction pour recharger complètement la page
+   * Option de récupération en dernier recours
+   */
+  private handleReload = () => {
+    console.log('🔄 ErrorBoundary: Rechargement complet de la page');
     window.location.reload();
   };
 
   /**
-   * Méthode pour retourner à l'accueil
+   * Fonction pour copier les détails de l'erreur dans le presse-papiers
+   * Facilite le signalement des bugs par les utilisateurs
    */
-  goHome = () => {
-    window.location.href = '/';
+  private copyErrorDetails = async () => {
+    if (!this.state.error) return;
+
+    const errorDetails = {
+      errorId: this.state.errorId,
+      message: this.state.error.message,
+      stack: this.state.error.stack,
+      componentStack: this.state.errorInfo?.componentStack,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    };
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(errorDetails, null, 2));
+      console.log('📋 ErrorBoundary: Détails de l\'erreur copiés dans le presse-papiers');
+      
+      // TODO: Afficher une notification de succès
+    } catch (err) {
+      console.error('❌ ErrorBoundary: Impossible de copier dans le presse-papiers:', err);
+    }
   };
 
+  /**
+   * Rendu du composant
+   * Affiche soit les enfants normalement, soit l'interface d'erreur
+   */
   render() {
-    if (this.state.hasError) {
-      // Interface utilisateur de secours personnalisée
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
-      // Interface de secours par défaut
-      return (
-        <div className="min-h-screen bg-medical-light flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-            {/* Icône d'erreur */}
-            <div className="flex justify-center mb-6">
-              <div className="bg-red-100 rounded-full p-4">
-                <AlertTriangle className="h-12 w-12 text-red-500" />
-              </div>
-            </div>
-
-            {/* Titre et message d'erreur */}
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Oups ! Quelque chose s'est mal passé
-            </h1>
-            
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              Une erreur inattendue s'est produite. Nos équipes ont été notifiées 
-              et travaillent à résoudre le problème.
-            </p>
-
-            {/* Détails de l'erreur en mode développement */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  Détails de l'erreur :
-                </p>
-                <code className="text-xs text-red-600 break-all">
-                  {this.state.error.message}
-                </code>
-              </div>
-            )}
-
-            {/* Boutons d'action */}
-            <div className="space-y-3">
-              <Button 
-                onClick={this.resetError}
-                className="w-full"
-                size="lg"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Réessayer
-              </Button>
-              
-              <Button 
-                onClick={this.reloadPage}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualiser la page
-              </Button>
-              
-              <Button 
-                onClick={this.goHome}
-                variant="ghost"
-                className="w-full"
-                size="lg"
-              >
-                <Home className="h-4 w-4 mr-2" />
-                Retour à l'accueil
-              </Button>
-            </div>
-
-            {/* Message de support */}
-            <p className="text-xs text-gray-500 mt-6">
-              Si le problème persiste, contactez notre support technique.
-            </p>
-          </div>
-        </div>
-      );
+    // Affichage normal si aucune erreur
+    if (!this.state.hasError) {
+      return this.props.children;
     }
 
-    // Rendu normal des enfants si pas d'erreur
-    return this.props.children;
+    // Interface d'erreur responsive et accessible
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl mx-auto shadow-lg">
+          <CardHeader className="text-center pb-4">
+            {/* Icône d'erreur avec animation */}
+            <div className="mx-auto mb-4 w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-red-600" />
+            </div>
+            
+            <CardTitle className="text-2xl text-gray-900">
+              Oups ! Une erreur est survenue
+            </CardTitle>
+            
+            <CardDescription className="text-gray-600 text-lg">
+              {this.props.fallbackMessage || 
+                'Nous sommes désolés, quelque chose s\'est mal passé. Notre équipe technique a été notifiée.'}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {/* Alerte avec ID d'erreur pour le support */}
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>ID d'erreur :</strong> {this.state.errorId}
+                <br />
+                <span className="text-sm text-gray-500">
+                  Communiquez cet ID au support technique si vous contactez l'assistance.
+                </span>
+              </AlertDescription>
+            </Alert>
+
+            {/* Détails techniques (en mode développement uniquement) */}
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                  Détails techniques (développement)
+                </summary>
+                <div className="mt-2 p-3 bg-gray-100 rounded-md">
+                  <p className="text-sm font-mono text-red-600 mb-2">
+                    {this.state.error.message}
+                  </p>
+                  {this.state.error.stack && (
+                    <pre className="text-xs text-gray-600 overflow-auto max-h-40">
+                      {this.state.error.stack}
+                    </pre>
+                  )}
+                </div>
+              </details>
+            )}
+          </CardContent>
+
+          <CardFooter className="flex flex-col sm:flex-row gap-3 pt-4">
+            {/* Boutons d'actions de récupération */}
+            <Button
+              onClick={this.handleReset}
+              className="flex-1 bg-medical-blue hover:bg-medical-blue/90"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Réessayer
+            </Button>
+
+            <Button
+              onClick={this.handleReload}
+              variant="outline"
+              className="flex-1"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Recharger la page
+            </Button>
+
+            <Button
+              onClick={() => window.location.href = '/'}
+              variant="outline"
+              className="flex-1"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Retour à l'accueil
+            </Button>
+
+            {/* Bouton pour copier les détails (développement) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                onClick={this.copyErrorDetails}
+                variant="ghost"
+                size="sm"
+                className="self-center"
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Copier les détails
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
+    );
   }
 }
 
 /**
- * Hook pour utiliser l'Error Boundary de manière fonctionnelle
+ * Hook pour les composants fonctionnels qui ont besoin de gérer des erreurs
+ * Fournit une fonction pour signaler manuellement des erreurs à l'Error Boundary
  */
-export const withErrorBoundary = <P extends object>(
-  Component: React.ComponentType<P>,
-  fallback?: ReactNode
-) => {
-  return (props: P) => (
-    <ErrorBoundary fallback={fallback}>
-      <Component {...props} />
+export const useErrorHandler = () => {
+  return (error: Error, errorInfo?: Partial<ErrorInfo>) => {
+    console.error('🚨 useErrorHandler: Erreur signalée manuellement:', error);
+    
+    // Re-lancer l'erreur pour qu'elle soit capturée par l'Error Boundary
+    throw error;
+  };
+};
+
+/**
+ * Composant Error Boundary simplifié pour des cas d'usage spécifiques
+ * Version légère pour des sections critiques
+ */
+export const SimpleErrorBoundary: React.FC<{ children: ReactNode; fallback?: ReactNode }> = ({
+  children,
+  fallback
+}) => {
+  return (
+    <ErrorBoundary
+      fallbackMessage="Une erreur est survenue dans cette section"
+      onError={(error, errorInfo) => {
+        console.error('🚨 SimpleErrorBoundary: Erreur capturée:', error);
+      }}
+    >
+      {children}
     </ErrorBoundary>
   );
 };

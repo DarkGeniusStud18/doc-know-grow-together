@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Barre de navigation mobile horizontale optimisée pour MedCollab

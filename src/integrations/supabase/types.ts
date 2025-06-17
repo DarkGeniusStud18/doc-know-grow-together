@@ -1782,6 +1782,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_tasks_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -1960,6 +1967,10 @@ export type Database = {
         Args: { p_message_id: string; p_user_id: string }
         Returns: boolean
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_group_messages: {
         Args: { p_group_id: string }
         Returns: {
@@ -2022,7 +2033,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "student" | "professional"
+      app_role: "student" | "professional" | "healthcare_professional"
       content_type: "book" | "video" | "document" | "article"
       document_type: "id_card" | "passport" | "student_card" | "medical_license"
       kyc_status: "not_submitted" | "pending" | "verified" | "rejected"
@@ -2142,7 +2153,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "professional"],
+      app_role: ["student", "professional", "healthcare_professional"],
       content_type: ["book", "video", "document", "article"],
       document_type: ["id_card", "passport", "student_card", "medical_license"],
       kyc_status: ["not_submitted", "pending", "verified", "rejected"],

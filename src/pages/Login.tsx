@@ -22,10 +22,10 @@ const Login: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const verified = searchParams.get('verified') === 'true';
   
-  // Redirection si déjà connecté
+  // Redirection IMMÉDIATE si déjà connecté - OPTIMISÉE
   useEffect(() => {
     if (!authLoading && user && !redirected) {
-      console.log('Login: Utilisateur déjà connecté, redirection');
+      console.log('✅ Login: Redirection immédiate vers dashboard');
       setRedirected(true);
       navigate('/dashboard', { replace: true });
     }
@@ -40,15 +40,15 @@ const Login: React.FC = () => {
       const result = await signInWithEmail(data.email, data.password);
       
       if (!result.error) {
-        console.log('Login: Connexion réussie');
-        // La redirection sera gérée par l'effet ci-dessus
+        console.log('✅ Login: Connexion réussie - redirection automatique');
+        // La redirection sera gérée automatiquement par l'effet ci-dessus
       } else {
         toast.error('Erreur de connexion', { 
           description: 'Veuillez vérifier vos identifiants et réessayer.'
         });
       }
     } catch (error: any) {
-      console.error('Login: Erreur:', error);
+      console.error('❌ Login: Erreur:', error);
       toast.error('Erreur de connexion', { 
         description: 'Veuillez vérifier vos identifiants et réessayer.'
       });
@@ -66,27 +66,27 @@ const Login: React.FC = () => {
       const result = await signInAsDemo(type);
       
       if (!result.error) {
-        console.log('Login: Connexion démo réussie');
-        // La redirection sera gérée par l'effet ci-dessus
+        console.log('✅ Login: Connexion démo réussie - redirection automatique');
+        // La redirection sera gérée automatiquement par l'effet ci-dessus
       } else {
         toast.error('Erreur de connexion démo');
       }
     } catch (error: any) {
-      console.error('Login: Erreur démo:', error);
+      console.error('❌ Login: Erreur démo:', error);
       toast.error('Erreur de connexion démo');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Écran de chargement initial
+  // Écran de chargement MINIMAL - pas de "vérification" infinie
   if (authLoading) {
     return (
       <MainLayout requireAuth={false}>
         <div className="min-h-[calc(100vh-120px)] flex items-center justify-center">
           <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            <p className="text-lg text-gray-600">Vérification...</p>
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-medical-blue" />
+            <p className="text-lg text-gray-600">Connexion...</p>
           </div>
         </div>
       </MainLayout>

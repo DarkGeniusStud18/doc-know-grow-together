@@ -28,7 +28,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   if (requireAuth && !user && !loading) {
     // Redirect vers la page de login si l'utilisateur n'est pas authentifié
     window.location.href = '/login';
-    return null; // Empêche le rendu du reste du composant
+    return null;
   }
 
   return (
@@ -37,7 +37,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         {/* Navigation principale */}
         {!simplified ? (
           <>
-            {/* Barre supérieure mobile/tablette */}
+            {/* Barre supérieure mobile/tablette - TOUJOURS VISIBLE */}
             <MobileTopBar />
             
             {/* Navigation selon le type d'écran */}
@@ -51,10 +51,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           <Navbar simplified={true} />
         )}
 
-        {/* Contenu principal avec padding adaptatif pour la barre mobile */}
+        {/* Contenu principal avec padding adaptatif pour la barre mobile PERMANENTE */}
         <main className={`
           ${!simplified && user ? 'md:ml-64' : ''}
-          ${user ? 'pt-16 md:pt-0 pb-20 md:pb-0' : ''}
+          ${user ? 'pt-20 md:pt-0 pb-24 md:pb-0' : ''}
           min-h-screen transition-all duration-300
           px-0 sm:px-4 lg:px-6
         `}>
