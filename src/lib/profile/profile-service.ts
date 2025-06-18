@@ -2,7 +2,7 @@
 /**
  * Profile data service utilities
  */
-import { User, UserRole, KycStatus } from '@/lib/auth/types';
+import { User, UserRole, KycStatus, toDatabaseRole } from '@/lib/auth/types';
 import { updateProfile, getProfile, hasData } from '@/lib/supabase/query-helpers';
 import { toast } from '@/components/ui/sonner';
 
@@ -22,7 +22,13 @@ export const updateUserProfile = async (
   try {
     console.log('Mise à jour du profil pour l\'utilisateur:', userId, updates);
     
-    const { error } = await updateProfile(userId, updates);
+    // Convert UserRole to DatabaseUserRole if role is being updated
+    const dbUpdates: any = { ...updates };
+    if (updates.role) {
+      dbUpdates.role = toDatabaseRole(updates.role);
+    }
+    
+    const { error } = await updateProfile(userId, dbUpdates);
     
     if (error) {
       console.error('Erreur lors de la mise à jour du profil:', error);
@@ -70,10 +76,10 @@ export const getUserFullProfile = async (userId: string): Promise<User | null> =
       profileImage: data.profile_image || undefined,
       university: data.university || undefined,
       specialty: data.specialty || undefined,
-      subscriptionStatus: data.subscription_status as any,
+      subscriptionStatus: (data.subscription_status || 'free') as any,
       subscriptionExpiry: data.subscription_expiry ? new Date(data.subscription_expiry) : null,
       createdAt: new Date(data.created_at),
-      updatedAt: data.updated_at ? new Date(data.updated_at) : undefined
+      updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(data.created_at)
     };
     
     console.log('Profil récupéré avec succès:', userProfile);

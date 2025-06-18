@@ -1,18 +1,14 @@
 
 /**
- * Tableau de bord principal - Page d'accueil après connexion
- * 
- * Cette page affiche les fonctionnalités principales de l'application adaptées au rôle de l'utilisateur.
- * Elle évite les boucles de chargement infinies grâce à une gestion d'état optimisée.
+ * Tableau de bord principal - ACCÈS IMMÉDIAT sans écrans de chargement
  */
-import React, { useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -38,10 +34,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-/**
- * Interface pour définir la structure des cartes de fonctionnalités
- * Assure la cohérence des données affichées dans le tableau de bord
- */
 interface FeatureCard {
   title: string;
   description: string;
@@ -51,36 +43,12 @@ interface FeatureCard {
   category?: 'primary' | 'secondary';
 }
 
-/**
- * Tableau de bord personnalisé qui affiche des fonctionnalités adaptées
- * au rôle de l'utilisateur (étudiant ou professionnel)
- * 
- * Fonctionnalités principales :
- * - Prévention des boucles de chargement infinies
- * - Interface adaptative selon le rôle utilisateur
- * - Cartes d'actions optimisées et responsives
- * - Gestion d'erreurs robuste
- */
 const Dashboard: React.FC = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
-  // Prévention des boucles de redirection infinies avec une gestion d'état optimisée
-  useEffect(() => {
-    // Éviter les redirections pendant le chargement initial
-    if (loading) return;
-    
-    // Redirection sécurisée vers la page de connexion si nécessaire
-    if (!user) {
-      console.log('Utilisateur non connecté, redirection vers login');
-      navigate('/login', { replace: true });
-    }
-  }, [user, loading, navigate]);
+  // SUPPRESSION des vérifications et redirections infinies
+  // L'authentification est gérée au niveau du MainLayout
 
-  /**
-   * Cartes de fonctionnalités pour les étudiants en médecine
-   * Mémorisées pour éviter les re-rendus inutiles
-   */
   const studentFeatureCards: FeatureCard[] = useMemo(() => [
     {
       title: "Fiches de révision",
@@ -148,10 +116,6 @@ const Dashboard: React.FC = () => {
     }
   ], []);
 
-  /**
-   * Cartes de fonctionnalités pour les professionnels de santé
-   * Adaptées aux besoins des praticiens et formateurs
-   */
   const professionalFeatureCards: FeatureCard[] = useMemo(() => [
     {
       title: "Cas cliniques",
@@ -203,42 +167,22 @@ const Dashboard: React.FC = () => {
     }
   ], []);
 
-  // Écran de chargement optimisé avec design médical cohérent
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-[70vh]">
-          <div className="text-center space-y-6 p-8 bg-white rounded-2xl shadow-lg max-w-md w-full mx-4">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-medical-light border-t-medical-blue mx-auto"></div>
-            <div className="space-y-2">
-              <p className="text-xl font-semibold text-medical-navy">
-                Chargement du tableau de bord
-              </p>
-              <p className="text-sm text-gray-500">
-                Préparation de votre espace personnel...
-              </p>
-            </div>
-          </div>
-        </div>
-      </MainLayout>
-    );
+  // AFFICHAGE IMMÉDIAT - Pas d'écran de chargement si l'utilisateur existe
+  if (!user && !loading) {
+    // Seule condition : pas d'utilisateur ET pas de chargement en cours
+    return null;
   }
 
-  // Protection contre l'affichage sans utilisateur authentifié
-  if (!user) {
-    return null; // Évite le flash de contenu avant redirection
-  }
-
-  // Sélection des cartes appropriées selon le rôle utilisateur
-  const featureCards = user.role === 'student' ? studentFeatureCards : professionalFeatureCards;
-  const welcomeMessage = user.role === 'student' 
+  // ACCÈS DIRECT au tableau de bord - SUPPRESSION des écrans de chargement
+  const featureCards = user?.role === 'student' ? studentFeatureCards : professionalFeatureCards;
+  const welcomeMessage = user?.role === 'student' 
     ? "Bienvenue dans votre espace étudiant" 
     : "Bienvenue dans votre espace professionnel";
 
   return (
     <MainLayout requireAuth={true}>
       <div className="space-y-8 animate-fade-in">
-        {/* En-tête de bienvenue personnalisé avec informations utilisateur */}
+        {/* En-tête de bienvenue - TOUJOURS AFFICHÉ */}
         <div className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-2xl p-8 shadow-lg">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -246,10 +190,10 @@ const Dashboard: React.FC = () => {
                 {welcomeMessage}
               </h1>
               <p className="text-blue-100 text-lg">
-                Bonjour {user.displayName || user.email?.split('@')[0]} !
+                Bonjour {user?.displayName || user?.email?.split('@')[0] || 'Utilisateur'} !
               </p>
               <p className="text-blue-200 text-sm mt-1">
-                {user.role === 'student' 
+                {user?.role === 'student' 
                   ? "Prêt à optimiser vos études en médecine ?" 
                   : "Explorez vos outils professionnels avancés"}
               </p>
@@ -262,7 +206,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Section des statistiques rapides utilisateur */}
+        {/* Section des statistiques rapides */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="rounded-2xl border-0 shadow-md hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
@@ -307,11 +251,11 @@ const Dashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Grille des fonctionnalités principales avec organisation intelligente */}
+        {/* Grille des fonctionnalités principales */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">
-              Vos outils {user.role === 'student' ? 'd\'étude' : 'professionnels'}
+              Vos outils {user?.role === 'student' ? 'd\'étude' : 'professionnels'}
             </h2>
             <Button variant="outline" className="rounded-xl">
               <Search className="h-4 w-4 mr-2" />
@@ -386,7 +330,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Section de liens rapides et raccourcis */}
+        {/* Section de liens rapides */}
         <Card className="rounded-2xl border-0 shadow-md">
           <CardHeader>
             <CardTitle className="text-xl text-gray-900">

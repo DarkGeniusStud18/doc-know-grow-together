@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { updateProfile } from '@/lib/supabase/query-helpers';
 import { toast } from '@/components/ui/sonner';
-import { UserRole } from '@/lib/auth/types';
+import { UserRole, toDatabaseRole } from '@/lib/auth/types';
 
 export const useRoleSwitch = () => {
   const { user, updateCurrentUser } = useAuth();
@@ -19,7 +19,9 @@ export const useRoleSwitch = () => {
     try {
       console.log(`Changement de rôle vers: ${newRole}`);
       
-      const { error } = await updateProfile(user.id, { role: newRole });
+      // Convert to database role format
+      const dbRole = toDatabaseRole(newRole);
+      const { error } = await updateProfile(user.id, { role: dbRole });
       
       if (error) {
         console.error('Erreur lors du changement de rôle:', error);

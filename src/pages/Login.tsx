@@ -10,26 +10,41 @@ import DemoButtons from '@/components/auth/DemoButtons';
 import VerificationAlert from '@/components/auth/VerificationAlert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
-import { Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
   const { signInWithEmail, signInAsDemo, user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [redirected, setRedirected] = useState(false);
   
-  const searchParams = new URLSearchParams(location.search);
+  let navigate: any = null;
+  let location: any = null;
+  
+  try {
+    navigate = useNavigate();
+    location = useLocation();
+  } catch (error) {
+    console.warn('React Router hooks not available, using fallback navigation');
+  }
+  
+  const searchParams = new URLSearchParams(location?.search || '');
   const verified = searchParams.get('verified') === 'true';
   
-  // Redirection IMMÉDIATE si déjà connecté - OPTIMISÉE
+  const safeNavigate = (path: string) => {
+    if (navigate) {
+      navigate(path, { replace: true });
+    } else {
+      window.location.href = path;
+    }
+  };
+  
+  // Redirection IMMÉDIATE et UNE SEULE FOIS
   useEffect(() => {
     if (!authLoading && user && !redirected) {
-      console.log('✅ Login: Redirection immédiate vers dashboard');
+      console.log('✅ Login: Redirection immédiate et définitive vers dashboard');
       setRedirected(true);
-      navigate('/dashboard', { replace: true });
+      safeNavigate('/dashboard');
     }
-  }, [user, authLoading, navigate, redirected]);
+  }, [user, authLoading, redirected]);
   
   const handleFormSubmit = async (data: { email: string; password: string }) => {
     if (isLoading) return;
@@ -41,7 +56,7 @@ const Login: React.FC = () => {
       
       if (!result.error) {
         console.log('✅ Login: Connexion réussie - redirection automatique');
-        // La redirection sera gérée automatiquement par l'effet ci-dessus
+        // La redirection sera gérée par l'effet ci-dessus
       } else {
         toast.error('Erreur de connexion', { 
           description: 'Veuillez vérifier vos identifiants et réessayer.'
@@ -67,7 +82,7 @@ const Login: React.FC = () => {
       
       if (!result.error) {
         console.log('✅ Login: Connexion démo réussie - redirection automatique');
-        // La redirection sera gérée automatiquement par l'effet ci-dessus
+        // La redirection sera gérée par l'effet ci-dessus
       } else {
         toast.error('Erreur de connexion démo');
       }
@@ -79,21 +94,8 @@ const Login: React.FC = () => {
     }
   };
 
-  // Écran de chargement MINIMAL - pas de "vérification" infinie
-  if (authLoading) {
-    return (
-      <MainLayout requireAuth={false}>
-        <div className="min-h-[calc(100vh-120px)] flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-medical-blue" />
-            <p className="text-lg text-gray-600">Connexion...</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  // Si déjà connecté, ne pas afficher le formulaire
+  // SUPPRESSION de l'écran de chargement - accès immédiat
+  // Si l'utilisateur existe, ne pas afficher le formulaire
   if (user) {
     return null;
   }

@@ -1,12 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/**
- * Application principale MedCollab - Point d'entrée optimisé
- * 
- * Configuration complète avec gestion d'erreurs, optimisations PWA et surveillance des performances
- * Architecture modulaire avec lazy loading et gestion intelligente des états de chargement
- */
-
-import React, { Suspense } from 'react';
+import * as React from 'react';
+import { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/context/AuthContext';

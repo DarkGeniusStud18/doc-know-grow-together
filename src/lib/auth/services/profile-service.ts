@@ -1,7 +1,7 @@
 
 // Service pour la gestion des profils utilisateurs
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "../types";
+import { User, toDatabaseRole, toDatabaseSubscriptionStatus } from "../types";
 
 /**
  * Crée un profil utilisateur dans la base de données
@@ -17,12 +17,14 @@ export const createUserProfile = async (user: User) => {
     .insert({
       id: user.id,
       display_name: user.displayName,
-      role: user.role,
+      role: toDatabaseRole(user.role),
       kyc_status: user.kycStatus,
       created_at: createdAt,
       profile_image: user.profileImage || null,
       university: user.university || null,
       specialty: user.specialty || null,
+      subscription_status: toDatabaseSubscriptionStatus(user.subscriptionStatus),
+      subscription_expiry: user.subscriptionExpiry?.toISOString() || null,
     });
 
   if (error) {

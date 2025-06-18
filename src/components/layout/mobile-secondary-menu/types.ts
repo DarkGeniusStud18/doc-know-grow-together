@@ -50,6 +50,8 @@ export interface MobileNavItem {
 export interface MobileSecondaryMenuProps {
   items: MobileSecondaryMenuItem[];
   onItemClick: (item: MobileSecondaryMenuItem) => void;
+  userRole?: string; // Ajout de la propriété userRole
+  userName?: string; // Ajout de la propriété userName
 }
 
 /**

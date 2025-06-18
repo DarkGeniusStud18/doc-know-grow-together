@@ -29,6 +29,7 @@ import { MagicNavIconProps } from '../types';
  * @param onMouseEnter - Callback d'entrée de souris pour blob animation
  * @param onMouseLeave - Callback de sortie de souris pour blob animation
  * @param navItemRef - Référence DOM pour le calcul de position du blob
+ * @param className - Classes CSS additionnelles
  */
 export const MagicNavIcon: React.FC<MagicNavIconProps> = React.memo(({ 
   item, 
@@ -38,7 +39,8 @@ export const MagicNavIcon: React.FC<MagicNavIconProps> = React.memo(({
   hovered, // Alias pour compatibilité
   onMouseEnter,
   onMouseLeave,
-  navItemRef
+  navItemRef,
+  className
 }) => {
   // Récupération du composant d'icône depuis l'élément de navigation
   const IconComponent = item.icon;
@@ -63,7 +65,8 @@ export const MagicNavIcon: React.FC<MagicNavIconProps> = React.memo(({
           ? "text-white bg-medical-blue border-medical-blue shadow-lg" 
           : "text-gray-600 hover:text-medical-blue bg-white hover:bg-medical-light border-gray-100 hover:border-medical-blue/30 shadow-sm hover:shadow-md",
         // Animation de mise à l'échelle
-        "hover:scale-[1.05] active:scale-[0.95]"
+        "hover:scale-[1.05] active:scale-[0.95]",
+        className
       )}
       aria-label={`Naviguer vers ${item.label}`}
       aria-current={isActive ? 'page' : undefined}

@@ -3,7 +3,7 @@
  * Service pour gérer les profils utilisateurs dans Supabase
  */
 import { supabase } from "@/integrations/supabase/client";
-import { User, UserRole, KycStatus } from "../types";
+import { User, UserRole, KycStatus, SubscriptionStatus, toDatabaseRole, fromDatabaseRole } from "../types";
 import { toast } from "@/components/ui/sonner";
 
 /**
@@ -27,12 +27,15 @@ export const getUserProfileById = async (userId: string): Promise<User | null> =
       id: data.id,
       email: data.email || '',
       displayName: data.display_name,
-      role: data.role as UserRole,
+      role: fromDatabaseRole(data.role),
       kycStatus: data.kyc_status as KycStatus,
       profileImage: data.profile_image,
       university: data.university,
       specialty: data.specialty,
-      createdAt: new Date(data.created_at)
+      subscriptionStatus: (data.subscription_status || 'free') as SubscriptionStatus,
+      subscriptionExpiry: data.subscription_expiry ? new Date(data.subscription_expiry) : null,
+      createdAt: new Date(data.created_at),
+      updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(data.created_at)
     };
   } catch (error) {
     console.error("Erreur lors de la récupération du profil:", error);
@@ -96,12 +99,15 @@ export const getAllUserProfiles = async (): Promise<User[]> => {
       id: profile.id,
       email: profile.email || '',
       displayName: profile.display_name,
-      role: profile.role as UserRole,
+      role: fromDatabaseRole(profile.role),
       kycStatus: profile.kyc_status as KycStatus,
       profileImage: profile.profile_image,
       university: profile.university,
       specialty: profile.specialty,
-      createdAt: new Date(profile.created_at)
+      subscriptionStatus: (profile.subscription_status || 'free') as SubscriptionStatus,
+      subscriptionExpiry: profile.subscription_expiry ? new Date(profile.subscription_expiry) : null,
+      createdAt: new Date(profile.created_at),
+      updatedAt: profile.updated_at ? new Date(profile.updated_at) : new Date(profile.created_at)
     }));
   } catch (error) {
     console.error("Erreur lors de la récupération des profils:", error);

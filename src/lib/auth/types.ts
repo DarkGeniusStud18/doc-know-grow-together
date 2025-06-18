@@ -1,4 +1,3 @@
-
 /**
  * Types et interfaces pour le système d'authentification de MedCollab
  * 
@@ -10,11 +9,19 @@
 /**
  * Énumération des rôles utilisateur disponibles dans l'application
  * Détermine les permissions et l'accès aux fonctionnalités
+ * Note: Aligné avec le schéma Supabase
  */
 export type UserRole = 
-  | 'student'      // Étudiant en médecine - accès aux ressources éducatives
-  | 'professional' // Professionnel de santé - accès étendu + création de contenu
-  | 'admin';       // Administrateur - accès complet à la gestion
+  | 'student'                // Étudiant en médecine - accès aux ressources éducatives
+  | 'professional'           // Professionnel de santé - accès étendu + création de contenu
+  | 'healthcare_professional' // Professionnel de santé vérifié - accès complet
+  | 'admin';                 // Administrateur - accès complet à la gestion
+
+/**
+ * Type pour les rôles supportés par la base de données Supabase
+ * Utilisé pour la compatibilité avec le schéma existant
+ */
+export type DatabaseUserRole = 'student' | 'professional' | 'healthcare_professional';
 
 /**
  * Statuts de vérification KYC (Know Your Customer)
@@ -38,13 +45,18 @@ export type KycDocumentType =
   | 'hospital_badge';   // Badge hospitalier
 
 /**
- * Statuts des abonnements utilisateur
+ * Statuts des abonnements utilisateur - Version locale
  * Détermine l'accès aux fonctionnalités premium
  */
 export type SubscriptionStatus = 
   | 'free'    // Compte gratuit - fonctionnalités de base
   | 'premium' // Abonnement payant - accès complet
   | 'trial';  // Période d'essai - accès temporaire premium
+
+/**
+ * Statuts des abonnements supportés par la base de données
+ */
+export type DatabaseSubscriptionStatus = 'free' | 'premium';
 
 /**
  * Interface principale représentant un utilisateur de l'application
@@ -233,11 +245,44 @@ export interface UserStats {
 }
 
 /**
+ * Fonction utilitaire pour convertir un UserRole en DatabaseUserRole
+ * Gère la compatibilité avec le schéma Supabase
+ */
+export const toDatabaseRole = (role: UserRole): DatabaseUserRole => {
+  // L'admin est traité comme un professionnel de santé dans la DB
+  if (role === 'admin') return 'healthcare_professional';
+  return role as DatabaseUserRole;
+};
+
+/**
+ * Fonction utilitaire pour convertir un DatabaseUserRole en UserRole
+ * Gère la compatibilité avec le schéma Supabase
+ */
+export const fromDatabaseRole = (role: DatabaseUserRole): UserRole => {
+  return role as UserRole;
+};
+
+/**
+ * Fonction utilitaire pour convertir un SubscriptionStatus en DatabaseSubscriptionStatus
+ * Gère la compatibilité avec le schéma Supabase
+ */
+export const toDatabaseSubscriptionStatus = (status: SubscriptionStatus): DatabaseSubscriptionStatus => {
+  // Le trial est traité comme premium dans la DB
+  if (status === 'trial') return 'premium';
+  return status as DatabaseSubscriptionStatus;
+};
+
+/**
+ * Fonction utilitaire pour convertir un DatabaseSubscriptionStatus en SubscriptionStatus
+ * Gère la compatibilité avec le schéma Supabase
+ */
+export const fromDatabaseSubscriptionStatus = (status: DatabaseSubscriptionStatus): SubscriptionStatus => {
+  return status as SubscriptionStatus;
+};
+
+/**
  * Fonction utilitaire pour vérifier si des données sont valides
  * Évite les erreurs de type lors de la manipulation des données utilisateur
- * 
- * @param data - Données à valider
- * @returns true si les données contiennent les propriétés requises
  */
 export const isValidData = (data: any): data is Record<string, any> => {
   return data && typeof data === 'object' && !Array.isArray(data);
@@ -246,20 +291,14 @@ export const isValidData = (data: any): data is Record<string, any> => {
 /**
  * Fonction utilitaire pour vérifier si un rôle nécessite une vérification KYC
  * Les professionnels doivent être vérifiés pour accéder aux fonctionnalités avancées
- * 
- * @param role - Rôle à vérifier
- * @returns true si le rôle nécessite une vérification KYC
  */
 export const requiresKycVerification = (role: UserRole): boolean => {
-  return role === 'professional';
+  return role === 'professional' || role === 'healthcare_professional';
 };
 
 /**
  * Fonction utilitaire pour vérifier si un utilisateur a accès aux fonctionnalités premium
  * Vérifie le statut d'abonnement et la date d'expiration
- * 
- * @param user - Utilisateur à vérifier
- * @returns true si l'utilisateur a un accès premium valide
  */
 export const hasPremiumAccess = (user: User): boolean => {
   if (user.subscriptionStatus === 'free') return false;
@@ -280,14 +319,12 @@ export const hasPremiumAccess = (user: User): boolean => {
 /**
  * Fonction utilitaire pour obtenir le nom d'affichage d'un rôle en français
  * Utilisée dans l'interface utilisateur pour l'affichage
- * 
- * @param role - Rôle à traduire
- * @returns Nom du rôle en français
  */
 export const getRoleDisplayName = (role: UserRole): string => {
   const roleNames: Record<UserRole, string> = {
     student: 'Étudiant',
     professional: 'Professionnel de santé',
+    healthcare_professional: 'Professionnel de santé vérifié',
     admin: 'Administrateur'
   };
   return roleNames[role];
@@ -295,9 +332,6 @@ export const getRoleDisplayName = (role: UserRole): string => {
 
 /**
  * Fonction utilitaire pour obtenir le nom d'affichage d'un statut KYC en français
- * 
- * @param status - Statut KYC à traduire
- * @returns Nom du statut en français
  */
 export const getKycStatusDisplayName = (status: KycStatus): string => {
   const statusNames: Record<KycStatus, string> = {
@@ -311,9 +345,6 @@ export const getKycStatusDisplayName = (status: KycStatus): string => {
 
 /**
  * Fonction utilitaire pour calculer les informations d'abonnement
- * 
- * @param user - Utilisateur pour lequel calculer les infos d'abonnement
- * @returns Informations détaillées sur l'abonnement
  */
 export const getSubscriptionInfo = (user: User): SubscriptionInfo => {
   const now = new Date();

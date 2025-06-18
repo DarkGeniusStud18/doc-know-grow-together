@@ -1,44 +1,85 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { KycStatus, UserRole } from "../types";
+/**
+ * Utilitaires pour la gestion des profils utilisateur
+ */
+import { supabase } from '@/integrations/supabase/client';
+import { User, toDatabaseRole, toDatabaseSubscriptionStatus } from '../types';
 
 /**
  * Crée un profil utilisateur dans la base de données
- * @param userId - ID de l'utilisateur
- * @param displayName - Nom d'affichage de l'utilisateur
- * @param email - Email de l'utilisateur
- * @param role - Rôle de l'utilisateur
- * @returns Promise<boolean> - True si la création du profil est réussie
+ * @param userData - Données de l'utilisateur à créer
+ * @returns Promise résolue avec les données du profil créé
  */
-export async function createUserProfileRecord(
-  userId: string,
-  displayName: string,
-  email: string,
-  role: UserRole
-): Promise<boolean> {
+export const createUserProfile = async (userData: Partial<User>) => {
   try {
-    const now = new Date().toISOString();
-    
-    const { error } = await supabase
+    const profileData = {
+      id: userData.id!,
+      display_name: userData.displayName!,
+      role: toDatabaseRole(userData.role!),
+      kyc_status: userData.kycStatus || 'not_submitted',
+      profile_image: userData.profileImage || null,
+      university: userData.university || null,
+      specialty: userData.specialty || null,
+      subscription_status: toDatabaseSubscriptionStatus(userData.subscriptionStatus || 'free'),
+      subscription_expiry: userData.subscriptionExpiry?.toISOString() || null,
+    };
+
+    const { data, error } = await supabase
       .from('profiles')
-      .insert({
-        id: userId,
-        display_name: displayName,
-        role: role,
-        kyc_status: 'not_submitted' as KycStatus,
-        email: email,
-        created_at: now,
-        updated_at: now
-      });
-    
+      .insert(profileData)
+      .select()
+      .single();
+
     if (error) {
-      console.error("Error creating profile:", error);
-      return false;
+      console.error('Erreur lors de la création du profil:', error);
+      throw error;
     }
-    
-    return true;
+
+    console.log('Profil créé avec succès:', data);
+    return data;
   } catch (error) {
-    console.error("Error in createUserProfileRecord:", error);
-    return false;
+    console.error('Erreur dans createUserProfile:', error);
+    throw error;
   }
-}
+};
+
+/**
+ * Met à jour un profil utilisateur existant
+ * @param userId - ID de l'utilisateur
+ * @param updates - Données à mettre à jour
+ * @returns Promise résolue avec les données mises à jour
+ */
+export const updateUserProfile = async (userId: string, updates: Partial<User>) => {
+  try {
+    const updateData: any = {};
+    
+    if (updates.displayName) updateData.display_name = updates.displayName;
+    if (updates.role) updateData.role = toDatabaseRole(updates.role);
+    if (updates.kycStatus) updateData.kyc_status = updates.kycStatus;
+    if (updates.profileImage !== undefined) updateData.profile_image = updates.profileImage;
+    if (updates.university !== undefined) updateData.university = updates.university;
+    if (updates.specialty !== undefined) updateData.specialty = updates.specialty;
+    if (updates.subscriptionStatus) updateData.subscription_status = toDatabaseSubscriptionStatus(updates.subscriptionStatus);
+    if (updates.subscriptionExpiry !== undefined) {
+      updateData.subscription_expiry = updates.subscriptionExpiry?.toISOString() || null;
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erreur lors de la mise à jour du profil:', error);
+      throw error;
+    }
+
+    console.log('Profil mis à jour avec succès:', data);
+    return data;
+  } catch (error) {
+    console.error('Erreur dans updateUserProfile:', error);
+    throw error;
+  }
+};

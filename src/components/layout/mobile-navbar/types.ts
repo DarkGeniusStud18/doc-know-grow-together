@@ -33,6 +33,7 @@ export interface MagicNavIconProps {
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   navItemRef?: (el: HTMLElement | null) => void;
+  className?: string; // Ajout de la propriété className
 }
 
 /**
