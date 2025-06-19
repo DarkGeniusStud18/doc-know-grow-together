@@ -8,7 +8,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateNavItems } from './navigation-config';
 import { useBlobAnimation } from './hooks/useBlobAnimation';

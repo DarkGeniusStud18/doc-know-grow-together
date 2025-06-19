@@ -1,4 +1,3 @@
-
 /**
  * En-tête utilisateur pour le menu secondaire mobile
  * 
@@ -8,7 +7,7 @@
 
 import React from 'react';
 import { X, User, CheckCircle, AlertCircle, Clock } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { UserHeaderProps } from '../types';
 

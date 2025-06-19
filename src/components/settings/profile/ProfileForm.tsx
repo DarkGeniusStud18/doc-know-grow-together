@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { updateProfile } from '@/lib/supabase/query-helpers';
 import { toast } from 'sonner';
 

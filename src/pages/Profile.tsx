@@ -2,7 +2,7 @@
 // Page de profil utilisateur
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import ProfileCard from '@/components/profile/ProfileCard';

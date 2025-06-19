@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import DiscussionChat from '@/components/community/DiscussionChat';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -246,7 +246,7 @@ const CommunityDiscussion = () => {
         .from('community_topics')
         .update({
           is_pinned: !(topic.is_pinned ?? false)
-        } as any)
+        } as never)
         .eq('id', id);
         
       if (error) throw error;

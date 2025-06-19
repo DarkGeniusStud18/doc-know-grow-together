@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
@@ -7,7 +8,7 @@ import { Timer, Play, Pause, RotateCcw, Settings } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 
 const PomodoroTimer: React.FC = () => {

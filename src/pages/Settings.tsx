@@ -12,7 +12,7 @@ import PerformanceSettings from '@/components/settings/PerformanceSettings';
 import RoleSwitcher from '@/components/profile/RoleSwitcher';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { getSubscriptionDetails } from '@/lib/auth/services/subscription-service';
 import { useQuery } from '@tanstack/react-query';
 

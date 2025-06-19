@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGroupChat } from '@/hooks/useGroupChat';
 import MessageItem from './components/MessageItem';

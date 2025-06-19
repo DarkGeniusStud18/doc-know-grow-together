@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { checkPremiumStatus } from '@/lib/auth/services/subscription-service';
 
 /**

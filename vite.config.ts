@@ -70,6 +70,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: 'esnext',
     chunkSizeWarningLimit: 1000,
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      external: ['lovable-tagger']
+    }
   }
 }));

@@ -3,7 +3,7 @@
  * Hook for role switching logic - updated with proper error handling
  */
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { updateProfile } from '@/lib/supabase/query-helpers';
 import { toast } from '@/components/ui/sonner';
 import { UserRole, toDatabaseRole } from '@/lib/auth/types';

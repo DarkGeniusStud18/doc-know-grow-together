@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
 import { Upload, FileText, Video, Image, File } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { createResource } from '@/models/Resource';
 
 const ResourceFileUpload: React.FC<{ onResourceAdded: () => void }> = ({ onResourceAdded }) => {

@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { LogOut } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 import { LogoutSectionProps, MobileSecondaryMenuItem } from '../types';
 

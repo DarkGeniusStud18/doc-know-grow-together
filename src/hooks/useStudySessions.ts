@@ -1,6 +1,5 @@
-
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { studySessionService } from '@/lib/database/studySessions';
 import { StudySession, StudySessionNote } from '@/types/database';
 import { toast } from 'sonner';

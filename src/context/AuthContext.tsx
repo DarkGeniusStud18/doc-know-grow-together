@@ -1,10 +1,11 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Contexte d'authentification optimisé - ACCÈS IMMÉDIAT sans vérifications excessives
  */
 
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUser } from '@/lib/auth/user-service';
 import { signUp, signIn, signOut as authSignOut } from '@/lib/auth/auth-service';
@@ -23,7 +24,7 @@ interface AuthContextType {
   logout: (redirectUrl?: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -213,6 +214,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
-
-// Remove useAuth and default export from this file.
-// Move them to a new file: useAuth.ts

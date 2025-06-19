@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { userPreferencesService } from '@/lib/database/userPreferences';
 import { UserPreferences } from '@/types/database';
 import { toast } from 'sonner';

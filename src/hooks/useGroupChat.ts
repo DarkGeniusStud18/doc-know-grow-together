@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 
 /**
  * Hook personnalisé optimisé pour la gestion des chats de groupe
@@ -10,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { EnrichedGroupMessage } from '@/lib/auth/utils/types/validation-types';
 import { useRealtimeSync } from './useRealtimeSync';

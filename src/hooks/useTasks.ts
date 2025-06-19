@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { taskService } from '@/lib/database/tasks';
 import { Task, TaskCategory } from '@/types/database';
 import { toast } from 'sonner';

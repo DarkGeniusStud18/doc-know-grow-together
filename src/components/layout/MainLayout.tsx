@@ -1,9 +1,10 @@
 
 import React, { Suspense } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from './navbar/Navbar';
 import MobileNavbar from './mobile-navbar/MobileNavbar';
+import MobileTopBar from './mobile-topbar/MobileTopBar';
 import DesktopNavbar from './DesktopNavbar';
 import DiscordSidebar from './discord-sidebar/DiscordSidebar';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
@@ -16,14 +17,7 @@ interface MainLayoutProps {
 }
 
 /**
- * Layout principal de l'application MedCollab optimisé pour toutes les plateformes
- * 
- * Architecture responsive adaptée :
- * - Mobile (< 640px) : Navigation horizontale en bas uniquement
- * - Tablette (640px - 1023px) : Navigation horizontale en bas uniquement  
- * - Desktop (≥ 1024px) : Sidebar verticale à gauche + navigation desktop
- * 
- * Fonctionnalités natives et web synchronisées automatiquement sans interférence
+ * Layout principal optimisé avec espacements mobiles corrigés
  */
 const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
@@ -34,54 +28,53 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const { user, loading } = useAuth();
   const isMobile = useIsMobile();
 
-  // Redirection automatique vers la page de connexion si non authentifié
   if (requireAuth && !user && !loading) {
     console.log('🔒 MainLayout: Redirection vers login - utilisateur non authentifié');
     window.location.href = '/login';
     return null;
   }
 
-  // Détermination intelligente du type d'écran pour l'interface adaptative
-  const isTabletOrMobile = window.innerWidth < 1024; // < lg breakpoint
+  const isTabletOrMobile = window.innerWidth < 1024;
   const isDesktop = window.innerWidth >= 1024;
-
-  console.log('📱 MainLayout: Type d\'écran détecté -', {
-    isMobile,
-    isTabletOrMobile,
-    isDesktop,
-    windowWidth: window.innerWidth
-  });
 
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         
-        {/* 🎯 SIDEBAR VERTICALE DISCORD - UNIQUEMENT DESKTOP (≥ 1024px) */}
+        {/* Sidebar verticale Discord - Desktop uniquement */}
         {!simplified && showSidebar && user && isDesktop && (
           <div className="fixed left-0 top-0 h-full z-30">
             <DiscordSidebar />
           </div>
         )}
 
-        {/* 📱 CONTENU PRINCIPAL avec espacement adaptatif intelligent */}
+        {/* Barre supérieure mobile - Position fixe */}
+        {!simplified && user && isTabletOrMobile && (
+          <div className="lg:hidden fixed top-0 left-0 right-0 z-40">
+            <MobileTopBar />
+          </div>
+        )}
+
+        {/* Contenu principal avec espacements corrigés */}
         <div className={`
           flex-1 min-h-screen transition-all duration-300
           ${!simplified && user && isDesktop ? 'ml-[80px]' : ''}
-          ${isTabletOrMobile && user ? 'pb-20' : ''}
+          ${!simplified && user && isTabletOrMobile ? 'pt-[60px]' : ''}
+          ${user && isTabletOrMobile ? 'pb-[80px]' : ''}
         `}>
           
-          {/* 🌐 NAVIGATION SUPERIEURE - UNIQUEMENT MODE SIMPLIFIE OU DESKTOP */}
+          {/* Navigation supérieure - Conditions adaptées */}
           {simplified ? (
             <Navbar simplified={true} />
           ) : isDesktop && user ? (
             <DesktopNavbar />
           ) : null}
 
-          {/* 📄 ZONE DE CONTENU PRINCIPAL avec gestion d'erreur intégrée */}
-          <main className="w-full max-w-full px-0 sm:px-4 lg:px-6">
-            <div className="w-full max-w-full">
+          {/* Zone de contenu principal avec padding uniforme */}
+          <main className="w-full max-w-full">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <Suspense fallback={
-                <div className="flex items-center justify-center min-h-screen">
+                <div className="flex items-center justify-center min-h-[50vh]">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
                   <span className="ml-3 text-gray-600">Chargement en cours...</span>
                 </div>
@@ -92,12 +85,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </main>
         </div>
 
-        {/* 📱 NAVIGATION MOBILE/TABLETTE HORIZONTALE - POSITIONNEE EN BAS FIXE */}
-        {/* Utilisée pour mobile ET tablette (< 1024px) selon vos spécifications */}
+        {/* Navigation mobile/tablette horizontale - Position fixe garantie */}
         {user && isTabletOrMobile && (
-          <div className="lg:hidden">
-            <MobileNavbar />
-          </div>
+          <MobileNavbar />
         )}
       </div>
     </ErrorBoundary>

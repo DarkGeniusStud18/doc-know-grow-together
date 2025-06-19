@@ -1,7 +1,9 @@
 
+ 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/sonner';
 import { Search, Plus, Users, Lock, Globe, Calendar, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type StudyGroup = {
   id: string;
@@ -31,8 +34,8 @@ type StudyGroup = {
 const StudyGroups: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [groups, setGroups] = useState<StudyGroup[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,21 +45,16 @@ const StudyGroups: React.FC = () => {
     max_members: 20
   });
 
-  useEffect(() => {
-    loadGroups();
-  }, []);
+  const { data: groups = [], isLoading, refetch } = useQuery({
+    queryKey: ['studyGroups', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
 
-  const loadGroups = async () => {
-    try {
-      setLoading(true);
-      
       // Get all groups with member count
       const { data: groupsData, error: groupsError } = await supabase
         .from('study_groups')
-        .select(`
-          *,
-          study_group_members!inner(count)
-        `);
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (groupsError) throw groupsError;
 
@@ -74,7 +72,7 @@ const StudyGroups: React.FC = () => {
             .from('study_group_members')
             .select('role')
             .eq('group_id', group.id)
-            .eq('user_id', user?.id)
+            .eq('user_id', user.id)
             .single();
 
           return {
@@ -86,36 +84,24 @@ const StudyGroups: React.FC = () => {
         })
       );
 
-      setGroups(enrichedGroups);
-    } catch (error) {
-      console.error('Error loading groups:', error);
-      toast.error('Erreur lors du chargement des groupes');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return enrichedGroups;
+    },
+    enabled: !!user
+  });
 
-  const createGroup = async () => {
-    if (!user) {
-      toast.error('Vous devez être connecté pour créer un groupe');
-      return;
-    }
+  const createGroupMutation = useMutation({
+    mutationFn: async (groupData: typeof formData) => {
+      if (!user) throw new Error('User not authenticated');
 
-    if (!formData.name.trim()) {
-      toast.error('Le nom du groupe est requis');
-      return;
-    }
-
-    try {
       // Create the group
-      const { data: groupData, error: groupError } = await supabase
+      const { data: groupResult, error: groupError } = await supabase
         .from('study_groups')
         .insert({
-          name: formData.name,
-          description: formData.description,
+          name: groupData.name,
+          description: groupData.description,
           creator_id: user.id,
-          is_private: formData.is_private,
-          max_members: formData.max_members
+          is_private: groupData.is_private,
+          max_members: groupData.max_members
         })
         .select()
         .single();
@@ -126,30 +112,31 @@ const StudyGroups: React.FC = () => {
       const { error: memberError } = await supabase
         .from('study_group_members')
         .insert({
-          group_id: groupData.id,
+          group_id: groupResult.id,
           user_id: user.id,
           role: 'admin'
         });
 
       if (memberError) throw memberError;
 
+      return groupResult;
+    },
+    onSuccess: () => {
       toast.success('Groupe créé avec succès');
       setShowCreateDialog(false);
       setFormData({ name: '', description: '', is_private: false, max_members: 20 });
-      loadGroups();
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['studyGroups'] });
+    },
+    onError: (error) => {
       console.error('Error creating group:', error);
       toast.error('Erreur lors de la création du groupe');
     }
-  };
+  });
 
-  const joinGroup = async (groupId: string) => {
-    if (!user) {
-      toast.error('Vous devez être connecté pour rejoindre un groupe');
-      return;
-    }
+  const joinGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      if (!user) throw new Error('User not authenticated');
 
-    try {
       const { error } = await supabase
         .from('study_group_members')
         .insert({
@@ -159,19 +146,21 @@ const StudyGroups: React.FC = () => {
         });
 
       if (error) throw error;
-
+    },
+    onSuccess: () => {
       toast.success('Vous avez rejoint le groupe');
-      loadGroups();
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['studyGroups'] });
+    },
+    onError: (error) => {
       console.error('Error joining group:', error);
       toast.error('Erreur lors de l\'adhésion au groupe');
     }
-  };
+  });
 
-  const leaveGroup = async (groupId: string) => {
-    if (!user) return;
+  const leaveGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      if (!user) throw new Error('User not authenticated');
 
-    try {
       const { error } = await supabase
         .from('study_group_members')
         .delete()
@@ -179,13 +168,24 @@ const StudyGroups: React.FC = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-
+    },
+    onSuccess: () => {
       toast.success('Vous avez quitté le groupe');
-      loadGroups();
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['studyGroups'] });
+    },
+    onError: (error) => {
       console.error('Error leaving group:', error);
       toast.error('Erreur lors de la sortie du groupe');
     }
+  });
+
+  const handleCreateGroup = () => {
+    if (!formData.name.trim()) {
+      toast.error('Le nom du groupe est requis');
+      return;
+    }
+
+    createGroupMutation.mutate(formData);
   };
 
   const filteredGroups = groups.filter(group =>
@@ -193,7 +193,7 @@ const StudyGroups: React.FC = () => {
     group.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <MainLayout>
         <div className="flex justify-center py-12">
@@ -205,7 +205,7 @@ const StudyGroups: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-medical-navy">Groupes d'étude</h1>
@@ -280,8 +280,11 @@ const StudyGroups: React.FC = () => {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Annuler</Button>
-                  <Button onClick={createGroup} disabled={!formData.name.trim()}>
-                    Créer le groupe
+                  <Button 
+                    onClick={handleCreateGroup} 
+                    disabled={!formData.name.trim() || createGroupMutation.isPending}
+                  >
+                    {createGroupMutation.isPending ? 'Création...' : 'Créer le groupe'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -351,7 +354,8 @@ const StudyGroups: React.FC = () => {
                       {group.user_role !== 'admin' && (
                         <Button 
                           variant="outline"
-                          onClick={() => leaveGroup(group.id)}
+                          onClick={() => leaveGroupMutation.mutate(group.id)}
+                          disabled={leaveGroupMutation.isPending}
                         >
                           Quitter
                         </Button>
@@ -360,8 +364,8 @@ const StudyGroups: React.FC = () => {
                   ) : (
                     <Button 
                       className="w-full"
-                      onClick={() => joinGroup(group.id)}
-                      disabled={(group.member_count || 0) >= group.max_members}
+                      onClick={() => joinGroupMutation.mutate(group.id)}
+                      disabled={(group.member_count || 0) >= group.max_members || joinGroupMutation.isPending}
                     >
                       {(group.member_count || 0) >= group.max_members ? 'Groupe complet' : 'Rejoindre'}
                     </Button>

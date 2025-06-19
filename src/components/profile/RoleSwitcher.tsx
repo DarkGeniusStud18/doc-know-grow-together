@@ -3,7 +3,7 @@
  * Main RoleSwitcher component - refactored to use smaller components
  */
 import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useCredentials } from './role-switcher/hooks/useCredentials';
 import { RoleSwitchDialog } from './role-switcher/components/RoleSwitchDialog';
 import { RoleSwitchButton } from './role-switcher/components/RoleSwitchButton';

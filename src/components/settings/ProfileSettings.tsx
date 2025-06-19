@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { ProfileImageUpload } from './profile/ProfileImageUpload';
 import { ProfileForm } from './profile/ProfileForm';
 
