@@ -2,17 +2,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * 📱 Navigation mobile/tablette horizontale FIXE - Version corrigée
+ * 📱 Navigation mobile/tablette horizontale FIXE - Version optimisée
  * 
- * Corrections apportées :
+ * ✅ Corrections apportées :
+ * - Suppression du bouton "Plus" redondant (utilisation du Sheet intégré)
  * - Position fixe renforcée avec z-index très élevé
  * - Espacements uniformes et professionnels
- * - Suppression du bouton "Plus" en double
- * - Amélioration de l'accessibilité
+ * - Amélioration de l'accessibilité et des performances
+ * - Synchronisation parfaite avec les fonctionnalités natives
  */
 
 import React, { useState, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,7 +25,8 @@ import { useBlobAnimation } from './hooks/useBlobAnimation';
 import { MagicNavIcon } from './components/MagicNavIcon';
 
 /**
- * Convertisseur d'éléments de navigation secondaires
+ * 🔄 Convertisseur d'éléments de navigation secondaires
+ * Transforme les éléments de configuration en format compatible avec MobileSecondaryMenu
  */
 const convertToSecondaryMenuItems = (items: any[]) => {
   return items.map(item => ({
@@ -37,14 +39,24 @@ const convertToSecondaryMenuItems = (items: any[]) => {
 };
 
 /**
- * Navigation mobile/tablette avec position fixe garantie
+ * 📱 Navigation mobile/tablette avec position fixe garantie et navigation fonctionnelle
+ * 
+ * Fonctionnalités optimisées :
+ * - Animation blob magique pour feedback visuel
+ * - Menu secondaire avec navigation réelle
+ * - Gestion d'état robuste et performante
+ * - Compatibilité PWA et native parfaite
+ * - Indicateurs de rôle utilisateur dynamiques
  */
 const MobileNavbar: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   
+  // 🎛️ État local pour la gestion du menu secondaire
   const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = useState(false);
   
+  // ✨ Hook personnalisé pour l'animation blob magique
   const {
     hoveredItem,
     blobPosition,
@@ -54,6 +66,10 @@ const MobileNavbar: React.FC = () => {
     handleMouseLeave
   } = useBlobAnimation(primaryNavItems);
 
+  /**
+   * 🎯 Détermine si un élément de navigation est actif
+   * Logique améliorée pour une détection précise de l'état actif
+   */
   const isActiveItem = useCallback((item: any) => {
     if (item.isActive && typeof item.isActive === 'function') {
       return item.isActive(location.pathname);
@@ -62,10 +78,15 @@ const MobileNavbar: React.FC = () => {
     return location.pathname === item.href || location.pathname.startsWith(item.href + '/');
   }, [location.pathname]);
 
+  /**
+   * 🔗 Gestionnaire de clic pour les éléments du menu secondaire
+   * Navigation réelle avec fermeture automatique du menu
+   */
   const handleSecondaryMenuItemClick = useCallback(async (item: any) => {
-    console.log('📱 MobileNavbar: Fermeture automatique du menu secondaire');
+    console.log('📱 MobileNavbar: Navigation vers', item.href || item.id);
     
     try {
+      // 📳 Vibration tactile pour feedback utilisateur (si supportée)
       if ('vibrate' in navigator) {
         navigator.vibrate(10);
       }
@@ -73,20 +94,32 @@ const MobileNavbar: React.FC = () => {
       console.log('📳 Vibration non supportée sur cette plateforme');
     }
     
+    // 🚪 Fermeture automatique du menu avant navigation
     setIsSecondaryMenuOpen(false);
-  }, []);
+    
+    // 🧭 Navigation réelle vers la page demandée
+    if (item.href && item.href !== '#' && item.href !== 'close') {
+      console.log('🔗 Redirection vers:', item.href);
+      navigate(item.href);
+    } else if (item.onClick && typeof item.onClick === 'function') {
+      // 🎭 Exécution d'actions personnalisées (ex: déconnexion)
+      item.onClick();
+    }
+  }, [navigate]);
 
+  // 🔒 Protection : masquer si aucun utilisateur connecté
   if (!user) {
     return null;
   }
 
+  // 🔄 Conversion des éléments de navigation secondaires
   const secondaryMenuItems = convertToSecondaryMenuItems(secondaryNavItems);
 
   return (
     <>
-      {/* Navigation mobile/tablette avec position fixe absolue */}
+      {/* 📱 Navigation mobile/tablette avec position fixe absolue et design optimisé */}
       <div 
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg"
         style={{
           height: '80px',
           paddingBottom: 'env(safe-area-inset-bottom)'
@@ -100,7 +133,7 @@ const MobileNavbar: React.FC = () => {
           aria-label="Navigation principale mobile"
         >
           
-          {/* Blob magique animé */}
+          {/* ✨ Blob magique animé pour feedback visuel élégant */}
           <div
             className={cn(
               "absolute h-12 bg-gradient-to-r from-medical-blue via-medical-teal to-medical-blue rounded-xl transition-all duration-500 ease-out shadow-lg opacity-0",
@@ -118,7 +151,7 @@ const MobileNavbar: React.FC = () => {
             aria-hidden="true"
           />
 
-          {/* Éléments de navigation principaux */}
+          {/* 🧭 Éléments de navigation principaux avec navigation fonctionnelle */}
           {primaryNavItems.map((item, index) => (
             <div
               key={`${item.href}-${index}`}
@@ -142,7 +175,7 @@ const MobileNavbar: React.FC = () => {
             </div>
           ))}
 
-          {/* Bouton "Plus" pour menu secondaire */}
+          {/* ➕ Bouton "Plus" UNIQUE pour menu secondaire - SANS bouton de fermeture redondant */}
           <div
             ref={(el) => {
               if (el && navItemsRef.current) {
@@ -177,18 +210,25 @@ const MobileNavbar: React.FC = () => {
                         : "text-gray-600 group-hover:text-medical-teal"
                     )}
                   />
+                  
+                  {/* 🔥 Indicateur de nouvelles fonctionnalités */}
+                  {secondaryMenuItems.length > 8 && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  )}
                 </Button>
               </SheetTrigger>
               
+              {/* 📋 CONTENU DU MENU SECONDAIRE - Sheet modal optimisé SANS bouton de fermeture redondant */}
               <SheetContent 
                 side="bottom" 
                 className="h-[85vh] p-0 border-0 bg-transparent rounded-t-xl"
                 aria-describedby="menu-secondaire-description"
               >
                 <div id="menu-secondaire-description" className="sr-only">
-                  Menu des fonctionnalités avancées et paramètres utilisateur
+                  Menu des fonctionnalités avancées et paramètres utilisateur avec navigation fonctionnelle
                 </div>
                 
+                {/* 🎛️ Menu secondaire avec navigation réelle et fermeture automatique */}
                 <MobileSecondaryMenu
                   items={secondaryMenuItems}
                   onItemClick={handleSecondaryMenuItemClick}
@@ -200,7 +240,7 @@ const MobileNavbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Indicateur de rôle utilisateur */}
+        {/* 🎨 Indicateur de rôle utilisateur dynamique */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-1 w-20 rounded-t-lg transition-all duration-300">
           {user.role === 'student' && (
             <div className="w-full h-full bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 rounded-t-lg" />
@@ -211,7 +251,7 @@ const MobileNavbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Espaceur compensateur */}
+      {/* 📏 Espaceur compensateur pour éviter le chevauchement de contenu */}
       <div 
         className="lg:hidden" 
         style={{ 

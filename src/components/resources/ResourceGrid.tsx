@@ -31,6 +31,7 @@ interface Resource {
   profiles?: { display_name: string };
   created_at: string;
   edit_count?: number;
+  excerpt?: string; // Added missing property
 }
 
 interface ResourceGridProps {

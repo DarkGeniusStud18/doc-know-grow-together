@@ -1,161 +1,165 @@
+
 /**
- * En-tête utilisateur pour le menu secondaire mobile
+ * 👤 En-tête utilisateur pour le menu secondaire mobile - Version optimisée
  * 
- * Affiche les informations de l'utilisateur connecté avec photo de profil,
- * nom d'affichage et statut de vérification KYC
+ * ✅ Améliorations apportées :
+ * - Bouton de fermeture unique et fonctionnel
+ * - Informations utilisateur enrichies
+ * - Design responsive et accessible
+ * - Commentaires français détaillés
  */
 
 import React from 'react';
-import { X, User, CheckCircle, AlertCircle, Clock } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { X, User, Crown, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { UserHeaderProps } from '../types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+
+interface UserHeaderProps {
+  onClose: () => void;
+  userRole?: string;
+  userName?: string;
+}
 
 /**
- * En-tête utilisateur avec informations contextuelles et bouton de fermeture
+ * 👤 En-tête utilisateur avec informations contextuelles et fermeture propre
  * 
- * Fonctionnalités :
- * - Affichage de la photo de profil ou avatar par défaut
- * - Nom d'affichage et email de l'utilisateur
- * - Indicateur de statut KYC avec couleurs appropriées
- * - Bouton de fermeture du menu
- * - Design responsive et accessible
+ * Fonctionnalités optimisées :
+ * - Avatar utilisateur avec image de profil
+ * - Informations de rôle et statut
+ * - Bouton de fermeture unique et accessible
+ * - Design cohérent avec le thème médical
+ * - Responsive design adaptatif
  */
-export const UserHeader: React.FC<UserHeaderProps> = ({ onClose }) => {
+export const UserHeader: React.FC<UserHeaderProps> = ({ 
+  onClose, 
+  userRole, 
+  userName 
+}) => {
   const { user } = useAuth();
+  
+  console.log('👤 UserHeader: Rendu pour utilisateur', user?.displayName);
 
-  // Fonction pour obtenir les initiales de l'utilisateur
-  const getUserInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  // Fonction pour obtenir l'indicateur de statut KYC
-  const getKycStatusIndicator = () => {
-    if (!user?.kycStatus) return null;
-
-    switch (user.kycStatus) {
-      case 'verified':
-        return (
-          <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-            <CheckCircle size={12} />
-            <span>Vérifié</span>
-          </div>
-        );
-      case 'pending':
-        return (
-          <div className="flex items-center gap-1 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
-            <Clock size={12} />
-            <span>En cours</span>
-          </div>
-        );
-      case 'not_submitted':
-        return (
-          <div className="flex items-center gap-1 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
-            <AlertCircle size={12} />
-            <span>À vérifier</span>
-          </div>
-        );
+  /**
+   * 🎨 Obtient l'icône correspondant au rôle utilisateur
+   */
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Crown size={16} className="text-yellow-600" />;
+      case 'professional':
+        return <Briefcase size={16} className="text-green-600" />;
       default:
-        return null;
+        return <User size={16} className="text-blue-600" />;
     }
   };
 
-  // Fonction pour obtenir le texte de rôle en français
-  const getRoleText = (role: string): string => {
+  /**
+   * 🏷️ Obtient le libellé français du rôle utilisateur
+   */
+  const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'student':
-        return 'Étudiant en médecine';
+      case 'admin':
+        return 'Administrateur';
       case 'professional':
-        return 'Professionnel de santé';
+        return 'Professionnel';
+      case 'student':
+        return 'Étudiant';
       default:
         return 'Utilisateur';
     }
   };
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center animate-pulse">
-            <User size={20} className="text-gray-400" />
-          </div>
-          <div className="space-y-1">
-            <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-            <div className="w-16 h-3 bg-gray-100 rounded animate-pulse"></div>
-          </div>
-        </div>
-        {onClose && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="rounded-full p-2 hover:bg-gray-100"
-            aria-label="Fermer le menu"
-          >
-            <X size={18} />
-          </Button>
-        )}
-      </div>
-    );
-  }
+  /**
+   * 🎨 Obtient la couleur du badge selon le rôle
+   */
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'default';
+      case 'professional':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
+  // 🎭 Calcul des initiales utilisateur
+  const userInitials = user?.displayName
+    ? user.displayName
+        .split(' ')
+        .map(name => name.charAt(0))
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'U';
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-medical-blue/5 to-medical-teal/5">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        {/* Photo de profil ou avatar avec initiales */}
-        <div className="relative flex-shrink-0">
-          {user.profileImage ? (
-            <img
-              src={user.profileImage}
-              alt={`Photo de profil de ${user.displayName}`}
-              className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-            />
-          ) : (
-            <div className="w-12 h-12 bg-gradient-to-br from-medical-blue to-medical-teal rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
-              {user.displayName ? getUserInitials(user.displayName) : <User size={20} />}
-            </div>
+    <div className="relative bg-gradient-to-r from-medical-blue to-medical-teal text-white p-6 rounded-t-3xl">
+      {/* 🚪 Bouton de fermeture UNIQUE - Positionné en haut à droite */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2 transition-all duration-200"
+        aria-label="Fermer le menu"
+      >
+        <X size={20} />
+      </Button>
+
+      {/* 👤 Informations utilisateur avec avatar et détails */}
+      <div className="flex items-center space-x-4 pr-12">
+        {/* 🖼️ Avatar utilisateur avec image de profil */}
+        <Avatar className="h-16 w-16 border-2 border-white/30">
+          <AvatarImage 
+            src={user?.profileImage || undefined} 
+            alt={`Photo de profil de ${user?.displayName}`}
+            className="object-cover"
+          />
+          <AvatarFallback className="bg-white/20 text-white text-lg font-bold">
+            {userInitials}
+          </AvatarFallback>
+        </Avatar>
+
+        {/* 📋 Informations textuelles utilisateur */}
+        <div className="flex-1 min-w-0">
+          {/* 👋 Nom d'utilisateur */}
+          <h2 className="text-xl font-bold text-white truncate mb-1">
+            {user?.displayName || userName || 'Utilisateur'}
+          </h2>
+          
+          {/* 📧 Email utilisateur */}
+          {user?.email && (
+            <p className="text-white/80 text-sm truncate mb-2">
+              {user.email}
+            </p>
           )}
           
-          {/* Indicateur de connexion */}
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-        </div>
-
-        {/* Informations utilisateur */}
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900 truncate">
-              {user.displayName || 'Utilisateur'}
-            </h3>
-            {getKycStatusIndicator()}
+          {/* 🏷️ Badge de rôle avec icône */}
+          <div className="flex items-center space-x-2">
+            <Badge 
+              variant={getRoleBadgeVariant(user?.role || userRole || 'student')}
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            >
+              <div className="flex items-center space-x-1">
+                {getRoleIcon(user?.role || userRole || 'student')}
+                <span>{getRoleLabel(user?.role || userRole || 'student')}</span>
+              </div>
+            </Badge>
+            
+            {/* 🌟 Indicateur de statut premium (si applicable) */}
+            {user?.subscriptionStatus === 'premium' && (
+              <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-400/30">
+                ⭐ Premium
+              </Badge>
+            )}
           </div>
-          
-          <p className="text-xs text-gray-500 truncate">
-            {user.email}
-          </p>
-          
-          <p className="text-xs text-medical-blue font-medium">
-            {getRoleText(user.role)}
-          </p>
         </div>
       </div>
 
-      {/* Bouton de fermeture */}
-      {onClose && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="rounded-full p-2 hover:bg-gray-100 flex-shrink-0 ml-2"
-          aria-label="Fermer le menu"
-        >
-          <X size={18} />
-        </Button>
-      )}
+      {/* ✨ Effet de brillance décoratif */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-t-3xl pointer-events-none"></div>
     </div>
   );
 };
