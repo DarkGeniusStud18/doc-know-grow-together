@@ -27,6 +27,8 @@ import PomodoroTimer from '@/pages/tools/PomodoroTimer';
 import StudyGoals from '@/pages/tools/StudyGoals';
 import StudyTimer from '@/pages/tools/StudyTimer';
 import InteractivePresentations from '@/pages/tools/InteractivePresentations';
+import PerformanceTracker from '@/pages/tools/PerformanceTracker';
+import ExamSimulator from '@/pages/tools/ExamSimulator';
 
 // Import des autres pages
 import Resources from '@/pages/Resources';
@@ -35,6 +37,8 @@ import Calendar from '@/pages/Calendar';
 import Settings from '@/pages/Settings';
 import Profile from '@/pages/Profile';
 import ClinicalCases from '@/pages/ClinicalCases';
+import Notes from '@/pages/Notes';
+import Music from '@/pages/Music';
 
 import './App.css';
 
@@ -88,7 +92,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
-              {/* 🔐 Pages protégées */}
+              {/* 🔐 Pages protégées principales */}
               <Route
                 path="/dashboard"
                 element={
@@ -152,6 +156,24 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+
+              <Route
+                path="/tools/performance-tracker"
+                element={
+                  <ProtectedRoute>
+                    <PerformanceTracker />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/tools/exam-simulator"
+                element={
+                  <ProtectedRoute>
+                    <ExamSimulator />
+                  </ProtectedRoute>
+                }
+              />
               
               {/* 📚 Autres pages */}
               <Route
@@ -186,6 +208,24 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <ClinicalCases />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/notes"
+                element={
+                  <ProtectedRoute>
+                    <Notes />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/music"
+                element={
+                  <ProtectedRoute>
+                    <Music />
                   </ProtectedRoute>
                 }
               />

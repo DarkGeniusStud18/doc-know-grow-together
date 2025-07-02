@@ -1,12 +1,13 @@
 
 /**
- * 🔐 Bouton d'Accès Administrateur - Version Dissimulée
+ * 🔐 Bouton d'Accès Administrateur - Version Ultra Dissimulée
  * Triple-clic requis pour accéder au dashboard admin
- * Design discret pour éviter les accès non autorisés
+ * Visible uniquement pour l'administrateur autorisé
  */
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 
 interface AdminAccessButtonProps {
@@ -15,13 +16,22 @@ interface AdminAccessButtonProps {
 
 const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className = '' }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [clickCount, setClickCount] = useState(0);
   const [resetTimeout, setResetTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // 🛡️ Vérification de l'autorisation d'accès admin
+  const isAuthorizedAdmin = user?.email === 'yasseradjadi9@gmail.com';
 
   /**
    * 🖱️ Gestion du triple-clic pour accès admin
    */
   const handleClick = useCallback(() => {
+    // Bloquer l'accès si l'utilisateur n'est pas autorisé
+    if (!isAuthorizedAdmin) {
+      return;
+    }
+
     // Réinitialiser le timeout précédent
     if (resetTimeout) {
       clearTimeout(resetTimeout);
@@ -45,7 +55,7 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className = '' })
     }, 2000);
     
     setResetTimeout(timeout);
-  }, [clickCount, resetTimeout, navigate]);
+  }, [clickCount, resetTimeout, navigate, isAuthorizedAdmin]);
 
   // Nettoyage du timeout au démontage
   React.useEffect(() => {
@@ -56,18 +66,23 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className = '' })
     };
   }, [resetTimeout]);
 
+  // 🚫 Ne pas afficher le bouton si l'utilisateur n'est pas autorisé
+  if (!isAuthorizedAdmin) {
+    return null;
+  }
+
   return (
     <div
       onClick={handleClick}
       className={`
-        w-3 h-3 rounded-full bg-gray-300 hover:bg-gray-400 
-        transition-colors duration-200 cursor-pointer
+        w-2 h-2 rounded-full bg-gray-200 hover:bg-gray-300 
+        transition-colors duration-200 cursor-pointer opacity-30 hover:opacity-60
         ${className}
       `}
-      title="Triple-cliquez pour l'accès administrateur"
+      title="Accès administrateur"
       style={{
-        minWidth: '12px',
-        minHeight: '12px'
+        minWidth: '8px',
+        minHeight: '8px'
       }}
     />
   );
