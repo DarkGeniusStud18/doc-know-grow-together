@@ -1,14 +1,7 @@
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
- * 📱 Navigation mobile/tablette horizontale FIXE - Version corrigée
- * 
- * ✅ Corrections apportées :
- * - Position fixe absolue garantie en bas d'écran
- * - Z-index très élevé pour éviter les conflits
- * - Hauteur et padding cohérents
- * - Amélioration responsive mobile
+ * 📱 Navigation mobile/tablette horizontale FIXE - Version Améliorée
+ * Avec accès administrateur dissimulé et optimisations responsive
  */
 
 import React, { useState, useCallback } from 'react';
@@ -22,6 +15,7 @@ import { MobileSecondaryMenu } from '../mobile-secondary-menu';
 import { primaryNavItems, secondaryNavItems } from './navigation-config';
 import { useBlobAnimation } from './hooks/useBlobAnimation';
 import { MagicNavIcon } from './components/MagicNavIcon';
+import AdminAccessButton from '@/components/admin/AdminAccessButton';
 
 /**
  * 🔄 Convertisseur d'éléments de navigation secondaires
@@ -37,7 +31,7 @@ const convertToSecondaryMenuItems = (items: any[]) => {
 };
 
 /**
- * 📱 Navigation mobile avec position fixe garantie
+ * 📱 Navigation mobile avec position fixe garantie et accès admin dissimulé
  */
 const MobileNavbar: React.FC = () => {
   const { user } = useAuth();
@@ -214,13 +208,17 @@ const MobileNavbar: React.FC = () => {
           </div>
         </div>
 
-        {/* 🎨 Indicateur de rôle utilisateur */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-1 w-20 rounded-t-lg transition-all duration-300">
+        {/* 🎨 Indicateur de rôle utilisateur avec bouton admin dissimulé */}
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-1 w-20 rounded-t-lg transition-all duration-300 flex items-center justify-center">
           {user.role === 'student' && (
-            <div className="w-full h-full bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 rounded-t-lg" />
+            <div className="w-full h-full bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 rounded-t-lg flex items-center justify-center">
+              <AdminAccessButton className="mt-[-8px]" />
+            </div>
           )}
           {user.role === 'professional' && (
-            <div className="w-full h-full bg-gradient-to-r from-green-400 via-green-500 to-green-600 rounded-t-lg" />
+            <div className="w-full h-full bg-gradient-to-r from-green-400 via-green-500 to-green-600 rounded-t-lg flex items-center justify-center">
+              <AdminAccessButton className="mt-[-8px]" />
+            </div>
           )}
         </div>
       </div>

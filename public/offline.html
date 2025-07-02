@@ -14,7 +14,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e40af 0%, #0f766e 100%);
+            background: linear-gradient(135deg, #0077B6 0%, #00B4D8 50%, #0077B6 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -24,187 +24,164 @@
             padding: 20px;
         }
         
-        .container {
+        .offline-container {
             max-width: 500px;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            padding: 40px;
             border-radius: 20px;
-            padding: 40px 30px;
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .logo {
             width: 80px;
             height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            margin: 0 auto 30px;
+            background: white;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 40px;
             font-weight: bold;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-        
-        .message {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border-left: 4px solid #10b981;
-        }
-        
-        .message h2 {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-            color: #10b981;
-        }
-        
-        .message p {
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-        
-        .features {
-            text-align: left;
-            margin: 20px 0;
-        }
-        
-        .features ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .features li {
-            padding: 8px 0;
-            opacity: 0.8;
-        }
-        
-        .features li::before {
-            content: "✓ ";
-            color: #10b981;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        
-        .retry-btn {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            border: none;
-            border-radius: 12px;
-            padding: 15px 30px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
-        }
-        
-        .retry-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-        }
-        
-        .status {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-        
-        .pulse {
+            color: #0077B6;
+            margin: 0 auto 20px;
             animation: pulse 2s infinite;
         }
         
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+        
+        .retry-btn {
+            background: white;
+            color: #0077B6;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .retry-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .retry-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .features {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .feature-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @media (max-width: 640px) {
+            .offline-container {
+                padding: 30px 20px;
+            }
+            
+            h1 { font-size: 20px; }
+            h2 { font-size: 16px; }
+            p { font-size: 14px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="offline-container">
         <div class="logo">M</div>
         <h1>MedCollab</h1>
-        <p class="subtitle">Mode Hors Ligne</p>
+        <h2>Mode Hors Ligne</h2>
         
-        <div class="message">
-            <h2>Connexion Internet Requise</h2>
-            <p>Il semblerait que vous soyez actuellement hors ligne. MedCollab nécessite une connexion Internet pour fonctionner pleinement.</p>
-        </div>
+        <p>
+            Vous êtes actuellement hors ligne. Cette page a été sauvegardée 
+            localement pour vous permettre de continuer à utiliser certaines 
+            fonctionnalités de MedCollab.
+        </p>
+        
+        <button class="retry-btn" onclick="window.location.reload()">
+            🔄 Réessayer la Connexion
+        </button>
         
         <div class="features">
-            <p><strong>Fonctionnalités disponibles hors ligne :</strong></p>
-            <ul>
-                <li>Consultation des pages mises en cache</li>
-                <li>Accès aux ressources téléchargées</li>
-                <li>Navigation dans l'interface</li>
-                <li>Données locales sauvegardées</li>
-            </ul>
-        </div>
-        
-        <button class="retry-btn" onclick="location.reload()">
-            Réessayer la Connexion
-        </button>
-        
-        <button class="retry-btn" onclick="goHome()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
-            Retour à l'Accueil
-        </button>
-        
-        <div class="status">
-            <div class="pulse">Vérification automatique de la connexion...</div>
+            <div class="feature">
+                <span class="feature-icon">📚</span>
+                <span>Consultez vos notes sauvegardées</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">⏱️</span>
+                <span>Utilisez le timer Pomodoro</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🎯</span>
+                <span>Visualisez vos objectifs</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔄</span>
+                <span>Synchronisation automatique au retour en ligne</span>
+            </div>
         </div>
     </div>
 
     <script>
-        // Fonction pour retourner à l'accueil
-        function goHome() {
-            window.location.href = '/';
-        }
+        // Vérification périodique de la connexion
+        let checkInterval;
         
-        // Vérification automatique de la connexion
         function checkConnection() {
             if (navigator.onLine) {
-                // Tentative de ping vers le serveur
-                fetch('/', { 
-                    method: 'HEAD',
-                    cache: 'no-cache'
-                })
-                .then(() => {
-                    location.reload();
-                })
-                .catch(() => {
-                    // Toujours hors ligne
-                    setTimeout(checkConnection, 5000);
-                });
-            } else {
-                setTimeout(checkConnection, 5000);
+                clearInterval(checkInterval);
+                // Rediriger vers la page principale
+                window.location.href = '/dashboard';
             }
         }
         
-        // Démarrer la vérification après 3 secondes
-        setTimeout(checkConnection, 3000);
+        // Vérifier la connexion toutes les 5 secondes
+        checkInterval = setInterval(checkConnection, 5000);
         
-        // Écouter les changements de statut de connexion
+        // Écouter les événements de connexion
         window.addEventListener('online', () => {
-            setTimeout(() => location.reload(), 1000);
+            console.log('🌐 Connexion rétablie');
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
         });
         
-        window.addEventListener('offline', () => {
-            console.log('Connexion perdue');
-        });
+        // Interface PWA - masquer l'adresse si applicable
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            document.body.style.paddingTop = 'env(safe-area-inset-top)';
+            document.body.style.paddingBottom = 'env(safe-area-inset-bottom)';
+        }
     </script>
 </body>
 </html>

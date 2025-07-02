@@ -1,61 +1,87 @@
 
 /**
- * 🖥️ Barre de navigation desktop optimisée pour MedCollab - Version refactorisée
- * 
- * Architecture modulaire avec composants séparés :
- * - PageTitle : Gestion intelligente des titres de page
- * - SearchBar : Recherche avec debouncing et validation
- * - UserActions : Actions utilisateur et menu contextuel
- * 
- * Optimisations maintenues :
- * - Mémorisation des calculs coûteux avec useMemo
- * - Gestionnaires d'événements optimisés avec useCallback
- * - États locaux minimaux pour de meilleures performances
- * - Intégration native/web transparente sans interférence
+ * 🖥️ Navigation Bureau - Version avec Accès Admin Dissimulé
+ * Navigation principale pour écrans desktop avec accès administrateur sécurisé
  */
 
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { PageTitle } from './desktop-navbar/components/PageTitle';
-import { SearchBar } from './desktop-navbar/components/SearchBar';
-import { UserActions } from './desktop-navbar/components/UserActions';
+import { cn } from '@/lib/utils';
+import AdminAccessButton from '@/components/admin/AdminAccessButton';
 
-/**
- * Composant principal de navigation desktop refactorisé
- * Architecture modulaire pour une meilleure maintenabilité
- */
 const DesktopNavbar: React.FC = () => {
-  const { user, signOut } = useAuth();
-  
-  // 🛡️ Protection : masquer la navbar si aucun utilisateur connecté
+  const { user, logout } = useAuth();
+  const location = useLocation();
+
+  const navItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/tools', label: 'Outils', icon: '🛠️' },
+    { href: '/resources', label: 'Ressources', icon: '📚' },
+    { href: '/community', label: 'Communauté', icon: '👥' },
+    { href: '/calendar', label: 'Calendrier', icon: '📅' }
+  ];
+
+  const isActiveRoute = (href: string) => {
+    return location.pathname === href || location.pathname.startsWith(href + '/');
+  };
+
   if (!user) {
-    console.log('🚫 DesktopNavbar: Aucun utilisateur connecté, masquage de la navbar');
     return null;
   }
 
-  /**
-   * 🔍 Gestionnaire de recherche centralisé
-   * Traite les requêtes de recherche provenant du composant SearchBar
-   */
-  const handleSearch = (query: string) => {
-    console.log('DesktopNavbar: Recherche centralisée:', query);
-    // 🚀 TODO: Intégrer le service de recherche global
-  };
-
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm backdrop-blur-md">
-      <div className="container px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center gap-4 lg:gap-6">
+    <nav className="hidden lg:flex items-center justify-between px-6 py-4 bg-white shadow-sm border-b">
+      {/* Logo et titre */}
+      <div className="flex items-center space-x-4">
+        <Link to="/dashboard" className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-medical-blue to-medical-teal rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-lg">M</span>
+          </div>
+          <span className="text-xl font-bold text-gray-800">MedCollab</span>
+        </Link>
         
-        {/* 📋 Titre de page avec animation de transition fluide */}
-        <PageTitle />
-
-        {/* 🔍 Barre de recherche intelligente avec états visuels dynamiques */}
-        <SearchBar onSearch={handleSearch} />
-
-        {/* ⚡ Section actions utilisateur avec optimisations d'accessibilité */}
-        <UserActions user={user} onLogout={signOut} />
+        {/* Bouton admin dissimulé (à droite du logo) */}
+        <AdminAccessButton />
       </div>
-    </header>
+
+      {/* Navigation principale */}
+      <div className="flex items-center space-x-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            to={item.href}
+            className={cn(
+              "px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2",
+              "hover:bg-gray-100 hover:text-medical-blue",
+              isActiveRoute(item.href)
+                ? "bg-medical-blue text-white shadow-md"
+                : "text-gray-600"
+            )}
+          >
+            <span className="text-lg">{item.icon}</span>
+            <span className="font-medium">{item.label}</span>
+          </Link>
+        ))}
+      </div>
+
+      {/* Actions utilisateur */}
+      <div className="flex items-center space-x-4">
+        <div className="text-sm text-gray-600">
+          Bonjour, <span className="font-semibold">{user.displayName}</span>
+        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={logout}
+          className="text-red-600 border-red-200 hover:bg-red-50"
+        >
+          Déconnexion
+        </Button>
+      </div>
+    </nav>
   );
 };
 

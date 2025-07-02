@@ -1,6 +1,7 @@
 
 /**
- * 📱 Layout Mobile Optimisé - Version corrigée responsive
+ * 📱 Layout Mobile Optimisé - Version Ultra Responsive
+ * Interface mobile professionnelle sans barres de défilement
  */
 
 import React from 'react';
@@ -60,7 +61,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
 
   return (
     <ErrorBoundary>
-      <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col ${className}`}>
+      <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col mobile-layout ${className}`}>
         
         {/* 📱 Barre supérieure mobile */}
         {user && (
@@ -74,7 +75,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
 
         {/* 📄 Zone de contenu principal responsive */}
         <main className={`
-          flex-1 w-full overflow-x-hidden
+          flex-1 w-full overflow-x-hidden mobile-content
           ${user ? 'pt-[60px] pb-[88px]' : 'pt-0 pb-0'}
           ${!isOnline ? 'bg-gray-100 dark:bg-gray-800' : ''}
         `}>
@@ -109,9 +110,42 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         {/* 🧭 Navigation mobile fixe */}
         {user && <MobileNavbar />}
         
-        {/* 📱 Styles CSS pour les safe areas et responsive */}
+        {/* 📱 Styles CSS globaux pour mobile sans barres de défilement */}
         <style dangerouslySetInnerHTML={{
           __html: `
+            /* 🚫 Masquer les barres de défilement sur mobile et tablette */
+            @media (max-width: 1024px) {
+              body {
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+              }
+              
+              /* Masquer la barre de défilement verticale */
+              body::-webkit-scrollbar {
+                display: none;
+              }
+              
+              body {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+              }
+              
+              /* Conteneur mobile sans barre de défilement */
+              .mobile-layout {
+                overflow-x: hidden;
+              }
+              
+              .mobile-content {
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+              }
+              
+              .mobile-content::-webkit-scrollbar {
+                display: none;
+              }
+            }
+            
+            /* 📱 Safe areas pour les appareils avec encoche */
             .safe-area-inset-top {
               padding-top: env(safe-area-inset-top);
             }
@@ -119,7 +153,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
               padding-bottom: env(safe-area-inset-bottom);
             }
             
-            /* Corrections responsive pour mobile */
+            /* 📐 Corrections responsive pour mobile */
             @media (max-width: 768px) {
               .container {
                 padding-left: 1rem;
@@ -137,6 +171,18 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
               
               .space-y-6 > * + * {
                 margin-top: 1.5rem;
+              }
+              
+              /* Optimisations pour les cartes sur mobile */
+              .card-mobile {
+                margin: 0.5rem 0;
+                padding: 1rem;
+              }
+              
+              /* Boutons pleine largeur sur très petit écran */
+              .btn-mobile-full {
+                width: 100%;
+                margin-bottom: 0.5rem;
               }
             }
             
@@ -156,6 +202,31 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
               
               .space-y-4 > * + * {
                 margin-top: 1rem;
+              }
+              
+              /* Formulaires optimisés pour mobile */
+              .form-mobile input,
+              .form-mobile textarea,
+              .form-mobile select {
+                font-size: 16px; /* Éviter le zoom sur iOS */
+              }
+            }
+            
+            /* 🎨 Animations fluides pour l'interface native */
+            .mobile-layout * {
+              -webkit-tap-highlight-color: transparent;
+            }
+            
+            .mobile-layout button:active {
+              transform: scale(0.98);
+              transition: transform 0.1s ease;
+            }
+            
+            /* 🔧 Optimisations pour PWA */
+            @media (display-mode: standalone) {
+              .mobile-layout {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
               }
             }
           `
