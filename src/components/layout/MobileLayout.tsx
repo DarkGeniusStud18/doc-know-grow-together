@@ -109,55 +109,57 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         {/* 🧭 Navigation mobile fixe */}
         {user && <MobileNavbar />}
         
-        {/* 📱 Styles CSS pour les safe areas */}
-        <style jsx>{`
-          .safe-area-inset-top {
-            padding-top: env(safe-area-inset-top);
-          }
-          .safe-area-inset-bottom {
-            padding-bottom: env(safe-area-inset-bottom);
-          }
-          
-          /* Corrections responsive pour mobile */
-          @media (max-width: 768px) {
-            .container {
-              padding-left: 1rem;
-              padding-right: 1rem;
-              max-width: 100%;
+        {/* 📱 Styles CSS pour les safe areas et responsive */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            .safe-area-inset-top {
+              padding-top: env(safe-area-inset-top);
+            }
+            .safe-area-inset-bottom {
+              padding-bottom: env(safe-area-inset-bottom);
             }
             
-            .grid {
-              gap: 1rem;
+            /* Corrections responsive pour mobile */
+            @media (max-width: 768px) {
+              .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+                max-width: 100%;
+              }
+              
+              .grid {
+                gap: 1rem;
+              }
+              
+              .text-3xl {
+                font-size: 1.875rem;
+              }
+              
+              .space-y-6 > * + * {
+                margin-top: 1.5rem;
+              }
             }
             
-            .text-3xl {
-              font-size: 1.875rem;
+            @media (max-width: 640px) {
+              .container {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+              }
+              
+              .text-2xl {
+                font-size: 1.5rem;
+              }
+              
+              .grid-cols-2 {
+                grid-template-columns: 1fr;
+              }
+              
+              .space-y-4 > * + * {
+                margin-top: 1rem;
+              }
             }
-            
-            .space-y-6 > * + * {
-              margin-top: 1.5rem;
-            }
-          }
-          
-          @media (max-width: 640px) {
-            .container {
-              padding-left: 0.75rem;
-              padding-right: 0.75rem;
-            }
-            
-            .text-2xl {
-              font-size: 1.5rem;
-            }
-            
-            .grid-cols-2 {
-              grid-template-columns: 1fr;
-            }
-            
-            .space-y-4 > * + * {
-              margin-top: 1rem;
-            }
-          }
-        `}</style>
+          `
+        }} />
       </div>
     </ErrorBoundary>
   );
