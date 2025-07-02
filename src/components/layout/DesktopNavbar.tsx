@@ -27,6 +27,10 @@ const DesktopNavbar: React.FC = () => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   if (!user) {
     return null;
   }
@@ -75,7 +79,7 @@ const DesktopNavbar: React.FC = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={logout}
+          onClick={handleLogout}
           className="text-red-600 border-red-200 hover:bg-red-50"
         >
           Déconnexion

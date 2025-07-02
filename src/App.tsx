@@ -7,8 +7,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthContext } from '@/context/AuthContext';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import ScrollToTop from '@/components/layout/ScrollToTop';
 
@@ -52,7 +51,7 @@ const queryClient = new QueryClient({
  * 🛡️ Composant de protection des routes authentifiées
  */
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useSupabaseAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -73,11 +72,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  * 🚀 Application Principale
  */
 const App: React.FC = () => {
-  const authValue = useSupabaseAuth();
-
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={authValue}>
+      <AuthProvider>
         <Router>
           <ScrollToTop />
           <div className="App">
@@ -221,7 +218,7 @@ const App: React.FC = () => {
             <Toaster position="top-right" richColors />
           </div>
         </Router>
-      </AuthContext.Provider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

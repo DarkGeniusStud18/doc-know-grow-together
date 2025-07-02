@@ -45,26 +45,8 @@ const AdminDashboard: React.FC = () => {
     setLoading(true);
     
     try {
-      // Vérification des credentials dans la base de données
-      const { data: credentials, error } = await supabase
-        .from('admin_credentials')
-        .select('pin_code, password')
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erreur récupération credentials:', error);
-        toast.error('Erreur de connexion administrateur');
-        return;
-      }
-
-      if (!credentials) {
-        toast.error('Configuration administrateur non trouvée');
-        return;
-      }
-
-      // Vérification des credentials
-      if (credentials.pin_code === pinCode && credentials.password === password) {
+      // Vérification directe des credentials
+      if (pinCode === '1234' && password === 'ByronStud18') {
         setIsAuthenticated(true);
         toast.success('Connexion administrateur réussie');
         await loadAdminStats();
@@ -88,15 +70,49 @@ const AdminDashboard: React.FC = () => {
     setLoadingStats(true);
     
     try {
-      const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
-      
-      if (error) {
-        console.error('Erreur chargement statistiques:', error);
-        toast.error('Erreur lors du chargement des statistiques');
-        return;
-      }
+      // Récupération des statistiques manuellement
+      const [
+        usersResult,
+        studySessionsResult,
+        pomodoroSessionsResult,
+        flashcardsResult,
+        clinicalCasesResult,
+        quizQuestionsResult,
+        notesResult,
+        studyGroupsResult,
+        resourcesResult
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('study_sessions').select('id', { count: 'exact', head: true }),
+        supabase.from('pomodoro_sessions').select('id', { count: 'exact', head: true }),
+        supabase.from('flashcards').select('id', { count: 'exact', head: true }),
+        supabase.from('clinical_cases').select('id', { count: 'exact', head: true }),
+        supabase.from('quiz_questions').select('id', { count: 'exact', head: true }),
+        supabase.from('notes').select('id', { count: 'exact', head: true }),
+        supabase.from('study_groups').select('id', { count: 'exact', head: true }),
+        supabase.from('resources').select('id', { count: 'exact', head: true })
+      ]);
 
-      setStats(data);
+      // Récupération des utilisateurs actifs des 7 derniers jours
+      const activeUsersResult = await supabase
+        .from('user_activities')
+        .select('user_id', { count: 'exact', head: true })
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+
+      const statsData: AdminStats = {
+        total_users: usersResult.count || 0,
+        total_study_sessions: studySessionsResult.count || 0,
+        total_pomodoro_sessions: pomodoroSessionsResult.count || 0,
+        total_flashcards: flashcardsResult.count || 0,
+        total_clinical_cases: clinicalCasesResult.count || 0,
+        total_quiz_questions: quizQuestionsResult.count || 0,
+        active_users_last_7_days: activeUsersResult.count || 0,
+        total_notes: notesResult.count || 0,
+        total_study_groups: studyGroupsResult.count || 0,
+        total_resources: resourcesResult.count || 0
+      };
+
+      setStats(statsData);
     } catch (error) {
       console.error('Erreur statistiques admin:', error);
       toast.error('Erreur lors du chargement des données');
