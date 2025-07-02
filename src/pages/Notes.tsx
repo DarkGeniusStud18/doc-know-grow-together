@@ -21,25 +21,31 @@ import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+// Interface basée sur la structure réelle de la base de données
 interface Note {
   id: string;
   title: string;
-  content: string;
-  category: string;
-  tags: string[];
-  is_favorite: boolean;
+  content: string | null;
   created_at: string;
   updated_at: string;
+  user_id: string;
+}
+
+// Interface étendue pour l'affichage avec des propriétés virtuelles
+interface ExtendedNote extends Note {
+  category?: string;
+  tags?: string[];
+  is_favorite?: boolean;
 }
 
 const Notes: React.FC = () => {
   const { user } = useAuth();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<ExtendedNote[]>([]);
+  const [filteredNotes, setFilteredNotes] = useState<ExtendedNote[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingNote, setEditingNote] = useState<ExtendedNote | null>(null);
   const [loading, setLoading] = useState(true);
 
   // États du formulaire
@@ -75,8 +81,16 @@ const Notes: React.FC = () => {
 
       if (error) throw error;
       
-      setNotes(data || []);
-      setFilteredNotes(data || []);
+      // Transformation des données pour ajouter les propriétés virtuelles
+      const extendedNotes: ExtendedNote[] = (data || []).map(note => ({
+        ...note,
+        category: 'general', // Valeur par défaut
+        tags: [], // Valeur par défaut
+        is_favorite: false // Valeur par défaut
+      }));
+      
+      setNotes(extendedNotes);
+      setFilteredNotes(extendedNotes);
     } catch (error) {
       console.error('Erreur lors du chargement des notes:', error);
       toast.error('Erreur lors du chargement des notes');
@@ -95,8 +109,8 @@ const Notes: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(note =>
         note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        (note.content && note.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (note.tags && note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
       );
     }
 
@@ -121,8 +135,6 @@ const Notes: React.FC = () => {
       const noteData = {
         title: formData.title.trim(),
         content: formData.content.trim(),
-        category: formData.category,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         user_id: user.id
       };
 
@@ -178,35 +190,30 @@ const Notes: React.FC = () => {
   };
 
   /**
-   * ⭐ Basculer le statut favori d'une note
+   * ⭐ Basculer le statut favori d'une note (simulation)
    */
-  const toggleFavorite = async (noteId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('notes')
-        .update({ is_favorite: !currentStatus })
-        .eq('id', noteId);
-
-      if (error) throw error;
-      
-      loadNotes();
-      toast.success(currentStatus ? 'Retiré des favoris' : 'Ajouté aux favoris');
-    } catch (error) {
-      console.error('Erreur lors de la modification des favoris:', error);
-      toast.error('Erreur lors de la modification');
-    }
+  const toggleFavorite = async (noteId: string, currentStatus: boolean | undefined) => {
+    // Simulation - dans une vraie implémentation, vous pourriez ajouter une colonne is_favorite
+    const updatedNotes = notes.map(note => 
+      note.id === noteId ? { ...note, is_favorite: !currentStatus } : note
+    );
+    setNotes(updatedNotes);
+    setFilteredNotes(updatedNotes.filter(note => 
+      selectedCategory === 'all' || note.category === selectedCategory
+    ));
+    toast.success(currentStatus ? 'Retiré des favoris' : 'Ajouté aux favoris');
   };
 
   /**
    * ✏️ Préparer l'édition d'une note
    */
-  const startEditing = (note: Note) => {
+  const startEditing = (note: ExtendedNote) => {
     setEditingNote(note);
     setFormData({
       title: note.title,
-      content: note.content,
-      category: note.category,
-      tags: note.tags.join(', ')
+      content: note.content || '',
+      category: note.category || 'general',
+      tags: note.tags ? note.tags.join(', ') : ''
     });
     setIsCreateDialogOpen(true);
   };
@@ -262,36 +269,6 @@ const Notes: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Catégorie</label>
-                    <Select 
-                      value={formData.category} 
-                      onValueChange={(value) => setFormData({...formData, category: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(cat => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Tags</label>
-                    <Input
-                      value={formData.tags}
-                      onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                      placeholder="tag1, tag2, tag3"
-                    />
-                  </div>
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-2">Contenu</label>
                   <Textarea
@@ -333,21 +310,6 @@ const Notes: React.FC = () => {
               className="pl-10"
             />
           </div>
-          
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-48">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les catégories</SelectItem>
-              {categories.map(cat => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Liste des notes */}
@@ -360,10 +322,10 @@ const Notes: React.FC = () => {
             <CardContent>
               <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                {searchTerm || selectedCategory !== 'all' ? 'Aucune note trouvée' : 'Aucune note créée'}
+                {searchTerm ? 'Aucune note trouvée' : 'Aucune note créée'}
               </h3>
               <p className="text-gray-500">
-                {searchTerm || selectedCategory !== 'all' 
+                {searchTerm 
                   ? 'Essayez de modifier vos critères de recherche'
                   : 'Commencez par créer votre première note'
                 }
@@ -385,7 +347,7 @@ const Notes: React.FC = () => {
                         </CardTitle>
                         <div className="flex items-center gap-2 mb-2">
                           <Badge variant="secondary" className={category?.color}>
-                            {category?.label}
+                            {category?.label || '📋 Général'}
                           </Badge>
                           {note.is_favorite && (
                             <Star className="h-4 w-4 text-yellow-500 fill-current" />
@@ -425,7 +387,7 @@ const Notes: React.FC = () => {
                       {note.content || 'Aucun contenu'}
                     </p>
                     
-                    {note.tags.length > 0 && (
+                    {note.tags && note.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {note.tags.map((tag, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
@@ -441,7 +403,7 @@ const Notes: React.FC = () => {
                         {new Date(note.updated_at).toLocaleDateString('fr-FR')}
                       </span>
                       <span>
-                        {note.content.length} caractères
+                        {note.content ? note.content.length : 0} caractères
                       </span>
                     </div>
                   </CardContent>

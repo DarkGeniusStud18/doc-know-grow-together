@@ -12,7 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { 
   Play, Pause, SkipForward, SkipBack, Volume2, VolumeX,
-  Music, Headphones, Clock, Shuffle, Repeat, Heart
+  Music as MusicIcon, Headphones, Clock, Shuffle, Repeat, Heart
 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
@@ -27,7 +27,7 @@ interface Track {
   description: string;
 }
 
-const Music: React.FC = () => {
+const MusicPage: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -247,7 +247,7 @@ const Music: React.FC = () => {
         {/* En-tête */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-medical-navy flex items-center gap-3 mb-2">
-            <Music className="h-8 w-8 text-medical-blue" />
+            <MusicIcon className="h-8 w-8 text-medical-blue" />
             Bibliothèque Musicale
           </h1>
           <p className="text-gray-600">
@@ -263,7 +263,7 @@ const Music: React.FC = () => {
                 {/* Informations de la piste */}
                 <div className="flex items-center gap-4 flex-1">
                   <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
-                    <Music className="h-8 w-8" />
+                    <MusicIcon className="h-8 w-8" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold">{currentTrack.title}</h3>
@@ -356,7 +356,6 @@ const Music: React.FC = () => {
                       onValueChange={handleVolumeChange}
                       max={100}
                       step={1}
-                      className="w-full"
                     />
                   </div>
                 </div>
@@ -486,4 +485,4 @@ const Music: React.FC = () => {
   );
 };
 
-export default Music;
+export default MusicPage;
