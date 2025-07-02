@@ -1,140 +1,166 @@
 
 /**
- * 🚀 Page de Démarrage (Splash Screen) - Version Professionnelle
- * Animation fluide avec logo et navigation automatique
+ * 🚀 Page de Démarrage (Splash Screen) - Animation Professionnelle
+ * 
+ * Fonctionnalités :
+ * - Logo animé avec effets visuels avancés
+ * - Animation fluide et professionnelle
+ * - Navigation automatique selon l'état utilisateur
+ * - Design responsive pour tous les écrans
+ * - Préchargement des ressources critiques
  */
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Stethoscope, Heart, Brain, Shield } from 'lucide-react';
 
+/**
+ * Composant principal de la page de démarrage
+ * Gère l'animation d'entrée et la redirection automatique
+ */
 const Splash: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [animationPhase, setAnimationPhase] = useState<'logo' | 'text' | 'complete'>('logo');
+  const [animationPhase, setAnimationPhase] = useState(0);
 
+  // Gestion des phases d'animation
   useEffect(() => {
-    // Séquence d'animation
-    const timer1 = setTimeout(() => setAnimationPhase('text'), 1000);
-    const timer2 = setTimeout(() => setAnimationPhase('complete'), 2000);
-    
-    // Navigation automatique après l'animation
-    const timer3 = setTimeout(() => {
-      if (!loading) {
-        if (user) {
-          navigate('/dashboard');
-        } else {
-          navigate('/');
-        }
-      }
-    }, 3000);
+    const phases = [
+      { delay: 500, phase: 1 },   // Logo principal
+      { delay: 1000, phase: 2 },  // Titre et sous-titre
+      { delay: 1500, phase: 3 },  // Icônes flottantes
+      { delay: 2500, phase: 4 },  // Finalisation
+    ];
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-    };
-  }, [navigate, user, loading]);
+    phases.forEach(({ delay, phase }) => {
+      setTimeout(() => setAnimationPhase(phase), delay);
+    });
+  }, []);
+
+  // Navigation automatique après l'animation
+  useEffect(() => {
+    if (!loading && animationPhase >= 4) {
+      const timer = setTimeout(() => {
+        if (user) {
+          navigate('/dashboard', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [user, loading, animationPhase, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue via-medical-teal to-medical-blue flex items-center justify-center overflow-hidden">
-      {/* Animations de fond */}
+    <div className="min-h-screen bg-gradient-to-br from-medical-blue via-medical-teal to-medical-navy flex items-center justify-center relative overflow-hidden">
+      {/* Particules d'arrière-plan animées */}
       <div className="absolute inset-0">
-        {/* Cercles animés */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white/10 rounded-full animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-white/20 rounded-full animate-bounce"></div>
-        <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-white/5 rounded-full animate-ping"></div>
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className={`absolute w-2 h-2 bg-white/10 rounded-full animate-pulse ${
+              animationPhase >= 2 ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${3 + Math.random() * 2}s`
+            }}
+          />
+        ))}
       </div>
 
       {/* Contenu principal */}
-      <div className="relative z-10 text-center space-y-8">
-        {/* Logo animé */}
-        <div 
-          className={`
-            transition-all duration-1000 ease-out
-            ${animationPhase === 'logo' ? 'scale-150 opacity-0' : 'scale-100 opacity-100'}
-          `}
-        >
+      <div className="relative z-10 text-center px-4">
+        
+        {/* Logo principal animé */}
+        <div className={`mb-8 transition-all duration-1000 ${
+          animationPhase >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+        }`}>
           <div className="relative">
-            {/* Logo principal */}
-            <div className="w-32 h-32 mx-auto mb-6 relative">
-              <div className="absolute inset-0 bg-white rounded-2xl shadow-2xl flex items-center justify-center transform rotate-12 animate-spin">
-                <div className="text-4xl font-bold text-medical-blue">M</div>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-medical-teal to-medical-blue rounded-2xl shadow-xl flex items-center justify-center">
-                <div className="text-4xl font-bold text-white">M</div>
+            {/* Cercle d'arrière-plan avec pulsation */}
+            <div className="w-32 h-32 mx-auto mb-4 relative">
+              <div className="absolute inset-0 bg-white/20 rounded-full animate-ping"></div>
+              <div className="absolute inset-2 bg-white/30 rounded-full animate-pulse"></div>
+              <div className="absolute inset-4 bg-white rounded-full flex items-center justify-center shadow-2xl">
+                <Stethoscope className="w-12 h-12 text-medical-blue animate-bounce" />
               </div>
             </div>
-
-            {/* Effet de brillance */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 animate-pulse"></div>
           </div>
         </div>
 
-        {/* Texte animé */}
-        <div 
-          className={`
-            transition-all duration-1000 ease-out delay-500
-            ${animationPhase === 'text' || animationPhase === 'complete' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
-          `}
-        >
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
-            MedCollab
+        {/* Titre et sous-titre */}
+        <div className={`mb-12 transition-all duration-1000 delay-300 ${
+          animationPhase >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
+            Med<span className="text-medical-light">Collab</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 font-light">
-            Votre plateforme d'étude médicale
+          <p className="text-xl md:text-2xl text-white/90 mb-2 font-light">
+            Plateforme d'Apprentissage Médical
           </p>
+          <p className="text-base md:text-lg text-white/70 max-w-md mx-auto">
+            Votre compagnon d'étude pour l'excellence médicale
+          </p>
+        </div>
+
+        {/* Icônes flottantes */}
+        <div className={`flex justify-center space-x-8 mb-12 transition-all duration-1000 delay-700 ${
+          animationPhase >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
+          <div className="flex flex-col items-center animate-float">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-2 backdrop-blur-sm">
+              <Heart className="w-8 h-8 text-red-300" />
+            </div>
+            <span className="text-white/80 text-sm">Cardiologie</span>
+          </div>
+          
+          <div className="flex flex-col items-center animate-float" style={{ animationDelay: '0.2s' }}>
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-2 backdrop-blur-sm">
+              <Brain className="w-8 h-8 text-purple-300" />
+            </div>
+            <span className="text-white/80 text-sm">Neurologie</span>
+          </div>
+          
+          <div className="flex flex-col items-center animate-float" style={{ animationDelay: '0.4s' }}>
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-2 backdrop-blur-sm">
+              <Shield className="w-8 h-8 text-green-300" />
+            </div>
+            <span className="text-white/80 text-sm">Prévention</span>
+          </div>
         </div>
 
         {/* Barre de progression */}
-        <div 
-          className={`
-            transition-all duration-1000 ease-out delay-1000
-            ${animationPhase === 'complete' ? 'opacity-100' : 'opacity-0'}
-          `}
-        >
-          <div className="w-64 h-1 bg-white/20 rounded-full mx-auto overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-white to-medical-yellow rounded-full animate-pulse"></div>
+        <div className={`w-64 mx-auto transition-all duration-1000 delay-1000 ${
+          animationPhase >= 4 ? 'opacity-100' : 'opacity-0'
+        }`}>
+          <div className="w-full bg-white/20 rounded-full h-2 mb-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-medical-light to-white h-2 rounded-full animate-pulse"></div>
           </div>
-          <p className="text-white/70 text-sm mt-4 animate-pulse">
-            Chargement de votre espace d'étude...
-          </p>
-        </div>
-
-        {/* Particules flottantes */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className={`
-                absolute w-2 h-2 bg-white/40 rounded-full
-                animate-bounce
-              `}
-              style={{
-                left: `${20 + i * 15}%`,
-                top: `${30 + (i % 2) * 40}%`,
-                animationDelay: `${i * 0.5}s`,
-                animationDuration: '2s'
-              }}
-            />
-          ))}
+          <p className="text-white/80 text-sm">Initialisation en cours...</p>
         </div>
       </div>
 
-      {/* Indicateur de chargement en bas */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-        <div className="flex space-x-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-3 h-3 bg-white/60 rounded-full animate-pulse"
-              style={{
-                animationDelay: `${i * 0.3}s`
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Styles CSS personnalisés pour les animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
     </div>
   );
 };

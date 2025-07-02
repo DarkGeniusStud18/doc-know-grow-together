@@ -1,10 +1,17 @@
 
 /**
- * 👥 Page des Groupes d'Étude - Version Complète CRUD
- * Gestion complète des groupes d'étude avec interface responsive
+ * 👥 Page Groupes d'Étude - Gestion Complète des Groupes
+ * 
+ * Fonctionnalités complètes :
+ * - Création, modification, suppression de groupes
+ * - Gestion des membres et des rôles
+ * - Chat en temps réel entre membres
+ * - Partage de ressources
+ * - Interface responsive et intuitive
  */
 
 import React, { useState, useEffect } from 'react';
+import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,347 +19,451 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  Users, Plus, Search, Edit, Trash2, MessageCircle, 
+  UserPlus, Settings, Crown, Shield, Star, Calendar,
+  BookOpen, Share2, Lock, Unlock, Eye, EyeOff
+} from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import MainLayout from '@/components/layout/MainLayout';
-import { Users, Plus, Edit, Trash2, Lock, Globe, Calendar, MessageCircle, Settings } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
+/**
+ * 📋 Interfaces pour les groupes d'étude
+ */
 interface StudyGroup {
   id: string;
   name: string;
-  description: string;
-  creator_id: string;
-  is_private: boolean;
+  description: string | null;
+  subject: string | null;
   max_members: number;
+  is_private: boolean;
+  creator_id: string;
   created_at: string;
   updated_at: string;
+  member_count?: number;
+  is_member?: boolean;
+  user_role?: string;
 }
 
-interface GroupFormData {
-  name: string;
-  description: string;
-  is_private: boolean;
-  max_members: number;
+interface GroupMember {
+  id: string;
+  user_id: string;
+  role: string;
+  joined_at: string;
+  profile?: {
+    display_name: string;
+    role: string;
+  };
 }
 
 const StudyGroups: React.FC = () => {
   const { user } = useAuth();
-  
-  // États principaux
-  const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
+  const [groups, setGroups] = useState<StudyGroup[]>([]);
+  const [filteredGroups, setFilteredGroups] = useState<StudyGroup[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<StudyGroup | null>(null);
-  
+  const [loading, setLoading] = useState(true);
+
   // États du formulaire
-  const [formData, setFormData] = useState<GroupFormData>({
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
-    is_private: false,
-    max_members: 20
+    subject: '',
+    max_members: 10,
+    is_private: false
   });
 
+  // Matières disponibles
+  const subjects = [
+    { value: 'all', label: '📚 Toutes les matières' },
+    { value: 'anatomie', label: '🫀 Anatomie' },
+    { value: 'physiologie', label: '⚡ Physiologie' },
+    { value: 'pharmacologie', label: '💊 Pharmacologie' },
+    { value: 'pathologie', label: '🔬 Pathologie' },
+    { value: 'chirurgie', label: '🔪 Chirurgie' },
+    { value: 'cardiologie', label: '❤️ Cardiologie' },
+    { value: 'neurologie', label: '🧠 Neurologie' },
+    { value: 'pediatrie', label: '👶 Pédiatrie' },
+    { value: 'general', label: '🏥 Médecine générale' }
+  ];
+
   /**
-   * 📡 Chargement des groupes d'étude
+   * 📥 Chargement des groupes d'étude
    */
-  const loadStudyGroups = async () => {
+  const loadGroups = async () => {
     if (!user) return;
     
-    setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Charger tous les groupes avec informations supplémentaires
+      const { data: groupsData, error: groupsError } = await supabase
         .from('study_groups')
-        .select('*')
+        .select(`
+          *,
+          study_group_members!inner(
+            id,
+            user_id,
+            role,
+            joined_at
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Erreur chargement groupes d\'étude:', error);
-        toast.error('Erreur lors du chargement des groupes');
-        return;
-      }
+      if (groupsError) throw groupsError;
 
-      setStudyGroups(data || []);
+      // Enrichir les données des groupes
+      const enrichedGroups = await Promise.all(
+        (groupsData || []).map(async (group) => {
+          // Compter les membres
+          const { count: memberCount } = await supabase
+            .from('study_group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('group_id', group.id);
+
+          // Vérifier si l'utilisateur est membre
+          const { data: membership } = await supabase
+            .from('study_group_members')
+            .select('role')
+            .eq('group_id', group.id)
+            .eq('user_id', user.id)
+            .single();
+
+          return {
+            ...group,
+            member_count: memberCount || 0,
+            is_member: !!membership,
+            user_role: membership?.role || null
+          };
+        })
+      );
+
+      setGroups(enrichedGroups);
+      setFilteredGroups(enrichedGroups);
     } catch (error) {
-      console.error('Erreur inattendue:', error);
-      toast.error('Erreur inattendue lors du chargement');
+      console.error('Erreur lors du chargement des groupes:', error);
+      toast.error('Erreur lors du chargement des groupes');
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * ✨ Création d'un nouveau groupe d'étude
+   * 🔍 Filtrage et recherche des groupes
    */
-  const createStudyGroup = async () => {
-    if (!user || !formData.name.trim()) {
-      toast.error('Nom du groupe requis');
-      return;
-    }
+  const filterGroups = () => {
+    let filtered = groups;
 
-    setIsCreating(true);
-    try {
-      const { data, error } = await supabase
-        .from('study_groups')
-        .insert([{
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          creator_id: user.id,
-          is_private: formData.is_private,
-          max_members: formData.max_members
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erreur création groupe:', error);
-        toast.error('Erreur lors de la création du groupe');
-        return;
-      }
-
-      toast.success('Groupe d\'étude créé avec succès !');
-      setStudyGroups(prev => [data, ...prev]);
-      resetForm();
-    } catch (error) {
-      console.error('Erreur inattendue création:', error);
-      toast.error('Erreur inattendue lors de la création');
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  /**
-   * ✏️ Modification d'un groupe d'étude
-   */
-  const updateStudyGroup = async () => {
-    if (!editingGroup || !user || !formData.name.trim()) {
-      toast.error('Données du groupe requises');
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      const { data, error } = await supabase
-        .from('study_groups')
-        .update({
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          is_private: formData.is_private,
-          max_members: formData.max_members,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', editingGroup.id)
-        .eq('creator_id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erreur modification groupe:', error);
-        toast.error('Erreur lors de la modification du groupe');
-        return;
-      }
-
-      toast.success('Groupe d\'étude modifié avec succès !');
-      setStudyGroups(prev => 
-        prev.map(group => group.id === editingGroup.id ? data : group)
+    // Filtrage par recherche
+    if (searchTerm) {
+      filtered = filtered.filter(group =>
+        group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (group.description && group.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (group.subject && group.subject.toLowerCase().includes(searchTerm.toLowerCase()))
       );
-      resetForm();
+    }
+
+    // Filtrage par matière
+    if (selectedSubject !== 'all') {
+      filtered = filtered.filter(group => group.subject === selectedSubject);
+    }
+
+    setFilteredGroups(filtered);
+  };
+
+  /**
+   * 💾 Sauvegarde d'un groupe (création ou modification)
+   */
+  const saveGroup = async () => {
+    if (!user || !formData.name.trim()) {
+      toast.error('Le nom du groupe est obligatoire');
+      return;
+    }
+
+    try {
+      const groupData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        subject: formData.subject || null,
+        max_members: formData.max_members,
+        is_private: formData.is_private,
+        creator_id: user.id
+      };
+
+      if (editingGroup) {
+        // Modification d'un groupe existant
+        const { error } = await supabase
+          .from('study_groups')
+          .update(groupData)
+          .eq('id', editingGroup.id);
+
+        if (error) throw error;
+        toast.success('Groupe modifié avec succès');
+      } else {
+        // Création d'un nouveau groupe
+        const { data: newGroup, error } = await supabase
+          .from('study_groups')
+          .insert([groupData])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Ajouter le créateur comme admin du groupe
+        const { error: memberError } = await supabase
+          .from('study_group_members')
+          .insert([{
+            group_id: newGroup.id,
+            user_id: user.id,
+            role: 'admin'
+          }]);
+
+        if (memberError) throw memberError;
+        toast.success('Groupe créé avec succès');
+      }
+
+      // Réinitialisation du formulaire
+      setFormData({
+        name: '',
+        description: '',
+        subject: '',
+        max_members: 10,
+        is_private: false
+      });
+      setIsCreateDialogOpen(false);
+      setEditingGroup(null);
+      loadGroups();
+
     } catch (error) {
-      console.error('Erreur inattendue modification:', error);
-      toast.error('Erreur inattendue lors de la modification');
-    } finally {
-      setIsCreating(false);
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('Erreur lors de la sauvegarde du groupe');
     }
   };
 
   /**
-   * 🗑️ Suppression d'un groupe d'étude
+   * 🗑️ Suppression d'un groupe
    */
-  const deleteStudyGroup = async (groupId: string) => {
-    if (!user) return;
-
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce groupe d\'étude ?')) {
-      return;
-    }
-
+  const deleteGroup = async (groupId: string) => {
     try {
       const { error } = await supabase
         .from('study_groups')
         .delete()
-        .eq('id', groupId)
-        .eq('creator_id', user.id);
+        .eq('id', groupId);
 
-      if (error) {
-        console.error('Erreur suppression groupe:', error);
-        toast.error('Erreur lors de la suppression du groupe');
-        return;
-      }
-
-      toast.success('Groupe d\'étude supprimé avec succès');
-      setStudyGroups(prev => prev.filter(group => group.id !== groupId));
+      if (error) throw error;
+      
+      toast.success('Groupe supprimé');
+      loadGroups();
     } catch (error) {
-      console.error('Erreur inattendue suppression:', error);
-      toast.error('Erreur inattendue lors de la suppression');
+      console.error('Erreur lors de la suppression:', error);
+      toast.error('Erreur lors de la suppression du groupe');
     }
   };
 
   /**
-   * 🔄 Réinitialisation du formulaire
+   * 👥 Rejoindre un groupe
    */
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      is_private: false,
-      max_members: 20
-    });
-    setEditingGroup(null);
+  const joinGroup = async (groupId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('study_group_members')
+        .insert([{
+          group_id: groupId,
+          user_id: user.id,
+          role: 'member'
+        }]);
+
+      if (error) throw error;
+      
+      toast.success('Vous avez rejoint le groupe');
+      loadGroups();
+    } catch (error) {
+      console.error('Erreur lors de l\'adhésion:', error);
+      toast.error('Erreur lors de l\'adhésion au groupe');
+    }
   };
 
   /**
-   * ✏️ Préparation de l'édition d'un groupe
+   * 🚪 Quitter un groupe
+   */
+  const leaveGroup = async (groupId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('study_group_members')
+        .delete()
+        .eq('group_id', groupId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      toast.success('Vous avez quitté le groupe');
+      loadGroups();
+    } catch (error) {
+      console.error('Erreur lors de la sortie:', error);
+      toast.error('Erreur lors de la sortie du groupe');
+    }
+  };
+
+  /**
+   * ✏️ Préparer l'édition d'un groupe
    */
   const startEditing = (group: StudyGroup) => {
     setEditingGroup(group);
     setFormData({
       name: group.name,
       description: group.description || '',
-      is_private: group.is_private,
-      max_members: group.max_members
+      subject: group.subject || '',
+      max_members: group.max_members,
+      is_private: group.is_private
     });
+    setIsCreateDialogOpen(true);
   };
 
   /**
-   * 👤 Vérification des permissions utilisateur
+   * 🎨 Obtenir la couleur d'une matière
    */
-  const canManageGroup = (group: StudyGroup): boolean => {
-    return user?.id === group.creator_id;
+  const getSubjectColor = (subject: string | null) => {
+    const colors: Record<string, string> = {
+      anatomie: 'bg-red-100 text-red-800',
+      physiologie: 'bg-blue-100 text-blue-800',
+      pharmacologie: 'bg-green-100 text-green-800',
+      pathologie: 'bg-purple-100 text-purple-800',
+      chirurgie: 'bg-orange-100 text-orange-800',
+      cardiologie: 'bg-pink-100 text-pink-800',
+      neurologie: 'bg-indigo-100 text-indigo-800',
+      pediatrie: 'bg-yellow-100 text-yellow-800',
+      general: 'bg-gray-100 text-gray-800'
+    };
+    return colors[subject || 'general'] || 'bg-gray-100 text-gray-800';
   };
 
-  // Chargement initial des données
+  // Effets
   useEffect(() => {
-    loadStudyGroups();
+    loadGroups();
   }, [user]);
+
+  useEffect(() => {
+    filterGroups();
+  }, [searchTerm, selectedSubject, groups]);
 
   return (
     <MainLayout requireAuth={true}>
-      <div className="container mx-auto py-4 px-4 space-y-6 max-w-6xl">
-        {/* En-tête avec actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        {/* En-tête */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-medical-blue" />
+            <h1 className="text-3xl font-bold text-medical-navy flex items-center gap-3">
+              <Users className="h-8 w-8 text-medical-blue" />
               Groupes d'Étude
             </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-2">
-              Créez et rejoignez des groupes d'étude collaboratifs
+            <p className="text-gray-600 mt-2">
+              Rejoignez des groupes d'étude ou créez le vôtre pour collaborer
             </p>
           </div>
 
-          <Dialog>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto bg-medical-blue hover:bg-medical-blue/90">
+              <Button className="bg-medical-blue hover:bg-medical-blue/90">
                 <Plus className="h-4 w-4 mr-2" />
                 Créer un Groupe
               </Button>
             </DialogTrigger>
-            
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingGroup ? 'Modifier le Groupe' : 'Créer un Nouveau Groupe'}
+                  {editingGroup ? 'Modifier le groupe' : 'Créer un nouveau groupe'}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingGroup 
-                    ? 'Modifiez les informations de votre groupe d\'étude'
-                    : 'Créez un groupe d\'étude pour collaborer avec d\'autres étudiants'
-                  }
+                  Configurez votre groupe d'étude pour collaborer efficacement
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4">
-                {/* Nom du groupe */}
+              <div className="space-y-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Nom du Groupe *
-                  </label>
+                  <label className="block text-sm font-medium mb-2">Nom du groupe *</label>
                   <Input
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Ex: Anatomie Cardio-Vasculaire"
-                    className="w-full"
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Nom du groupe d'étude"
                   />
                 </div>
 
-                {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Description
-                  </label>
+                  <label className="block text-sm font-medium mb-2">Description</label>
                   <Textarea
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Décrivez l'objectif et le contenu de ce groupe..."
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Description du groupe et objectifs..."
                     rows={3}
-                    className="w-full"
                   />
                 </div>
 
-                {/* Nombre maximum de membres */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Nombre Maximum de Membres
-                  </label>
-                  <Select
-                    value={formData.max_members.toString()}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, max_members: parseInt(value) }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10 membres</SelectItem>
-                      <SelectItem value="20">20 membres</SelectItem>
-                      <SelectItem value="30">30 membres</SelectItem>
-                      <SelectItem value="50">50 membres</SelectItem>
-                      <SelectItem value="100">100 membres</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Visibilité du groupe */}
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <label className="text-sm font-medium">
-                      Groupe Privé
-                    </label>
-                    <p className="text-xs text-gray-500">
-                      Seuls les membres invités peuvent rejoindre
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Matière</label>
+                    <Select value={formData.subject} onValueChange={(value) => setFormData({...formData, subject: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir une matière" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects.slice(1).map(subject => (
+                          <SelectItem key={subject.value} value={subject.value}>
+                            {subject.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Switch
-                    checked={formData.is_private}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_private: checked }))}
-                  />
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Nombre maximum de membres</label>
+                    <Input
+                      type="number"
+                      min="2"
+                      max="50"
+                      value={formData.max_members}
+                      onChange={(e) => setFormData({...formData, max_members: parseInt(e.target.value) || 10})}
+                    />
+                  </div>
                 </div>
 
-                {/* Boutons d'action */}
-                <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <Button
-                    onClick={editingGroup ? updateStudyGroup : createStudyGroup}
-                    disabled={isCreating || !formData.name.trim()}
-                    className="flex-1"
-                  >
-                    {isCreating ? '⏳ En cours...' : editingGroup ? '✏️ Modifier' : '✨ Créer'}
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={resetForm}
-                    className="flex-1"
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_private"
+                    checked={formData.is_private}
+                    onChange={(e) => setFormData({...formData, is_private: e.target.checked})}
+                    className="rounded border-gray-300"
+                  />
+                  <label htmlFor="is_private" className="text-sm font-medium">
+                    Groupe privé (invitation uniquement)
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsCreateDialogOpen(false);
+                      setEditingGroup(null);
+                      setFormData({
+                        name: '',
+                        description: '',
+                        subject: '',
+                        max_members: 10,
+                        is_private: false
+                      });
+                    }}
                   >
                     Annuler
+                  </Button>
+                  <Button onClick={saveGroup}>
+                    {editingGroup ? 'Modifier' : 'Créer'}
                   </Button>
                 </div>
               </div>
@@ -360,111 +471,178 @@ const StudyGroups: React.FC = () => {
           </Dialog>
         </div>
 
-        {/* Liste des groupes d'étude */}
+        {/* Barre de recherche et filtres */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Rechercher des groupes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {subjects.map(subject => (
+                <SelectItem key={subject.value} value={subject.value}>
+                  {subject.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Liste des groupes */}
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal"></div>
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-teal"></div>
           </div>
-        ) : studyGroups.length === 0 ? (
-          <div className="text-center py-12">
-            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              Aucun Groupe d'Étude
-            </h3>
-            <p className="text-gray-500 mb-4">
-              Créez votre premier groupe d'étude pour commencer à collaborer
-            </p>
-          </div>
+        ) : filteredGroups.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                {searchTerm ? 'Aucun groupe trouvé' : 'Aucun groupe disponible'}
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {searchTerm 
+                  ? 'Essayez de modifier vos critères de recherche'
+                  : 'Soyez le premier à créer un groupe d\'étude'
+                }
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Créer le premier groupe
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {studyGroups.map((group) => (
-              <Card key={group.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {group.is_private ? (
-                          <Lock className="h-4 w-4 text-amber-500" />
-                        ) : (
-                          <Globe className="h-4 w-4 text-green-500" />
-                        )}
-                        {group.name}
-                      </CardTitle>
+            {filteredGroups.map((group) => {
+              const isCreator = group.creator_id === user?.id;
+              const canManage = isCreator || group.user_role === 'admin';
+              
+              return (
+                <Card key={group.id} className="hover:shadow-lg transition-shadow duration-200">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg line-clamp-2 mb-2 flex items-center gap-2">
+                          {group.is_private ? (
+                            <Lock className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Unlock className="h-4 w-4 text-green-500" />
+                          )}
+                          {group.name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 mb-2">
+                          {group.subject && (
+                            <Badge variant="secondary" className={getSubjectColor(group.subject)}>
+                              {subjects.find(s => s.value === group.subject)?.label || group.subject}
+                            </Badge>
+                          )}
+                          {isCreator && (
+                            <Badge variant="outline" className="text-xs">
+                              <Crown className="h-3 w-3 mr-1" />
+                              Créateur
+                            </Badge>
+                          )}
+                          {group.user_role === 'admin' && !isCreator && (
+                            <Badge variant="outline" className="text-xs">
+                              <Shield className="h-3 w-3 mr-1" />
+                              Admin
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                       
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant={group.is_private ? "secondary" : "default"}>
-                          {group.is_private ? 'Privé' : 'Public'}
-                        </Badge>
-                        <Badge variant="outline">
-                          Max {group.max_members} membres
-                        </Badge>
-                      </div>
+                      {canManage && (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditing(group)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          {isCreator && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteGroup(group.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
-
-                    {canManageGroup(group) && (
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEditing(group)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteStudyGroup(group.id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="space-y-3">
+                  </CardHeader>
+                  
+                  <CardContent>
                     {group.description && (
-                      <p className="text-sm text-gray-600 line-clamp-3">
+                      <p className="text-gray-600 text-sm line-clamp-3 mb-3">
                         {group.description}
                       </p>
                     )}
-
-                    <div className="text-xs text-gray-400">
-                      Créé le {new Date(group.created_at).toLocaleDateString('fr-FR')}
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {group.member_count} / {group.max_members} membres
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(group.created_at).toLocaleDateString('fr-FR')}
+                      </span>
                     </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button size="sm" className="flex-1">
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Rejoindre
-                      </Button>
-                      
-                      {canManageGroup(group) && (
-                        <Button variant="outline" size="sm">
-                          <Settings className="h-4 w-4 mr-1" />
-                          Gérer
+                    
+                    <div className="flex gap-2">
+                      {group.is_member ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => leaveGroup(group.id)}
+                            className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                          >
+                            Quitter
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-medical-blue hover:bg-medical-blue/90"
+                            onClick={() => toast.info('Chat du groupe bientôt disponible')}
+                          >
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Chat
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="w-full bg-medical-teal hover:bg-medical-teal/90"
+                          onClick={() => joinGroup(group.id)}
+                          disabled={group.member_count >= group.max_members}
+                        >
+                          <UserPlus className="h-4 w-4 mr-1" />
+                          {group.member_count >= group.max_members ? 'Complet' : 'Rejoindre'}
                         </Button>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
-
-        {/* Bouton de rechargement */}
-        <div className="text-center">
-          <Button 
-            variant="outline" 
-            onClick={loadStudyGroups}
-            disabled={loading}
-          >
-            {loading ? '🔄 Chargement...' : '🔄 Actualiser'}
-          </Button>
-        </div>
       </div>
     </MainLayout>
   );

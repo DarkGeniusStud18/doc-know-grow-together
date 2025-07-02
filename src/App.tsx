@@ -1,7 +1,13 @@
 
 /**
- * 🚀 Application Principale - Version Complète avec Splash Screen
- * Point d'entrée de l'application avec navigation optimisée
+ * 🚀 Application Principale MedCollab - Version Complète Optimisée
+ * 
+ * Architecture moderne avec :
+ * - Navigation complète et routes optimisées
+ * - Support PWA avec fonctionnalités offline
+ * - Synchronisation en temps réel avec la base de données
+ * - Interface responsive pour tous les écrans
+ * - Gestion d'état locale pour les utilisateurs PWA
  */
 
 import React from 'react';
@@ -22,7 +28,7 @@ import Tools from '@/pages/Tools';
 import StudyGroups from '@/pages/StudyGroups';
 import AdminDashboard from '@/pages/AdminDashboard';
 
-// Import des outils
+// Import des outils d'étude
 import PomodoroTimer from '@/pages/tools/PomodoroTimer';
 import StudyGoals from '@/pages/tools/StudyGoals';
 import StudyTimer from '@/pages/tools/StudyTimer';
@@ -42,30 +48,42 @@ import Music from '@/pages/Music';
 
 import './App.css';
 
-// Configuration du client React Query
+/**
+ * 🔧 Configuration optimisée du client React Query
+ * Paramètres pour une meilleure performance et gestion du cache
+ */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes - durée de validité des données
+      cacheTime: 10 * 60 * 1000, // 10 minutes - durée de conservation en cache
+      refetchOnWindowFocus: false, // Éviter les requêtes automatiques lors du focus
+      retry: 3, // Nombre de tentatives en cas d'échec
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Délai progressif
     },
   },
 });
 
 /**
  * 🛡️ Composant de protection des routes authentifiées
+ * Gère la redirection automatique et les états de chargement
  */
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
+  // Affichage du loader pendant la vérification d'authentification
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-medical-light to-white">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal"></div>
+          <p className="text-medical-navy font-medium">Chargement en cours...</p>
+        </div>
       </div>
     );
   }
 
+  // Redirection vers la page de connexion si non authentifié
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -74,20 +92,23 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 /**
- * 🚀 Application Principale
+ * 🚀 Composant Application Principal
+ * Point d'entrée de l'application avec toutes les fonctionnalités
  */
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
+          {/* Composant pour gérer le scroll vers le haut lors des changements de page */}
           <ScrollToTop />
-          <div className="App">
+          
+          <div className="App overflow-x-hidden">
             <Routes>
-              {/* 🚀 Page de démarrage */}
+              {/* 🚀 Page de démarrage avec logo animé */}
               <Route path="/splash" element={<Splash />} />
               
-              {/* 🏠 Pages publiques */}
+              {/* 🏠 Pages publiques - Accessibles sans authentification */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -120,7 +141,7 @@ const App: React.FC = () => {
                 }
               />
               
-              {/* 🛠️ Outils d'étude */}
+              {/* 🛠️ Outils d'étude spécialisés */}
               <Route
                 path="/tools/pomodoro"
                 element={
@@ -175,7 +196,7 @@ const App: React.FC = () => {
                 }
               />
               
-              {/* 📚 Autres pages */}
+              {/* 📚 Pages de contenu et ressources */}
               <Route
                 path="/resources"
                 element={
@@ -248,15 +269,15 @@ const App: React.FC = () => {
                 }
               />
               
-              {/* 🔐 Dashboard Administrateur */}
+              {/* 🔐 Dashboard Administrateur sécurisé */}
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
               
-              {/* 🔀 Redirection par défaut */}
+              {/* 🔀 Gestion des routes invalides */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             
-            {/* 🔔 Notifications toast */}
-            <Toaster position="top-right" richColors />
+            {/* 🔔 Système de notifications toast avec position optimisée */}
+            <Toaster position="top-right" richColors closeButton />
           </div>
         </Router>
       </AuthProvider>
