@@ -1,43 +1,37 @@
 
 /**
  * Configuration des éléments de navigation pour la barre de navigation mobile
- * 
- * Organisation optimisée des fonctionnalités par priorité d'utilisation
- * et adaptation aux contraintes d'espace mobile/tablette avec 5 éléments principaux
+ * Réorganisation selon les demandes utilisateur avec ordre spécifique
  */
 
 import { 
   Home, 
   BookOpen, 
   Users, 
-  Calendar,
-  Settings,
-  Music,
-  Target,
-  Timer,
   GraduationCap,
-  Stethoscope,
-  BarChart3
+  Wrench,
+  FileText,
+  Music,
+  Calendar
 } from 'lucide-react';
 import { MobileNavItem } from './types';
 
 /**
- * Éléments de navigation principaux - Affichés dans la barre inférieure mobile
- * Étendu à 5 éléments pour optimiser l'accès aux fonctionnalités principales
- * sur écrans mobile et tablette
+ * Éléments de navigation principaux - Ordre spécifique demandé par l'utilisateur
+ * 1. Dashboard, 2. Ressources médicales, 3. Communauté, 4. Groupes d'étude, 5. Menu secondaire
  */
 export const primaryNavItems: MobileNavItem[] = [
   {
     id: 'dashboard',
     icon: Home,
-    label: 'Accueil',
+    label: 'Dashboard',
     href: '/dashboard',
     isActive: (pathname: string) => pathname === '/dashboard' || pathname === '/'
   },
   {
     id: 'resources',
     icon: BookOpen,
-    label: 'Ressources',
+    label: 'Ressources médicales',
     href: '/resources',
     isActive: (pathname: string) => pathname.startsWith('/resources')
   },
@@ -46,95 +40,71 @@ export const primaryNavItems: MobileNavItem[] = [
     icon: Users,
     label: 'Communauté',
     href: '/community',
-    isActive: (pathname: string) => pathname.startsWith('/community') || pathname.startsWith('/study-groups')
+    isActive: (pathname: string) => pathname.startsWith('/community')
   },
   {
-    id: 'calendar',
-    icon: Calendar,
-    label: 'Planning',
-    href: '/calendar',
-    isActive: (pathname: string) => pathname.startsWith('/calendar')
-  },
-  {
-    id: 'progress',
-    icon: BarChart3,
-    label: 'Progrès',
-    href: '/tools/performance-tracker',
-    isActive: (pathname: string) => pathname.startsWith('/tools/performance-tracker')
+    id: 'study-groups',
+    icon: GraduationCap, // Icône différente pour les groupes d'étude
+    label: 'Groupes d\'étude',
+    href: '/study-groups',
+    isActive: (pathname: string) => pathname.startsWith('/study-groups')
   }
 ];
 
 /**
- * Éléments de navigation secondaires - Affichés dans le menu déployable
- * Fonctionnalités avancées et outils spécialisés accessibles via le bouton "Plus"
+ * Éléments de navigation secondaires - Menu déployable réorganisé
+ * Ordre demandé : Outils de productivité, Mes notes, Bibliothèque musicale, Calendrier
  */
 export const secondaryNavItems: MobileNavItem[] = [
   {
-    id: 'study-goals',
-    icon: Target,
-    label: 'Objectifs d\'étude',
-    href: '/tools/study-goals',
-    isActive: (pathname: string) => pathname.startsWith('/tools/study-goals')
+    id: 'tools',
+    icon: Wrench,
+    label: 'Outils de productivité',
+    href: '/tools',
+    isActive: (pathname: string) => pathname.startsWith('/tools')
   },
   {
-    id: 'pomodoro',
-    icon: Timer,
-    label: 'Minuteur Pomodoro',
-    href: '/tools/pomodoro',
-    isActive: (pathname: string) => pathname.startsWith('/tools/pomodoro')
-  },
-  {
-    id: 'exam-simulator',
-    icon: GraduationCap,
-    label: 'Simulateur d\'examen',
-    href: '/exam-simulator',
-    isActive: (pathname: string) => pathname.startsWith('/exam-simulator')
-  },
-  {
-    id: 'clinical-cases',
-    icon: Stethoscope,
-    label: 'Cas cliniques',
-    href: '/clinical-cases',
-    isActive: (pathname: string) => pathname.startsWith('/clinical-cases')
+    id: 'notes',
+    icon: FileText,
+    label: 'Mes notes',
+    href: '/notes',
+    isActive: (pathname: string) => pathname.startsWith('/notes')
   },
   {
     id: 'music',
     icon: Music,
-    label: 'Musique d\'étude',
-    href: '/music',
+    label: 'Bibliothèque musicale',
+    href: '/music-library',
     isActive: (pathname: string) => pathname.startsWith('/music')
   },
   {
-    id: 'settings',
-    icon: Settings,
-    label: 'Paramètres',
-    href: '/settings',
-    isActive: (pathname: string) => pathname.startsWith('/settings')
+    id: 'calendar',
+    icon: Calendar,
+    label: 'Calendrier',
+    href: '/calendar',
+    isActive: (pathname: string) => pathname.startsWith('/calendar')
   }
 ];
 
 /**
- * Configuration des seuils responsive pour l'affichage adaptatif
- * Permet d'ajuster le comportement selon la taille d'écran avec support 5 éléments
+ * Configuration responsive mise à jour pour 4 éléments principaux + 1 menu
  */
 export const responsiveConfig = {
-  // Breakpoints en pixels pour les adaptations
   mobile: {
     maxWidth: 640,
-    showLabels: false, // Masquer les labels sur très petits écrans
-    maxPrimaryItems: 5 // 5 éléments principaux pour mobile
+    showLabels: false,
+    maxPrimaryItems: 4 // 4 éléments principaux + menu secondaire
   },
   tablet: {
     minWidth: 641,
     maxWidth: 1024,
-    showLabels: true, // Afficher les labels sur tablette
-    maxPrimaryItems: 5 // 5 éléments principaux pour tablette
+    showLabels: true,
+    maxPrimaryItems: 4
   }
 };
 
 /**
- * Fonction utilitaire pour filtrer les éléments selon la taille d'écran
- * Permet une adaptation dynamique du contenu avec support 5 éléments
+ * Fonction utilitaire mise à jour pour la nouvelle configuration
  */
 export const getFilteredNavItems = (screenWidth: number, items: MobileNavItem[]) => {
   const config = screenWidth <= responsiveConfig.mobile.maxWidth 
@@ -145,8 +115,7 @@ export const getFilteredNavItems = (screenWidth: number, items: MobileNavItem[])
 };
 
 /**
- * Configuration des animations pour les différents états
- * Respecte les préférences d'accessibilité de l'utilisateur
+ * Configuration des animations pour une expérience fluide
  */
 export const animationConfig = {
   duration: {
