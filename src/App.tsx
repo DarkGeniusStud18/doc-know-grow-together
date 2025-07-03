@@ -44,7 +44,7 @@ import Settings from '@/pages/Settings';
 import Profile from '@/pages/Profile';
 import ClinicalCases from '@/pages/ClinicalCases';
 import Notes from '@/pages/Notes';
-import Music from '@/pages/Music';
+import MusicLibrary from '@/pages/Music';
 
 import './App.css';
 
@@ -56,7 +56,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes - durée de validité des données
-      cacheTime: 10 * 60 * 1000, // 10 minutes - durée de conservation en cache
+      gcTime: 10 * 60 * 1000, // 10 minutes - durée de conservation en cache (remplace cacheTime)
       refetchOnWindowFocus: false, // Éviter les requêtes automatiques lors du focus
       retry: 3, // Nombre de tentatives en cas d'échec
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Délai progressif
@@ -246,7 +246,7 @@ const App: React.FC = () => {
                 path="/music"
                 element={
                   <ProtectedRoute>
-                    <Music />
+                    <MusicLibrary />
                   </ProtectedRoute>
                 }
               />

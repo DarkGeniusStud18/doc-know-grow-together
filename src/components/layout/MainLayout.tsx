@@ -121,48 +121,50 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       </div>
 
       {/* Styles CSS personnalisés pour masquer les barres de défilement */}
-      <style jsx global>{`
-        /* Masquer les barres de défilement sur mobile et tablette */
-        @media (max-width: 1023px) {
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          /* Masquer les barres de défilement sur mobile et tablette */
+          @media (max-width: 1023px) {
+            .scrollbar-hide {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none;
+            }
+            
+            /* Masquer la barre de défilement principale sur mobile */
+            html, body {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            
+            html::-webkit-scrollbar,
+            body::-webkit-scrollbar {
+              display: none;
+            }
+            
+            /* Optimisation du défilement tactile */
+            * {
+              -webkit-overflow-scrolling: touch;
+            }
           }
           
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
+          /* Amélioration des performances d'animation */
+          .transition-all {
+            will-change: transform, opacity;
           }
           
-          /* Masquer la barre de défilement principale sur mobile */
-          html, body {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+          /* Optimisation des animations pour mobile */
+          @media (max-width: 1023px) {
+            * {
+              transform: translateZ(0);
+              backface-visibility: hidden;
+            }
           }
-          
-          html::-webkit-scrollbar,
-          body::-webkit-scrollbar {
-            display: none;
-          }
-          
-          /* Optimisation du défilement tactile */
-          * {
-            -webkit-overflow-scrolling: touch;
-          }
-        }
-        
-        /* Amélioration des performances d'animation */
-        .transition-all {
-          will-change: transform, opacity;
-        }
-        
-        /* Optimisation des animations pour mobile */
-        @media (max-width: 1023px) {
-          * {
-            transform: translateZ(0);
-            backface-visibility: hidden;
-          }
-        }
-      `}</style>
+        `
+      }} />
     </ErrorBoundary>
   );
 };

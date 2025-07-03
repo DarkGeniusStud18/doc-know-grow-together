@@ -14,16 +14,12 @@ import { usePWAStatus } from '@/hooks/usePWAStatus';
 interface MobileLayoutProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  title?: string;
-  showBackButton?: boolean;
   className?: string;
 }
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({ 
   children, 
   requireAuth = true,
-  title,
-  showBackButton = false,
   className = ''
 }) => {
   const { user, loading } = useAuth();
@@ -66,10 +62,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         {/* 📱 Barre supérieure mobile */}
         {user && (
           <div className="fixed top-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-lg shadow-sm border-b border-gray-200">
-            <MobileTopBar 
-              title={title} 
-              showBackButton={showBackButton} 
-            />
+            <MobileTopBar />
           </div>
         )}
 

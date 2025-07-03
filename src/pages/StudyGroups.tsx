@@ -1,4 +1,3 @@
-
 /**
  * 👥 Page Groupes d'Étude - Gestion Complète des Groupes
  * 
@@ -132,6 +131,7 @@ const StudyGroups: React.FC = () => {
 
           return {
             ...group,
+            subject: group.subject || null, // Ensure subject is always present
             member_count: memberCount || 0,
             is_member: !!membership,
             user_role: membership?.role || null

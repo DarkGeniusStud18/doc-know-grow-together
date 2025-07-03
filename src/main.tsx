@@ -59,13 +59,16 @@ const setupNotifications = async () => {
  * 🔄 Gestion de la synchronisation en arrière-plan
  */
 const setupBackgroundSync = async () => {
-  if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+  if ('serviceWorker' in navigator && 'serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.ready;
       console.log('PWA: Synchronisation en arrière-plan disponible');
       
-      // Enregistrer les tâches de synchronisation
-      await registration.sync.register('background-sync');
+      // Vérifier si la synchronisation est supportée
+      if ('sync' in registration) {
+        // Enregistrer les tâches de synchronisation
+        await (registration as any).sync.register('background-sync');
+      }
       
     } catch (error) {
       console.error('PWA: Erreur lors de la configuration de la synchronisation:', error);
@@ -153,7 +156,7 @@ if ('serviceWorker' in navigator) {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(registration => {
         if ('sync' in registration) {
-          return registration.sync.register('sync-data');
+          return (registration as any).sync.register('sync-data');
         }
       }).catch(error => {
         console.error('PWA: Erreur lors de la synchronisation:', error);
