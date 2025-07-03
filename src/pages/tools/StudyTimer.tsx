@@ -192,7 +192,7 @@ const StudyTimer: React.FC = () => {
       // Recharger les sessions
       await loadStudySessions();
     } catch (error) {
-      console.error('❌ Erreur lors de l'arrêt:', error);
+      console.error('❌ Erreur lors de l\'arrêt:', error);
       toast.error('Erreur lors de l\'arrêt de la session');
     }
   };
