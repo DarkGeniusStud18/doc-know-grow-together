@@ -1,4 +1,3 @@
-
 /**
  * 🚀 Point d'Entrée Principal MedCollab - Version PWA Complète
  * 
@@ -44,8 +43,7 @@ const setupNotifications = async () => {
             body: 'Application prête à être utilisée ! Installez-la pour une meilleure expérience.',
             icon: '/pwa-192x192.png',
             tag: 'welcome',
-            badge: '/pwa-192x192.png',
-            vibrate: [100, 50, 100]
+            badge: '/pwa-192x192.png'
           });
         }, 5000);
       } else {
@@ -150,13 +148,7 @@ if ('serviceWorker' in navigator) {
                   body: 'Une nouvelle version est disponible !',
                   icon: '/pwa-192x192.png',
                   tag: 'update',
-                  badge: '/pwa-192x192.png',
-                  actions: [
-                    {
-                      action: 'reload',
-                      title: 'Recharger maintenant'
-                    }
-                  ]
+                  badge: '/pwa-192x192.png'
                 });
               }
               
