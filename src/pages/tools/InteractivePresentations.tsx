@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Presentation, Plus, Eye, Edit, Trash2, Image, Play, MousePointer, Zap, Layers, Users } from 'lucide-react';
+import { Presentation, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 type Slide = {
@@ -61,25 +61,25 @@ const InteractivePresentations = () => {
 
   return (
     <MainLayout>
-      <div className="container py-4 px-4 space-y-6 max-w-6xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="container py-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <Presentation className="h-6 w-6 sm:h-8 sm:w-8 text-medical-yellow" />
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Presentation className="h-8 w-8 text-medical-yellow" />
               Présentations interactives
             </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-2">Créez des présentations pour expliquer des concepts médicaux</p>
+            <p className="text-gray-600 mt-2">Créez des présentations pour expliquer des concepts médicaux</p>
           </div>
-          <Button onClick={() => setShowForm(!showForm)} className="w-full sm:w-auto">
+          <Button onClick={() => setShowForm(!showForm)}>
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle présentation
           </Button>
         </div>
 
         {showForm && (
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Créer une nouvelle présentation</CardTitle>
+              <CardTitle>Créer une nouvelle présentation</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -102,11 +102,11 @@ const InteractivePresentations = () => {
                   />
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button onClick={createPresentation} disabled={!formData.title.trim()} className="flex-1 sm:flex-none">
+                <div className="flex gap-2">
+                  <Button onClick={createPresentation} disabled={!formData.title.trim()}>
                     Créer
                   </Button>
-                  <Button variant="outline" onClick={() => setShowForm(false)} className="flex-1 sm:flex-none">
+                  <Button variant="outline" onClick={() => setShowForm(false)}>
                     Annuler
                   </Button>
                 </div>
@@ -115,10 +115,10 @@ const InteractivePresentations = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {presentations.length === 0 ? (
-            <div className="col-span-full text-center py-8 sm:py-12">
-              <Presentation className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-4" />
+            <div className="col-span-full text-center py-12">
+              <Presentation className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucune présentation</h3>
               <p className="text-gray-500 mb-4">Créez votre première présentation interactive</p>
               <Button onClick={() => setShowForm(true)}>
@@ -132,8 +132,8 @@ const InteractivePresentations = () => {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-base sm:text-lg">{presentation.title}</CardTitle>
-                      <CardDescription className="mt-1 text-sm">
+                      <CardTitle className="text-lg">{presentation.title}</CardTitle>
+                      <CardDescription className="mt-1">
                         {presentation.description}
                       </CardDescription>
                     </div>
@@ -158,7 +158,7 @@ const InteractivePresentations = () => {
                       Créé le {new Date(presentation.createdAt).toLocaleDateString('fr-FR')}
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex gap-2">
                       <Button size="sm" className="flex-1">
                         <Eye className="h-4 w-4 mr-1" />
                         Voir
@@ -175,91 +175,34 @@ const InteractivePresentations = () => {
           )}
         </div>
 
-        {/* Fonctionnalités maintenant disponibles */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200">
+        {presentations.length > 0 && (
+          <Card className="mt-8">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-800">
-                <Layers className="h-5 w-5" />
-                Édition avancée
-              </CardTitle>
-              <CardDescription className="text-blue-700">Outils professionnels pour créer des présentations exceptionnelles</CardDescription>
+              <CardTitle>Fonctionnalités à venir</CardTitle>
+              <CardDescription>Ces fonctionnalités seront bientôt disponibles</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
-                  <Image className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-medium text-blue-800">Images et diagrammes</h4>
-                    <p className="text-sm text-blue-600">Ajoutez des visuels médicaux interactifs</p>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Édition avancée</h4>
+                  <ul className="text-gray-600 space-y-1">
+                    <li>• Ajout d'images et de diagrammes</li>
+                    <li>• Animations et transitions</li>
+                    <li>• Modèles prédéfinis</li>
+                  </ul>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
-                  <Zap className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-medium text-blue-800">Animations et transitions</h4>
-                    <p className="text-sm text-blue-600">Transitions fluides et animations médicales</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
-                  <Layers className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-medium text-blue-800">Modèles prédéfinis</h4>
-                    <p className="text-sm text-blue-600">Templates spécialisés pour la médecine</p>
-                  </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium">Interactivité</h4>
+                  <ul className="text-gray-600 space-y-1">
+                    <li>• Quiz intégrés</li>
+                    <li>• Éléments cliquables</li>
+                    <li>• Mode présentation en direct</li>
+                  </ul>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-800">
-                <MousePointer className="h-5 w-5" />
-                Interactivité avancée
-              </CardTitle>
-              <CardDescription className="text-green-700">Engagez votre audience avec des fonctionnalités interactives</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
-                  <Play className="h-5 w-5 text-green-600" />
-                  <div>
-                    <h4 className="font-medium text-green-800">Quiz intégrés</h4>
-                    <p className="text-sm text-green-600">Questions interactives en temps réel</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
-                  <MousePointer className="h-5 w-5 text-green-600" />
-                  <div>
-                    <h4 className="font-medium text-green-800">Éléments cliquables</h4>
-                    <p className="text-sm text-green-600">Interaction directe avec le contenu</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
-                  <Users className="h-5 w-5 text-green-600" />
-                  <div>
-                    <h4 className="font-medium text-green-800">Mode présentation en direct</h4>
-                    <p className="text-sm text-green-600">Présentations collaboratives en temps réel</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Call to action pour les fonctionnalités */}
-        <Card className="bg-gradient-to-r from-medical-blue to-medical-teal text-white">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-xl font-bold mb-2">Fonctionnalités Premium</h3>
-            <p className="mb-4 opacity-90">
-              Débloquez toutes les fonctionnalités avancées pour créer des présentations médicales exceptionnelles
-            </p>
-            <Button variant="secondary" size="lg">
-              Découvrir Premium
-            </Button>
-          </CardContent>
-        </Card>
+        )}
       </div>
     </MainLayout>
   );

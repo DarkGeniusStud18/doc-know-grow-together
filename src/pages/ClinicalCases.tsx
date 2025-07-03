@@ -14,38 +14,55 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/sonner';
-import { Search, Plus, Calendar, BookOpen, FileText, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Calendar, BookOpen, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 type ClinicalCase = {
   id: string;
-  created_by: string;
+  created_by: string; // Use created_by instead of author_id
   title: string;
   description: string;
   content: string;
   specialty: string;
-  is_anonymized?: boolean;
+  is_anonymized?: boolean; // Make optional since it might not exist in DB
   created_at: string;
   author_name?: string;
 };
 
 // Medical specialties
 const SPECIALTIES = [
-  'Cardiologie', 'Dermatologie', 'Endocrinologie', 'Gastro-entérologie', 'Gériatrie',
-  'Gynécologie', 'Hématologie', 'Immunologie', 'Infectiologie', 'Médecine d\'urgence',
-  'Néphrologie', 'Neurologie', 'Oncologie', 'Ophtalmologie', 'Orthopédie',
-  'ORL', 'Pédiatrie', 'Pneumologie', 'Psychiatrie', 'Radiologie', 'Rhumatologie', 'Urologie'
+  'Cardiologie',
+  'Dermatologie',
+  'Endocrinologie',
+  'Gastro-entérologie',
+  'Gériatrie',
+  'Gynécologie',
+  'Hématologie',
+  'Immunologie',
+  'Infectiologie',
+  'Médecine d\'urgence',
+  'Néphrologie',
+  'Neurologie',
+  'Oncologie',
+  'Ophtalmologie',
+  'Orthopédie',
+  'ORL',
+  'Pédiatrie',
+  'Pneumologie',
+  'Psychiatrie',
+  'Radiologie',
+  'Rhumatologie',
+  'Urologie'
 ];
 
 const ClinicalCases: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const [activeSpecialty, setActiveSpecialty] = useState('all');
   const [showDialog, setShowDialog] = useState(false);
-  const [editingCase, setEditingCase] = useState<ClinicalCase | null>(null);
   
   const [newCase, setNewCase] = useState({
     title: '',
@@ -58,10 +75,12 @@ const ClinicalCases: React.FC = () => {
   const fetchClinicalCases = async () => {
     if (!user) return [];
     
+    // Only verified professionals can access clinical cases
     if (user.role !== 'professional' || user.kycStatus !== 'verified') {
       return [];
     }
     
+    // First fetch the clinical cases
     const { data: cases, error: casesError } = await supabase
       .from('clinical_cases')
       .select('*')
@@ -71,8 +90,10 @@ const ClinicalCases: React.FC = () => {
       throw new Error(`Error fetching clinical cases: ${casesError.message}`);
     }
     
+    // Then for each case, fetch the author profile if needed
     const enrichedCases = await Promise.all(cases.map(async (clinicalCase) => {
-      const isAnonymized = clinicalCase.is_anonymized ?? true;
+      // Only fetch author profile if the case is not anonymized
+      const isAnonymized = clinicalCase.is_anonymized ?? true; // Default to true if field doesn't exist
       if (!isAnonymized && clinicalCase.created_by) {
         const { data: authorProfile, error: profileError } = await supabase
           .from('profiles')
@@ -97,28 +118,47 @@ const ClinicalCases: React.FC = () => {
     queryFn: fetchClinicalCases
   });
 
-  const createCaseMutation = useMutation({
-    mutationFn: async (caseData: any) => {
-      if (!user || user.role !== 'professional' || user.kycStatus !== 'verified') {
-        throw new Error('Accès non autorisé');
-      }
+  const filteredCases = clinicalCases.filter(clinicalCase => {
+    const matchesQuery = clinicalCase.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        clinicalCase.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesSpecialty = activeSpecialty === 'all' || clinicalCase.specialty === activeSpecialty;
+    
+    const matchesTab = activeTab === 'all' || 
+                      (activeTab === 'mine' && clinicalCase.created_by === user?.id);
+    
+    return matchesQuery && matchesSpecialty && matchesTab;
+  });
 
+  const handleCreateCase = async () => {
+    if (!user) return;
+    
+    // Validate user is a verified professional
+    if (user.role !== 'professional' || user.kycStatus !== 'verified') {
+      toast.error('Vérification requise', {
+        description: 'Seuls les professionnels vérifiés peuvent créer des cas cliniques.'
+      });
+      return;
+    }
+    
+    try {
       const { error } = await supabase
         .from('clinical_cases')
         .insert({
           created_by: user.id,
-          title: caseData.title,
-          description: caseData.description,
-          content: caseData.content,
-          specialty: caseData.specialty,
-          is_anonymized: caseData.isAnonymized
-        });
+          title: newCase.title,
+          description: newCase.description,
+          content: newCase.content,
+          specialty: newCase.specialty,
+          is_anonymized: newCase.isAnonymized
+        } as any);
         
       if (error) throw error;
-    },
-    onSuccess: () => {
+      
       toast.success('Cas clinique créé avec succès');
       setShowDialog(false);
+      
+      // Reset form
       setNewCase({
         title: '',
         description: '',
@@ -126,121 +166,13 @@ const ClinicalCases: React.FC = () => {
         specialty: '',
         isAnonymized: true
       });
-      queryClient.invalidateQueries({ queryKey: ['clinicalCases'] });
-    },
-    onError: (error) => {
+      
+    } catch (error) {
       console.error('Error creating clinical case:', error);
       toast.error('Erreur lors de la création du cas clinique');
     }
-  });
-
-  const updateCaseMutation = useMutation({
-    mutationFn: async ({ id, ...caseData }: any) => {
-      if (!user || user.role !== 'professional') {
-        throw new Error('Accès non autorisé');
-      }
-
-      const { error } = await supabase
-        .from('clinical_cases')
-        .update({
-          title: caseData.title,
-          description: caseData.description,
-          content: caseData.content,
-          specialty: caseData.specialty,
-          is_anonymized: caseData.isAnonymized
-        })
-        .eq('id', id)
-        .eq('created_by', user.id);
-        
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Cas clinique modifié avec succès');
-      setEditingCase(null);
-      setShowDialog(false);
-      queryClient.invalidateQueries({ queryKey: ['clinicalCases'] });
-    },
-    onError: (error) => {
-      console.error('Error updating clinical case:', error);
-      toast.error('Erreur lors de la modification');
-    }
-  });
-
-  const deleteCaseMutation = useMutation({
-    mutationFn: async (id: string) => {
-      if (!user || user.role !== 'professional') {
-        throw new Error('Accès non autorisé');
-      }
-
-      const { error } = await supabase
-        .from('clinical_cases')
-        .delete()
-        .eq('id', id)
-        .eq('created_by', user.id);
-        
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Cas clinique supprimé');
-      queryClient.invalidateQueries({ queryKey: ['clinicalCases'] });
-    },
-    onError: (error) => {
-      console.error('Error deleting clinical case:', error);
-      toast.error('Erreur lors de la suppression');
-    }
-  });
-
-  const filteredCases = clinicalCases.filter(clinicalCase => {
-    const matchesQuery = clinicalCase.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        clinicalCase.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesSpecialty = activeSpecialty === 'all' || clinicalCase.specialty === activeSpecialty;
-    
-    return matchesQuery && matchesSpecialty;
-  });
-
-  const handleCreateCase = () => {
-    createCaseMutation.mutate(newCase);
   };
-
-  const handleEditCase = (clinicalCase: ClinicalCase) => {
-    setEditingCase(clinicalCase);
-    setNewCase({
-      title: clinicalCase.title,
-      description: clinicalCase.description,
-      content: clinicalCase.content,
-      specialty: clinicalCase.specialty,
-      isAnonymized: clinicalCase.is_anonymized ?? true
-    });
-    setShowDialog(true);
-  };
-
-  const handleUpdateCase = () => {
-    if (editingCase) {
-      updateCaseMutation.mutate({
-        id: editingCase.id,
-        ...newCase
-      });
-    }
-  };
-
-  const handleDeleteCase = (id: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce cas clinique ?')) {
-      deleteCaseMutation.mutate(id);
-    }
-  };
-
-  const resetForm = () => {
-    setEditingCase(null);
-    setNewCase({
-      title: '',
-      description: '',
-      content: '',
-      specialty: '',
-      isAnonymized: true
-    });
-  };
-
+  
   if (!user) {
     return (
       <MainLayout>
@@ -253,6 +185,7 @@ const ClinicalCases: React.FC = () => {
     );
   }
   
+  // Check if user is a professional
   if (user.role !== 'professional') {
     return (
       <MainLayout>
@@ -269,6 +202,7 @@ const ClinicalCases: React.FC = () => {
     );
   }
   
+  // Check if user is verified
   if (user.kycStatus !== 'verified') {
     return (
       <MainLayout>
@@ -302,11 +236,11 @@ const ClinicalCases: React.FC = () => {
   
   return (
     <MainLayout>
-      <div className="container py-4 px-4 space-y-6 max-w-6xl mx-auto">
+      <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-medical-navy">Cas Cliniques</h1>
-            <p className="text-sm sm:text-base text-gray-500 mt-1">
+            <h1 className="text-3xl font-bold text-medical-navy">Cas Cliniques</h1>
+            <p className="text-gray-500 mt-1">
               Partagez et consultez des cas cliniques avec d'autres professionnels
             </p>
           </div>
@@ -322,21 +256,16 @@ const ClinicalCases: React.FC = () => {
               />
             </div>
             
-            <Dialog open={showDialog} onOpenChange={(open) => {
-              setShowDialog(open);
-              if (!open) resetForm();
-            }}>
+            <Dialog open={showDialog} onOpenChange={setShowDialog}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
+                <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter un cas
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-[700px]">
                 <DialogHeader>
-                  <DialogTitle>
-                    {editingCase ? 'Modifier le cas clinique' : 'Créer un nouveau cas clinique'}
-                  </DialogTitle>
+                  <DialogTitle>Créer un nouveau cas clinique</DialogTitle>
                   <DialogDescription>
                     Partagez un cas clinique intéressant avec la communauté médicale
                   </DialogDescription>
@@ -393,123 +322,143 @@ const ClinicalCases: React.FC = () => {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => {
-                    setShowDialog(false);
-                    resetForm();
-                  }}>
-                    Annuler
-                  </Button>
+                  <Button variant="outline" onClick={() => setShowDialog(false)}>Annuler</Button>
                   <Button 
-                    onClick={editingCase ? handleUpdateCase : handleCreateCase}
-                    disabled={!newCase.title || !newCase.specialty || !newCase.content}
+                    onClick={handleCreateCase}
+                    disabled={!newCase.title || !newCase.description || !newCase.content || !newCase.specialty}
                   >
-                    {editingCase ? 'Modifier' : 'Créer'}
+                    Publier
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
         </div>
-
-        {/* Filtres */}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={activeSpecialty === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActiveSpecialty('all')}
-          >
-            Toutes les spécialités
-          </Button>
-          {SPECIALTIES.slice(0, 6).map(specialty => (
-            <Button
-              key={specialty}
-              variant={activeSpecialty === specialty ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setActiveSpecialty(specialty)}
-              className="hidden sm:inline-flex"
-            >
-              {specialty}
-            </Button>
-          ))}
-        </div>
-
-        {/* Liste des cas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {isLoading ? (
-            <div className="col-span-full text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal mx-auto mb-4"></div>
-              <p>Chargement des cas cliniques...</p>
-            </div>
-          ) : filteredCases.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <FileText className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucun cas trouvé</h3>
-              <p className="text-gray-500">Essayez de modifier vos filtres de recherche</p>
-            </div>
-          ) : (
-            filteredCases.map((clinicalCase) => (
-              <Card key={clinicalCase.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-base sm:text-lg mb-2">{clinicalCase.title}</CardTitle>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <Badge variant="outline">{clinicalCase.specialty}</Badge>
-                        {clinicalCase.is_anonymized && (
-                          <Badge variant="secondary" className="text-xs">Anonymisé</Badge>
-                        )}
-                      </div>
-                    </div>
-                    {user.id === clinicalCase.created_by && (
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditCase(clinicalCase)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCase(clinicalCase.id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
+        
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-64">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Filtres</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div>
+                  <h4 className="text-sm font-medium mb-3">Afficher</h4>
+                  <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid grid-cols-2 w-full h-auto">
+                      <TabsTrigger value="all" className="text-sm py-1.5">Tous</TabsTrigger>
+                      <TabsTrigger value="mine" className="text-sm py-1.5">Mes cas</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
                 
-                <CardContent>
-                  <CardDescription className="mb-4 text-sm">
-                    {clinicalCase.description}
-                  </CardDescription>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                        {new Date(clinicalCase.created_at).toLocaleDateString('fr-FR')}
-                      </span>
-                      {!clinicalCase.is_anonymized && clinicalCase.author_name && (
-                        <span className="flex items-center gap-1">
-                          Dr. {clinicalCase.author_name}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <Button className="w-full" size="sm">
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Consulter le cas
+                <div>
+                  <h4 className="text-sm font-medium mb-3">Spécialités</h4>
+                  <div className="space-y-2">
+                    <Button 
+                      variant={activeSpecialty === 'all' ? "default" : "ghost"}
+                      className="w-full justify-start text-sm h-9"
+                      onClick={() => setActiveSpecialty('all')}
+                    >
+                      Toutes les spécialités
                     </Button>
+                    {SPECIALTIES.map(specialty => (
+                      <Button 
+                        key={specialty}
+                        variant={activeSpecialty === specialty ? "default" : "ghost"}
+                        className="w-full justify-start text-sm h-9"
+                        onClick={() => setActiveSpecialty(specialty)}
+                      >
+                        {specialty}
+                      </Button>
+                    ))}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="flex-1">
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal"></div>
+              </div>
+            ) : error ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="text-red-500 mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="64"
+                      height="64"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-medium">Erreur lors du chargement des cas cliniques</h3>
+                  <p className="text-gray-500 mt-2">Veuillez réessayer plus tard</p>
                 </CardContent>
               </Card>
-            ))
-          )}
+            ) : filteredCases.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="bg-gray-100 rounded-full p-6 mb-4">
+                    <FileText className="h-12 w-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-medium">Aucun cas clinique trouvé</h3>
+                  <p className="text-gray-500 mt-2">
+                    {activeTab === 'mine' 
+                      ? "Vous n'avez pas encore créé de cas clinique."
+                      : "Aucun cas ne correspond à vos filtres ou aucun cas n'a été créé."}
+                  </p>
+                  <Button className="mt-6" onClick={() => setShowDialog(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter un cas
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {filteredCases.map((clinicalCase) => (
+                  <Card key={clinicalCase.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <Badge className="mb-2 bg-medical-blue">{clinicalCase.specialty}</Badge>
+                        <div className="text-sm text-gray-500">
+                          {new Date(clinicalCase.created_at).toLocaleDateString('fr-FR')}
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl">{clinicalCase.title}</CardTitle>
+                      <CardDescription className="line-clamp-2">{clinicalCase.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-3">
+                      {!(clinicalCase.is_anonymized ?? true) && clinicalCase.author_name && (
+                        <div className="text-sm mb-3">
+                          <span className="text-gray-600">Par: </span>
+                          <span className="font-medium">{clinicalCase.author_name}</span>
+                        </div>
+                      )}
+                      <p className="text-gray-700 line-clamp-3">{clinicalCase.content}</p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button variant="outline" className="w-full" onClick={() => navigate(`/clinical-cases/${clinicalCase.id}`)}>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Lire le cas complet
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </MainLayout>

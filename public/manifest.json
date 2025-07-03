@@ -1,24 +1,40 @@
 
 {
-  "name": "MedCollab - Plateforme d'Étude Médicale",
+  "name": "MedCollab - Plateforme Médicale Collaborative",
   "short_name": "MedCollab",
-  "description": "Votre plateforme collaborative d'étude médicale professionnelle",
-  "theme_color": "#0077B6",
-  "background_color": "#ffffff",
+  "description": "Plateforme collaborative pour étudiants et professionnels de santé avec outils d'étude avancés",
+  "start_url": "/",
   "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f2937",
   "orientation": "portrait-primary",
   "scope": "/",
-  "start_url": "/splash",
+  "lang": "fr",
   "categories": ["education", "medical", "productivity"],
-  "lang": "fr-FR",
-  "dir": "ltr",
-  "icons": [
+  "shortcuts": [
     {
-      "src": "/medcollab-logo.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "name": "Tableau de bord",
+      "short_name": "Dashboard",
+      "description": "Accéder au tableau de bord principal",
+      "url": "/dashboard",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
     },
+    {
+      "name": "Outils d'étude",
+      "short_name": "Outils",
+      "description": "Accéder aux outils d'apprentissage",
+      "url": "/tools",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Communauté",
+      "short_name": "Communauté",
+      "description": "Rejoindre les discussions communautaires",
+      "url": "/community",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "icons": [
     {
       "src": "/pwa-192x192.png",
       "sizes": "192x192",
@@ -30,84 +46,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Dashboard",
-      "short_name": "Tableau de Bord",
-      "description": "Accéder rapidement au tableau de bord",
-      "url": "/dashboard",
-      "icons": [
-        {
-          "src": "/pwa-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
     },
     {
-      "name": "Outils d'Étude",
-      "short_name": "Outils",
-      "description": "Accéder aux outils d'étude",
-      "url": "/tools",
-      "icons": [
-        {
-          "src": "/pwa-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Pomodoro",
-      "short_name": "Timer",
-      "description": "Lancer une session Pomodoro",
-      "url": "/tools/pomodoro",
-      "icons": [
-        {
-          "src": "/pwa-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ],
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "screenshots": [
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "640x1136",
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "platform": "mobile",
-      "label": "Interface mobile MedCollab"
+      "purpose": "maskable"
     },
     {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1280x720",
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "platform": "wide",
-      "label": "Interface desktop MedCollab"
+      "purpose": "maskable"
     }
   ],
-  "share_target": {
-    "action": "/share",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url",
-      "files": [
-        {
-          "name": "files",
-          "accept": ["image/*", "application/pdf", ".doc", ".docx"]
-        }
-      ]
-    }
-  },
-  "protocol_handlers": [
-    {
-      "protocol": "web+medcollab",
-      "url": "/?handler=%s"
-    }
-  ]
+  "id": "/",
+  "prefer_related_applications": false
 }

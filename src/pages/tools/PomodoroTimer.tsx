@@ -1,7 +1,4 @@
-
-/**
- * ⏱️ Timer Pomodoro - Version mobile responsive corrigée
- */
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
@@ -28,6 +25,7 @@ const PomodoroTimer: React.FC = () => {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [settingsChanged, setSettingsChanged] = useState(false);
 
+  // Load user settings from Supabase
   useEffect(() => {
     if (user) {
       loadUserSettings();
@@ -82,6 +80,7 @@ const PomodoroTimer: React.FC = () => {
       } else {
         setSettingsChanged(false);
         toast.success('Paramètres sauvegardés !');
+        // Update current timer if not running
         if (!isActive && !currentSessionId) {
           setMinutes(mode === 'work' ? workTime : breakTime);
           setSeconds(0);
@@ -93,6 +92,7 @@ const PomodoroTimer: React.FC = () => {
     }
   };
 
+  // Mark settings as changed when user modifies them
   const handleWorkTimeChange = (value: number[]) => {
     setWorkTime(value[0]);
     setSettingsChanged(true);
@@ -231,51 +231,51 @@ const PomodoroTimer: React.FC = () => {
 
   return (
     <MainLayout requireAuth={true}>
-      <div className="container mx-auto py-4 px-4 max-w-2xl">
+      <div className="container mx-auto py-6 max-w-2xl">
         <div className="flex items-center gap-3 mb-6">
-          <Timer className="h-6 w-6 sm:h-8 sm:w-8 text-medical-blue" />
+          <Timer className="h-8 w-8 text-medical-blue" />
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Timer Pomodoro</h1>
-            <p className="text-sm sm:text-base text-gray-500">Technique Pomodoro pour maximiser votre concentration</p>
+            <h1 className="text-2xl font-bold">Timer Pomodoro</h1>
+            <p className="text-gray-500">Utilisez la technique Pomodoro pour maximiser votre concentration</p>
           </div>
         </div>
 
         <Card className="mb-6">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className={`text-lg sm:text-2xl ${mode === 'work' ? 'text-medical-blue' : 'text-medical-green'}`}>
+          <CardHeader className="text-center">
+            <CardTitle className={`text-2xl ${mode === 'work' ? 'text-medical-blue' : 'text-medical-green'}`}>
               {mode === 'work' ? 'Temps de travail' : 'Pause'}
             </CardTitle>
-            <CardDescription className="text-sm">
-              Session {sessionCount + 1} {mode === 'work' ? '- Concentrez-vous' : '- Prenez une pause'}
+            <CardDescription>
+              Session {sessionCount + 1} {mode === 'work' ? '- Concentrez-vous sur votre tâche' : '- Prenez une pause bien méritée'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className="text-4xl sm:text-6xl font-mono font-bold text-medical-navy">
+          <CardContent className="text-center">
+            <div className="text-6xl font-mono font-bold mb-6 text-medical-navy">
               {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </div>
             
-            <Progress value={progress} className="w-full" />
+            <Progress value={progress} className="mb-6" />
             
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
+            <div className="flex justify-center gap-4 mb-6">
               <Button 
                 onClick={toggleTimer}
                 size="lg"
-                className={`flex-1 sm:flex-none ${mode === 'work' ? 'bg-medical-blue hover:bg-medical-blue/90' : 'bg-medical-green hover:bg-medical-green/90'}`}
+                className={mode === 'work' ? 'bg-medical-blue hover:bg-medical-blue/90' : 'bg-medical-green hover:bg-medical-green/90'}
                 disabled={settingsChanged && !currentSessionId}
               >
-                {isActive ? <Pause className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <Play className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
+                {isActive ? <Pause className="mr-2 h-5 w-5" /> : <Play className="mr-2 h-5 w-5" />}
                 {isActive ? 'Pause' : 'Démarrer'}
               </Button>
-              <Button onClick={resetTimer} variant="outline" size="lg" className="flex-1 sm:flex-none">
-                <RotateCcw className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Reset
+              <Button onClick={resetTimer} variant="outline" size="lg">
+                <RotateCcw className="mr-2 h-5 w-5" />
+                Réinitialiser
               </Button>
             </div>
 
             {settingsChanged && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
-                <p className="text-yellow-800">
-                  Paramètres modifiés. Sauvegardez pour démarrer une nouvelle session.
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-yellow-800 text-sm">
+                  Vous avez modifié les paramètres. Sauvegardez-les pour pouvoir démarrer une nouvelle session.
                 </p>
               </div>
             )}
@@ -284,64 +284,56 @@ const PomodoroTimer: React.FC = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
-              Paramètres flexibles
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Paramètres
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <label className="block text-sm font-medium">Temps de travail: {workTime} min</label>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Temps de travail: {workTime} min</label>
               <Slider
                 value={[workTime]}
                 onValueChange={handleWorkTimeChange}
-                max={90}
+                max={60}
                 min={5}
                 step={5}
                 disabled={isActive || currentSessionId !== null}
-                className="w-full"
               />
             </div>
-            
-            <div className="space-y-3">
-              <label className="block text-sm font-medium">Pause courte: {breakTime} min</label>
+            <div>
+              <label className="block text-sm font-medium mb-2">Pause courte: {breakTime} min</label>
               <Slider
                 value={[breakTime]}
                 onValueChange={handleBreakTimeChange}
-                max={30}
+                max={15}
                 min={1}
                 step={1}
                 disabled={isActive || currentSessionId !== null}
-                className="w-full"
               />
             </div>
-            
-            <div className="space-y-3">
-              <label className="block text-sm font-medium">Pause longue: {longBreakTime} min</label>
+            <div>
+              <label className="block text-sm font-medium mb-2">Pause longue: {longBreakTime} min</label>
               <Slider
                 value={[longBreakTime]}
                 onValueChange={handleLongBreakTimeChange}
-                max={60}
+                max={30}
                 min={10}
                 step={5}
                 disabled={isActive || currentSessionId !== null}
-                className="w-full"
               />
             </div>
-            
-            <div className="space-y-3">
-              <label className="block text-sm font-medium">Sessions avant pause longue: {sessionsUntilLongBreak}</label>
+            <div>
+              <label className="block text-sm font-medium mb-2">Sessions avant pause longue: {sessionsUntilLongBreak}</label>
               <Slider
                 value={[sessionsUntilLongBreak]}
                 onValueChange={handleSessionsChange}
-                max={10}
+                max={8}
                 min={2}
                 step={1}
                 disabled={isActive || currentSessionId !== null}
-                className="w-full"
               />
             </div>
-            
             <Button 
               onClick={saveUserSettings} 
               className="w-full"
