@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 interface HiddenAdminAccessProps {
@@ -14,19 +15,11 @@ interface HiddenAdminAccessProps {
 const HiddenAdminAccess: React.FC<HiddenAdminAccessProps> = ({ onAdminAccess }) => {
   const [clickCount, setClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
-  
-  // Gestion sécurisée de l'accès à useAuth avec vérification d'erreur
-  let user = null;
-  let isAuthorizedAdmin = false;
-  
-  try {
-    const authContext = useAuth();
-    user = authContext.user;
-    isAuthorizedAdmin = user?.email === 'yasseradjadi9@gmail.com';
-  } catch (error) {
-    console.log('🔒 HiddenAdminAccess: AuthProvider non disponible');
-    return null;
-  }
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Vérification de sécurité - Seul l'email autorisé peut voir le composant
+  const isAuthorizedAdmin = user?.email === 'yasseradjadi9@gmail.com';
 
   /**
    * Gestionnaire de triple-clic sécurisé pour l'accès administrateur

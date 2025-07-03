@@ -10,6 +10,7 @@ import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import LoadingScreen from '@/components/layout/LoadingScreen';
 import SplashScreen from '@/components/layout/SplashScreen';
+import HiddenAdminAccess from '@/components/admin/HiddenAdminAccess';
 
 // Import du hook pour le scroll automatique
 import { useScrollToTop } from '@/hooks/useScrollToTop';
@@ -114,24 +115,17 @@ const ScrollManager: React.FC = () => {
 };
 
 /**
- * Composant d'accès admin sécurisé qui s'affiche seulement pour l'utilisateur autorisé
+ * Composant principal de l'application avec architecture optimisée
+ * 
+ * Nouvelles fonctionnalités :
+ * - Suppression complète des données simulées
+ * - Fonctionnalités offline avec synchronisation automatique
+ * - Scroll automatique vers le haut à chaque navigation
+ * - Accès administrateur sécurisé et dissimulé
+ * - Chargement unique et professionnel
+ * - Support natif pour Android, iOS et Microsoft Store
  */
-const AdminAccessWrapper: React.FC = () => {
-  const HiddenAdminAccess = React.lazy(() => import('@/components/admin/HiddenAdminAccess'));
-  
-  return (
-    <Suspense fallback={null}>
-      <HiddenAdminAccess onAdminAccess={() => {
-        window.location.href = '/admin-dashboard';
-      }} />
-    </Suspense>
-  );
-};
-
-/**
- * Composant interne avec accès aux providers
- */
-const AppContent: React.FC = () => {
+const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -148,107 +142,92 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <LoadingScreen>
-      <Router>
-        {/* Gestionnaire de scroll automatique global */}
-        <ScrollManager />
-        
-        <Suspense fallback={<SuspenseLoader />}>
-          <Routes>
-            {/* Routes publiques avec lazy loading */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-
-            {/* Route admin sécurisée */}
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-
-            {/* Routes protégées principales */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-
-            {/* Routes de contenu éducatif */}
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/community/:id" element={<CommunityDiscussion />} />
-
-            {/* Routes d'organisation et planification */}
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/notes" element={<Notes />} />
-            <Route path="/study-groups" element={<StudyGroups />} />
-            <Route path="/study-groups/:id" element={<StudyGroupDetail />} />
-
-            {/* Routes des outils d'étude - Simulateur d'examen intégré */}
-            <Route path="/tools" element={<Tools />} />
-            <Route path="/tools/flashcard-generator" element={<FlashcardGenerator />} />
-            <Route path="/tools/pomodoro" element={<PomodoroTimer />} />
-            <Route path="/tools/study-timer" element={<StudyTimer />} />
-            <Route path="/tools/study-planner" element={<StudyPlanner />} />
-            <Route path="/tools/study-goals" element={<StudyGoals />} />
-            <Route path="/tools/task-list" element={<TaskList />} />
-            <Route path="/tools/medical-calculator" element={<MedicalCalculators />} />
-            <Route path="/tools/research-assistant" element={<ResearchAssistant />} />
-            <Route path="/tools/quiz-generator" element={<QuizGenerator />} />
-            <Route path="/tools/performance-tracker" element={<PerformanceTracker />} />
-            <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
-            <Route path="/tools/clinical-cases" element={<ClinicalCasesExplorer />} />
-            <Route path="/tools/exam-simulator" element={<ExamSimulator />} />
-
-            {/* Routes d'évaluation et formation */}
-            <Route path="/exam-simulator" element={<ExamSimulator />} />
-            <Route path="/exam-history" element={<ExamHistory />} />
-            <Route path="/clinical-cases" element={<ClinicalCases />} />
-            <Route path="/continuing-education" element={<ContinuingEducation />} />
-
-            {/* Routes utilitaires et services */}
-            <Route path="/music-library" element={<MusicLibrary />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/kyc" element={<KYCVerification />} />
-            <Route path="/kyc-verification" element={<KYCVerification />} />
-
-            {/* Route 404 avec lazy loading */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-
-        {/* Composants globaux avec ordre d'affichage optimisé */}
-        <Toaster 
-          position="top-right"
-          closeButton
-          richColors
-          theme="light"
-          duration={4000}
-        />
-        
-        {/* Prompt d'installation PWA avec gestion intelligente */}
-        <PWAInstallPrompt />
-
-        {/* Accès administrateur sécurisé et dissimulé */}
-        <AdminAccessWrapper />
-      </Router>
-    </LoadingScreen>
-  );
-};
-
-/**
- * Composant principal de l'application avec architecture optimisée
- * 
- * Nouvelles fonctionnalités :
- * - Suppression complète des données simulées
- * - Fonctionnalités offline avec synchronisation automatique
- * - Scroll automatique vers le haut à chaque navigation
- * - Accès administrateur sécurisé et dissimulé
- * - Chargement unique et professionnel
- * - Support natif pour Android, iOS et Microsoft Store
- */
-const App: React.FC = () => {
-  return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <AppContent />
+            <LoadingScreen>
+              <Router>
+                {/* Gestionnaire de scroll automatique global */}
+                <ScrollManager />
+                
+                <Suspense fallback={<SuspenseLoader />}>
+                  <Routes>
+                    {/* Routes publiques avec lazy loading */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+
+                    {/* Route admin sécurisée */}
+                    <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+                    {/* Routes protégées principales */}
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/settings" element={<Settings />} />
+
+                    {/* Routes de contenu éducatif */}
+                    <Route path="/resources" element={<Resources />} />
+                    <Route path="/community" element={<Community />} />
+                    <Route path="/community/:id" element={<CommunityDiscussion />} />
+
+                    {/* Routes d'organisation et planification */}
+                    <Route path="/calendar" element={<Calendar />} />
+                    <Route path="/notes" element={<Notes />} />
+                    <Route path="/study-groups" element={<StudyGroups />} />
+                    <Route path="/study-groups/:id" element={<StudyGroupDetail />} />
+
+                    {/* Routes des outils d'étude - Simulateur d'examen intégré */}
+                    <Route path="/tools" element={<Tools />} />
+                    <Route path="/tools/flashcard-generator" element={<FlashcardGenerator />} />
+                    <Route path="/tools/pomodoro" element={<PomodoroTimer />} />
+                    <Route path="/tools/study-timer" element={<StudyTimer />} />
+                    <Route path="/tools/study-planner" element={<StudyPlanner />} />
+                    <Route path="/tools/study-goals" element={<StudyGoals />} />
+                    <Route path="/tools/task-list" element={<TaskList />} />
+                    <Route path="/tools/medical-calculator" element={<MedicalCalculators />} />
+                    <Route path="/tools/research-assistant" element={<ResearchAssistant />} />
+                    <Route path="/tools/quiz-generator" element={<QuizGenerator />} />
+                    <Route path="/tools/performance-tracker" element={<PerformanceTracker />} />
+                    <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
+                    <Route path="/tools/clinical-cases" element={<ClinicalCasesExplorer />} />
+                    <Route path="/tools/exam-simulator" element={<ExamSimulator />} />
+
+                    {/* Routes d'évaluation et formation */}
+                    <Route path="/exam-simulator" element={<ExamSimulator />} />
+                    <Route path="/exam-history" element={<ExamHistory />} />
+                    <Route path="/clinical-cases" element={<ClinicalCases />} />
+                    <Route path="/continuing-education" element={<ContinuingEducation />} />
+
+                    {/* Routes utilitaires et services */}
+                    <Route path="/music-library" element={<MusicLibrary />} />
+                    <Route path="/subscription" element={<Subscription />} />
+                    <Route path="/kyc" element={<KYCVerification />} />
+                    <Route path="/kyc-verification" element={<KYCVerification />} />
+
+                    {/* Route 404 avec lazy loading */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </Router>
+            </LoadingScreen>
+
+            {/* Composants globaux avec ordre d'affichage optimisé */}
+            <Toaster 
+              position="top-right"
+              closeButton
+              richColors
+              theme="light"
+              duration={4000}
+            />
+            
+            {/* Prompt d'installation PWA avec gestion intelligente */}
+            <PWAInstallPrompt />
+
+            {/* Accès administrateur sécurisé et dissimulé */}
+            <HiddenAdminAccess onAdminAccess={() => {
+              window.location.href = '/admin-dashboard';
+            }} />
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
