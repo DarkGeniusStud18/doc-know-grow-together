@@ -96,20 +96,25 @@ const AdminDashboard: React.FC = () => {
     console.log('📊 Récupération des statistiques en temps réel...');
     
     try {
-      // Statistiques des utilisateurs
+      // Statistiques des utilisateurs - récupération des profils uniquement
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, created_at, last_sign_in_at');
+        .select('id, created_at');
       
       if (profilesError) throw profilesError;
       
-      // Calcul des utilisateurs actifs (connectés dans les 7 derniers jours)
+      // Calcul des utilisateurs actifs basé sur les sessions d'étude récentes (7 derniers jours)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
-      const activeUsers = profiles?.filter(profile => 
-        profile.last_sign_in_at && new Date(profile.last_sign_in_at) > sevenDaysAgo
-      ).length || 0;
+      const { data: recentSessions } = await supabase
+        .from('study_sessions')
+        .select('user_id')
+        .gte('created_at', sevenDaysAgo.toISOString());
+      
+      // Compter les utilisateurs uniques avec des sessions récentes
+      const uniqueActiveUsers = new Set(recentSessions?.map(s => s.user_id) || []);
+      const activeUsers = uniqueActiveUsers.size;
 
       // Statistiques des ressources
       const { count: resourcesCount } = await supabase
