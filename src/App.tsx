@@ -1,6 +1,6 @@
 
 /**
- * 🚀 Application Principale MedCollab - Version Complète Optimisée
+ * 🚀 Application Principale MedCollab - Version Complète Corrigée
  * 
  * Architecture moderne avec :
  * - Navigation complète et routes optimisées
@@ -27,6 +27,7 @@ import Dashboard from '@/pages/Dashboard';
 import Tools from '@/pages/Tools';
 import StudyGroups from '@/pages/StudyGroups';
 import AdminDashboard from '@/pages/AdminDashboard';
+import NotFound from '@/pages/NotFound';
 
 // Import des outils d'étude
 import PomodoroTimer from '@/pages/tools/PomodoroTimer';
@@ -56,7 +57,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes - durée de validité des données
-      gcTime: 10 * 60 * 1000, // 10 minutes - durée de conservation en cache (remplace cacheTime)
+      gcTime: 10 * 60 * 1000, // 10 minutes - durée de conservation en cache
       refetchOnWindowFocus: false, // Éviter les requêtes automatiques lors du focus
       retry: 3, // Nombre de tentatives en cas d'échec
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Délai progressif
@@ -270,10 +271,18 @@ const App: React.FC = () => {
               />
               
               {/* 🔐 Dashboard Administrateur sécurisé */}
-              <Route path="/admin-dashboard" element={<AdminDashboard />} />
+              <Route 
+                path="/admin-dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
               
-              {/* 🔀 Gestion des routes invalides */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* 🔀 Page 404 pour les routes invalides */}
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
             
             {/* 🔔 Système de notifications toast avec position optimisée */}

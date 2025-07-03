@@ -1,13 +1,14 @@
 
 /**
- * 📱 Navigation Mobile MedCollab - Version Optimisée Fixe
+ * 📱 Navigation Mobile MedCollab - Version Finale Optimisée et Fixée
  * 
  * Fonctionnalités principales :
- * - Navigation fixe en bas d'écran (toujours visible)
+ * - Navigation fixe en bas d'écran (toujours visible et bien positionnée)
  * - Menu principal avec 4 éléments + bouton menu secondaire
  * - Menu secondaire déployable avec animation fluide
  * - Design médical cohérent avec animations
  * - Optimisation pour tous les écrans mobiles et tablettes
+ * - Navigation entièrement fonctionnelle sans erreurs
  */
 
 import React, { useState, useCallback } from 'react';
@@ -15,94 +16,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { 
-  Home, 
-  BookOpen, 
-  Users, 
-  GraduationCap,
-  Menu,
-  X,
-  Wrench,
-  FileText,
-  Music,
-  Calendar
-} from 'lucide-react';
+import { primaryNavItems, secondaryNavItems } from './navigation-config';
+import { Menu, X } from 'lucide-react';
 
 /**
- * Interface pour les éléments de navigation
- */
-interface NavItem {
-  id: string;
-  icon: React.ComponentType<any>;
-  label: string;
-  href: string;
-  badge?: string;
-}
-
-/**
- * Configuration de la navigation principale (4 éléments)
- * Ordre spécifique requis par l'utilisateur
- */
-const primaryNavItems: NavItem[] = [
-  {
-    id: 'dashboard',
-    icon: Home,
-    label: 'Dashboard',
-    href: '/dashboard'
-  },
-  {
-    id: 'resources',
-    icon: BookOpen,
-    label: 'Ressources',
-    href: '/resources'
-  },
-  {
-    id: 'community',
-    icon: Users,
-    label: 'Communauté',
-    href: '/community'
-  },
-  {
-    id: 'study-groups',
-    icon: GraduationCap,
-    label: 'Groupes',
-    href: '/study-groups'
-  }
-];
-
-/**
- * Configuration du menu secondaire
- * Ordre spécifique requis par l'utilisateur
- */
-const secondaryNavItems: NavItem[] = [
-  {
-    id: 'tools',
-    icon: Wrench,
-    label: 'Outils de productivité',
-    href: '/tools'
-  },
-  {
-    id: 'notes',
-    icon: FileText,
-    label: 'Mes notes',
-    href: '/notes'
-  },
-  {
-    id: 'music',
-    icon: Music,
-    label: 'Bibliothèque musicale',
-    href: '/music'
-  },
-  {
-    id: 'calendar',
-    icon: Calendar,
-    label: 'Calendrier',
-    href: '/calendar'
-  }
-];
-
-/**
- * Composant principal de navigation mobile
+ * 📱 Composant principal de navigation mobile - Version corrigée et optimisée
  */
 const MobileNavbar: React.FC = () => {
   const location = useLocation();
@@ -120,15 +38,22 @@ const MobileNavbar: React.FC = () => {
   }, [location.pathname]);
 
   /**
-   * 🚀 Gestionnaire de navigation optimisé
+   * 🚀 Gestionnaire de navigation optimisé avec vérification des routes
    */
   const handleNavigation = useCallback((href: string) => {
     console.log('📱 Navigation mobile vers:', href);
-    navigate(href);
     
-    // Fermer le menu secondaire après navigation
-    if (isSecondaryMenuOpen) {
-      setIsSecondaryMenuOpen(false);
+    try {
+      navigate(href);
+      
+      // Fermer le menu secondaire après navigation
+      if (isSecondaryMenuOpen) {
+        setIsSecondaryMenuOpen(false);
+      }
+    } catch (error) {
+      console.error('❌ Erreur de navigation:', error);
+      // Fallback vers la page d'accueil en cas d'erreur
+      navigate('/dashboard');
     }
   }, [navigate, isSecondaryMenuOpen]);
 
@@ -141,22 +66,22 @@ const MobileNavbar: React.FC = () => {
 
   return (
     <>
-      {/* Overlay pour le menu secondaire */}
+      {/* Overlay pour le menu secondaire avec z-index corrigé */}
       {isSecondaryMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
+          className="fixed inset-0 bg-black/50 z-[9998] animate-fade-in"
           onClick={() => setIsSecondaryMenuOpen(false)}
         />
       )}
 
-      {/* Menu secondaire déployable */}
+      {/* Menu secondaire déployable avec z-index supérieur */}
       <div className={cn(
-        "fixed bottom-20 left-0 right-0 z-50 mx-4 transition-all duration-300 ease-out",
+        "fixed bottom-20 left-0 right-0 z-[9999] mx-4 transition-all duration-300 ease-out",
         isSecondaryMenuOpen 
           ? "translate-y-0 opacity-100 pointer-events-auto" 
           : "translate-y-full opacity-0 pointer-events-none"
       )}>
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 p-4">
+        <div className="bg-white/98 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-200/50 p-4">
           <div className="grid grid-cols-2 gap-3">
             {secondaryNavItems.map((item) => {
               const IconComponent = item.icon;
@@ -185,11 +110,6 @@ const MobileNavbar: React.FC = () => {
                   <span className="text-center leading-tight">
                     {item.label}
                   </span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="text-xs ml-1">
-                      {item.badge}
-                    </Badge>
-                  )}
                 </Button>
               );
             })}
@@ -197,8 +117,8 @@ const MobileNavbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Barre de navigation principale fixe */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200/50">
+      {/* Barre de navigation principale fixe en bas - Position garantie */}
+      <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-white/98 backdrop-blur-lg shadow-lg border-t border-gray-200/50 safe-area-inset-bottom">
         <div className="flex items-center justify-around px-2 py-3 max-w-md mx-auto">
           
           {/* Éléments de navigation principaux */}
@@ -229,11 +149,6 @@ const MobileNavbar: React.FC = () => {
                 <span className="text-center leading-tight">
                   {item.label}
                 </span>
-                {item.badge && (
-                  <Badge variant="secondary" className="text-xs ml-1">
-                    {item.badge}
-                  </Badge>
-                )}
               </Button>
             );
           })}
@@ -262,6 +177,47 @@ const MobileNavbar: React.FC = () => {
           </Button>
         </div>
       </nav>
+
+      {/* Styles CSS personnalisés pour les animations et la sécurité */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          /* Animation de fade-in pour l'overlay */
+          @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          
+          .animate-fade-in {
+            animation: fade-in 0.2s ease-out;
+          }
+          
+          /* Safe area pour les appareils avec encoche */
+          .safe-area-inset-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+          }
+          
+          /* Garantir que la navigation mobile reste toujours visible */
+          @media (max-width: 1024px) {
+            .fixed.bottom-0 {
+              position: fixed !important;
+              bottom: 0 !important;
+              z-index: 9999 !important;
+            }
+          }
+          
+          /* Optimisations tactiles pour mobile */
+          @media (max-width: 768px) {
+            .mobile-nav-button {
+              -webkit-tap-highlight-color: transparent;
+              touch-action: manipulation;
+            }
+            
+            .mobile-nav-button:active {
+              transform: scale(0.95);
+            }
+          }
+        `
+      }} />
     </>
   );
 };
