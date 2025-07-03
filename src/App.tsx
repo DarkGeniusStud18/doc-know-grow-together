@@ -1,6 +1,7 @@
+
 import * as React from 'react';
 import { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -8,8 +9,10 @@ import { Toaster } from '@/components/ui/sonner';
 import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import LoadingScreen from '@/components/layout/LoadingScreen';
+import ScrollToTop from '@/components/layout/ScrollToTop';
 
 // Lazy loading des pages pour améliorer les performances de chargement initial
+const Splash = React.lazy(() => import('@/pages/Splash'));
 const Index = React.lazy(() => import('@/pages/Index'));
 const Login = React.lazy(() => import('@/pages/Login'));
 const Register = React.lazy(() => import('@/pages/Register'));
@@ -47,6 +50,7 @@ const ContinuingEducation = React.lazy(() => import('@/pages/ContinuingEducation
 const MusicLibrary = React.lazy(() => import('@/pages/MusicLibrary'));
 const Subscription = React.lazy(() => import('@/pages/Subscription'));
 const KYCVerification = React.lazy(() => import('@/pages/KYCVerification'));
+const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
 
 /**
@@ -98,6 +102,36 @@ const SuspenseLoader: React.FC = () => (
 );
 
 /**
+ * Hook pour déterminer si c'est la première visite
+ */
+const useFirstVisit = () => {
+  const [isFirstVisit, setIsFirstVisit] = React.useState(() => {
+    const hasVisited = localStorage.getItem('medcollab-visited');
+    return !hasVisited;
+  });
+
+  const markAsVisited = React.useCallback(() => {
+    localStorage.setItem('medcollab-visited', 'true');
+    setIsFirstVisit(false);
+  }, []);
+
+  return { isFirstVisit, markAsVisited };
+};
+
+/**
+ * Composant de redirection pour la première visite
+ */
+const InitialRedirect: React.FC = () => {
+  const { isFirstVisit } = useFirstVisit();
+  
+  if (isFirstVisit) {
+    return <Navigate to="/splash" replace />;
+  }
+  
+  return <Navigate to="/index" replace />;
+};
+
+/**
  * Composant principal de l'application avec architecture optimisée
  * 
  * Fonctionnalités avancées :
@@ -107,6 +141,8 @@ const SuspenseLoader: React.FC = () => (
  * - Toasts contextuelles pour les feedbacks utilisateur
  * - Thèmes adaptatifs avec contexte global
  * - Gestion d'état centralisée avec React Query
+ * - Page de démarrage avec animations
+ * - Scroll automatique vers le haut lors des changements de route
  */
 const App: React.FC = () => {
   return (
@@ -116,10 +152,17 @@ const App: React.FC = () => {
           <AuthProvider>
             <LoadingScreen>
               <Router>
+                <ScrollToTop />
                 <Suspense fallback={<SuspenseLoader />}>
                   <Routes>
+                    {/* Redirection initiale */}
+                    <Route path="/" element={<InitialRedirect />} />
+                    
+                    {/* Page de démarrage avec animations */}
+                    <Route path="/splash" element={<Splash />} />
+                    
                     {/* Routes publiques avec lazy loading */}
-                    <Route path="/" element={<Index />} />
+                    <Route path="/index" element={<Index />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
@@ -165,6 +208,9 @@ const App: React.FC = () => {
                     <Route path="/subscription" element={<Subscription />} />
                     <Route path="/kyc" element={<KYCVerification />} />
                     <Route path="/kyc-verification" element={<KYCVerification />} />
+
+                    {/* Route admin ultra-sécurisée */}
+                    <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
                     {/* Route 404 avec lazy loading */}
                     <Route path="*" element={<NotFound />} />

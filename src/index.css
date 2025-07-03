@@ -290,3 +290,31 @@ body {
 .tabs-scroll::-webkit-scrollbar {
   display: none;
 }
+
+/* Animations personnalisées pour la page Splash */
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); 
+  }
+  50% { 
+    transform: translateY(-10px) rotate(2deg); 
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Styles pour masquer les barres de défilement sur mobile/tablette */
+@media (max-width: 1024px) {
+  html {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer et Edge */
+  }
+  html::-webkit-scrollbar {
+    display: none; /* Chrome, Safari et Opera */
+  }
+  body {
+    overflow-x: hidden;
+  }
+}

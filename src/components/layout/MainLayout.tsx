@@ -18,6 +18,8 @@ interface MainLayoutProps {
 
 /**
  * Layout principal optimisé avec espacements mobiles corrigés
+ * Navigation mobile toujours fixée en bas de l'écran
+ * Barres de défilement masquées sur mobile/tablette
  */
 const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
@@ -28,6 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const { user, loading } = useAuth();
   const isMobile = useIsMobile();
 
+  // Redirection si authentification requise et utilisateur non connecté
   if (requireAuth && !user && !loading) {
     console.log('🔒 MainLayout: Redirection vers login - utilisateur non authentifié');
     window.location.href = '/login';
@@ -39,7 +42,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Conteneur principal avec styles pour masquer les barres de défilement */}
+      <div className={`
+        min-h-screen bg-gray-50 dark:bg-gray-900 flex
+        ${isTabletOrMobile ? 'overflow-x-hidden' : ''}
+      `}>
         
         {/* Sidebar verticale Discord - Desktop uniquement */}
         {!simplified && showSidebar && user && isDesktop && (
@@ -50,14 +57,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
         {/* Barre supérieure mobile - Position fixe */}
         {!simplified && user && isTabletOrMobile && (
-          <div className="lg:hidden fixed top-0 left-0 right-0 z-40">
+          <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200">
             <MobileTopBar />
           </div>
         )}
 
         {/* Contenu principal avec espacements corrigés */}
         <div className={`
-          flex-1 min-h-screen transition-all duration-300
+          flex-1 min-h-screen transition-all duration-300 flex flex-col
           ${!simplified && user && isDesktop ? 'ml-[80px]' : ''}
           ${!simplified && user && isTabletOrMobile ? 'pt-[60px]' : ''}
           ${user && isTabletOrMobile ? 'pb-[80px]' : ''}
@@ -71,7 +78,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           ) : null}
 
           {/* Zone de contenu principal avec padding uniforme */}
-          <main className="w-full max-w-full">
+          <main className="flex-1 w-full max-w-full">
             <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <Suspense fallback={
                 <div className="flex items-center justify-center min-h-[50vh]">
@@ -85,9 +92,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </main>
         </div>
 
-        {/* Navigation mobile/tablette horizontale - Position fixe garantie */}
+        {/* Navigation mobile/tablette horizontale - Position fixe garantie en bas */}
         {user && isTabletOrMobile && (
-          <MobileNavbar />
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg">
+            <MobileNavbar />
+          </div>
         )}
       </div>
     </ErrorBoundary>
