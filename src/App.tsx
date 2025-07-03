@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { Suspense, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -11,9 +10,6 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import LoadingScreen from '@/components/layout/LoadingScreen';
 import SplashScreen from '@/components/layout/SplashScreen';
 import HiddenAdminAccess from '@/components/admin/HiddenAdminAccess';
-
-// Import du hook pour le scroll automatique
-import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 // Lazy loading des pages pour améliorer les performances de chargement initial
 const Index = React.lazy(() => import('@/pages/Index'));
@@ -31,7 +27,7 @@ const StudyGroups = React.lazy(() => import('@/pages/StudyGroups'));
 const StudyGroupDetail = React.lazy(() => import('@/pages/StudyGroupDetail'));
 const Tools = React.lazy(() => import('@/pages/Tools'));
 
-// Lazy loading des outils spécialisés - Simulateur d'examen déplacé dans Tools
+// Lazy loading des outils spécialisés pour optimiser le bundle
 const FlashcardGenerator = React.lazy(() => import('@/pages/tools/flashcards/FlashcardGenerator'));
 const PomodoroTimer = React.lazy(() => import('@/pages/tools/PomodoroTimer'));
 const StudyTimer = React.lazy(() => import('@/pages/tools/StudyTimer'));
@@ -57,7 +53,7 @@ const NotFound = React.lazy(() => import('@/pages/NotFound'));
 
 /**
  * Configuration optimisée du QueryClient avec gestion intelligente du cache
- * Paramètres ajustés pour les fonctionnalités offline et synchronisation
+ * Paramètres ajustés pour une meilleure performance et fiabilité réseau
  */
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,40 +61,42 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes - données considérées comme fraîches
       gcTime: 1000 * 60 * 30, // 30 minutes - temps de conservation en cache
       refetchOnWindowFocus: false, // Évite les requêtes inutiles
-      refetchOnReconnect: true, // Actualise à la reconnexion pour sync offline
+      refetchOnReconnect: true, // Actualise à la reconnexion
       retry: (failureCount, error: any) => {
         // Stratégie de retry intelligente selon le type d'erreur
         if (error?.status === 404 || error?.status === 403) return false;
         return failureCount < 2; // Maximum 2 tentatives
       },
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000), // Délai exponentiel max 10s
     },
     mutations: {
-      retry: 1,
+      retry: 1, // Une seule tentative pour les mutations
       retryDelay: 1000
     }
   },
 });
 
 /**
- * Lazy loading de l'admin dashboard sécurisé
+ * Lazy loading de l'admin dashboard
  */
 const AdminDashboard = React.lazy(() => import('@/pages/AdminDashboard'));
 
 /**
- * Composant de chargement optimisé pour le Suspense avec design cohérent
+ * Composant de chargement optimisé pour le Suspense
+ * Design cohérent avec le thème médical de l'application
  */
 const SuspenseLoader: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-medical-light to-medical-blue/5">
     <div className="flex flex-col items-center gap-6 p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
       <div className="relative">
         <div className="w-16 h-16 border-4 border-medical-light border-t-medical-blue rounded-full animate-spin"></div>
+        <div className="absolute inset-0 w-16 h-16 border-2 border-medical-teal/20 rounded-full animate-pulse"></div>
       </div>
       <div className="text-center space-y-2">
         <p className="text-lg font-semibold text-medical-navy">
           Chargement de MedCollab
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 animate-pulse">
           Préparation de votre espace de travail...
         </p>
       </div>
@@ -107,35 +105,34 @@ const SuspenseLoader: React.FC = () => (
 );
 
 /**
- * Composant pour gérer le scroll automatique dans toutes les routes
- */
-const ScrollManager: React.FC = () => {
-  useScrollToTop();
-  return null;
-};
-
-/**
  * Composant principal de l'application avec architecture optimisée
  * 
- * Nouvelles fonctionnalités :
- * - Suppression complète des données simulées
- * - Fonctionnalités offline avec synchronisation automatique
- * - Scroll automatique vers le haut à chaque navigation
- * - Accès administrateur sécurisé et dissimulé
- * - Chargement unique et professionnel
- * - Support natif pour Android, iOS et Microsoft Store
+ * Fonctionnalités avancées :
+ * - Splash screen avec logo animé
+ * - Lazy loading intelligent pour optimiser les performances
+ * - Gestion d'erreurs robuste avec ErrorBoundary
+ * - Support PWA complet avec notifications
+ * - Toasts contextuelles pour les feedbacks utilisateur
+ * - Thèmes adaptatifs avec contexte global
+ * - Gestion d'état centralisée avec React Query
+ * - Accès administrateur dissimulé
  */
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
 
   useEffect(() => {
-    // Splash screen affiché une seule fois au démarrage
+    // Masquer le splash après 3 secondes
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  const handleAdminAccess = () => {
+    setShowAdminDialog(true);
+  };
 
   if (showSplash) {
     return <SplashScreen />;
@@ -148,9 +145,6 @@ const App: React.FC = () => {
           <AuthProvider>
             <LoadingScreen>
               <Router>
-                {/* Gestionnaire de scroll automatique global */}
-                <ScrollManager />
-                
                 <Suspense fallback={<SuspenseLoader />}>
                   <Routes>
                     {/* Routes publiques avec lazy loading */}
@@ -158,7 +152,7 @@ const App: React.FC = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
-                    {/* Route admin sécurisée */}
+                    {/* Route admin dissimulée */}
                     <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
                     {/* Routes protégées principales */}
@@ -177,7 +171,7 @@ const App: React.FC = () => {
                     <Route path="/study-groups" element={<StudyGroups />} />
                     <Route path="/study-groups/:id" element={<StudyGroupDetail />} />
 
-                    {/* Routes des outils d'étude - Simulateur d'examen intégré */}
+                    {/* Routes des outils d'étude avec lazy loading optimisé */}
                     <Route path="/tools" element={<Tools />} />
                     <Route path="/tools/flashcard-generator" element={<FlashcardGenerator />} />
                     <Route path="/tools/pomodoro" element={<PomodoroTimer />} />
@@ -191,7 +185,6 @@ const App: React.FC = () => {
                     <Route path="/tools/performance-tracker" element={<PerformanceTracker />} />
                     <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
                     <Route path="/tools/clinical-cases" element={<ClinicalCasesExplorer />} />
-                    <Route path="/tools/exam-simulator" element={<ExamSimulator />} />
 
                     {/* Routes d'évaluation et formation */}
                     <Route path="/exam-simulator" element={<ExamSimulator />} />
@@ -224,7 +217,7 @@ const App: React.FC = () => {
             {/* Prompt d'installation PWA avec gestion intelligente */}
             <PWAInstallPrompt />
 
-            {/* Accès administrateur sécurisé et dissimulé */}
+            {/* Accès administrateur dissimulé */}
             <HiddenAdminAccess onAdminAccess={() => {
               window.location.href = '/admin-dashboard';
             }} />
