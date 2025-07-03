@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/context/AuthContext';
@@ -8,8 +8,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import LoadingScreen from '@/components/layout/LoadingScreen';
-import SplashScreen from '@/components/layout/SplashScreen';
-import HiddenAdminAccess from '@/components/admin/HiddenAdminAccess';
 
 // Lazy loading des pages pour améliorer les performances de chargement initial
 const Index = React.lazy(() => import('@/pages/Index'));
@@ -77,11 +75,6 @@ const queryClient = new QueryClient({
 });
 
 /**
- * Lazy loading de l'admin dashboard
- */
-const AdminDashboard = React.lazy(() => import('@/pages/AdminDashboard'));
-
-/**
  * Composant de chargement optimisé pour le Suspense
  * Design cohérent avec le thème médical de l'application
  */
@@ -108,36 +101,14 @@ const SuspenseLoader: React.FC = () => (
  * Composant principal de l'application avec architecture optimisée
  * 
  * Fonctionnalités avancées :
- * - Splash screen avec logo animé
  * - Lazy loading intelligent pour optimiser les performances
  * - Gestion d'erreurs robuste avec ErrorBoundary
  * - Support PWA complet avec notifications
  * - Toasts contextuelles pour les feedbacks utilisateur
  * - Thèmes adaptatifs avec contexte global
  * - Gestion d'état centralisée avec React Query
- * - Accès administrateur dissimulé
  */
 const App: React.FC = () => {
-  const [showSplash, setShowSplash] = useState(true);
-  const [showAdminDialog, setShowAdminDialog] = useState(false);
-
-  useEffect(() => {
-    // Masquer le splash après 3 secondes
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleAdminAccess = () => {
-    setShowAdminDialog(true);
-  };
-
-  if (showSplash) {
-    return <SplashScreen />;
-  }
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -151,9 +122,6 @@ const App: React.FC = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-
-                    {/* Route admin dissimulée */}
-                    <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
                     {/* Routes protégées principales */}
                     <Route path="/dashboard" element={<Dashboard />} />
@@ -216,11 +184,6 @@ const App: React.FC = () => {
             
             {/* Prompt d'installation PWA avec gestion intelligente */}
             <PWAInstallPrompt />
-
-            {/* Accès administrateur dissimulé */}
-            <HiddenAdminAccess onAdminAccess={() => {
-              window.location.href = '/admin-dashboard';
-            }} />
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

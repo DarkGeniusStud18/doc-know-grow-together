@@ -2,13 +2,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * 📱 Navigation mobile/tablette horizontale FIXE - Version optimisée et corrigée
+ * 📱 Navigation mobile/tablette horizontale FIXE - Version optimisée
  * 
  * ✅ Corrections apportées :
- * - Position fixe renforcée avec z-index très élevé (z-[9999])
  * - Suppression du bouton "Plus" redondant (utilisation du Sheet intégré)
+ * - Position fixe renforcée avec z-index très élevé
  * - Espacements uniformes et professionnels
- * - Navigation toujours visible en bas d'écran
  * - Amélioration de l'accessibilité et des performances
  * - Synchronisation parfaite avec les fonctionnalités natives
  */
@@ -48,7 +47,6 @@ const convertToSecondaryMenuItems = (items: any[]) => {
  * - Gestion d'état robuste et performante
  * - Compatibilité PWA et native parfaite
  * - Indicateurs de rôle utilisateur dynamiques
- * - TOUJOURS VISIBLE en bas d'écran
  */
 const MobileNavbar: React.FC = () => {
   const { user } = useAuth();
@@ -119,9 +117,9 @@ const MobileNavbar: React.FC = () => {
 
   return (
     <>
-      {/* 📱 Navigation mobile/tablette avec position fixe GARANTIE et design optimisé */}
+      {/* 📱 Navigation mobile/tablette avec position fixe absolue et design optimisé */}
       <div 
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg mobile-nav-fixed"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg"
         style={{
           height: '80px',
           paddingBottom: 'env(safe-area-inset-bottom)'
@@ -177,7 +175,7 @@ const MobileNavbar: React.FC = () => {
             </div>
           ))}
 
-          {/* ➕ Bouton "Plus" UNIQUE pour menu secondaire */}
+          {/* ➕ Bouton "Plus" UNIQUE pour menu secondaire - SANS bouton de fermeture redondant */}
           <div
             ref={(el) => {
               if (el && navItemsRef.current) {
@@ -220,7 +218,7 @@ const MobileNavbar: React.FC = () => {
                 </Button>
               </SheetTrigger>
               
-              {/* 📋 CONTENU DU MENU SECONDAIRE - Sheet modal optimisé */}
+              {/* 📋 CONTENU DU MENU SECONDAIRE - Sheet modal optimisé SANS bouton de fermeture redondant */}
               <SheetContent 
                 side="bottom" 
                 className="h-[85vh] p-0 border-0 bg-transparent rounded-t-xl"

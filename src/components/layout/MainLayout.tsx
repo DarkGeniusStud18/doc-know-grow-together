@@ -7,7 +7,6 @@ import MobileNavbar from './mobile-navbar/MobileNavbar';
 import MobileTopBar from './mobile-topbar/MobileTopBar';
 import DesktopNavbar from './DesktopNavbar';
 import DiscordSidebar from './discord-sidebar/DiscordSidebar';
-import HiddenAdminAccess from '@/components/admin/HiddenAdminAccess';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 interface MainLayoutProps {
@@ -18,7 +17,7 @@ interface MainLayoutProps {
 }
 
 /**
- * Layout principal optimisé avec espacements mobiles corrigés et responsivité améliorée
+ * Layout principal optimisé avec espacements mobiles corrigés
  */
 const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
@@ -40,7 +39,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex relative">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         
         {/* Sidebar verticale Discord - Desktop uniquement */}
         {!simplified && showSidebar && user && isDesktop && (
@@ -56,12 +55,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
         )}
 
-        {/* Contenu principal avec espacements corrigés et responsivité améliorée */}
+        {/* Contenu principal avec espacements corrigés */}
         <div className={`
-          flex-1 min-h-screen transition-all duration-300 w-full
+          flex-1 min-h-screen transition-all duration-300
           ${!simplified && user && isDesktop ? 'ml-[80px]' : ''}
           ${!simplified && user && isTabletOrMobile ? 'pt-[60px]' : ''}
-          ${user && isTabletOrMobile ? 'pb-[100px]' : ''}
+          ${user && isTabletOrMobile ? 'pb-[80px]' : ''}
         `}>
           
           {/* Navigation supérieure - Conditions adaptées */}
@@ -71,33 +70,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             <DesktopNavbar />
           ) : null}
 
-          {/* Zone de contenu principal avec padding responsive uniforme */}
-          <main className="w-full max-w-full overflow-x-hidden">
-            <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
+          {/* Zone de contenu principal avec padding uniforme */}
+          <main className="w-full max-w-full">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <Suspense fallback={
                 <div className="flex items-center justify-center min-h-[50vh]">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
-                  <span className="ml-3 text-gray-600 text-sm sm:text-base">Chargement en cours...</span>
+                  <span className="ml-3 text-gray-600">Chargement en cours...</span>
                 </div>
               }>
-                <div className="w-full">
-                  {children}
-                </div>
+                {children}
               </Suspense>
             </div>
           </main>
         </div>
 
-        {/* Navigation mobile/tablette horizontale - Position fixe GARANTIE */}
+        {/* Navigation mobile/tablette horizontale - Position fixe garantie */}
         {user && isTabletOrMobile && (
           <MobileNavbar />
-        )}
-
-        {/* Accès administrateur dissimulé pour desktop */}
-        {isDesktop && (
-          <HiddenAdminAccess onAdminAccess={() => {
-            window.location.href = '/admin-dashboard';
-          }} />
         )}
       </div>
     </ErrorBoundary>
