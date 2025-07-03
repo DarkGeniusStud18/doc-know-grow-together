@@ -1,43 +1,204 @@
 
 /**
- * ⏱️ Chronomètre d'Étude - Version Mobile Responsive Corrigée
- * 
- * Fonctionnalités principales :
- * - Chronomètre avec pause/reprise
- * - Suivi des sessions d'étude par matière
- * - Statistiques détaillées
- * - Sauvegarde automatique des données
+ * ⏱️ Minuteur d'Étude - Version mobile responsive corrigée
  */
 
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Timer, Play, Pause, Square, BookOpen, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
+import { Play, Pause, Square, Clock, BookOpen, Target, TrendingUp } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface StudySession {
   id: string;
-  subject: string;
-  duration: number;
-  startTime: Date;
-  endTime?: Date;
+  user_id: string;
+  subject?: string;
+  duration_minutes: number;
+  completed: boolean;
+  started_at: string;
+  ended_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface StudyStats {
+  total_hours: number;
+  avg_session_duration: number;
+  most_studied_subject: string;
+  sessions_count: number;
 }
 
 const StudyTimer: React.FC = () => {
   const { user } = useAuth();
-  const [time, setTime] = useState(0); // Temps en secondes
-  const [isRunning, setIsRunning] = useState(false);
-  const [subject, setSubject] = useState('');
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [sessions, setSessions] = useState<StudySession[]>([]);
-  const [totalStudyTime, setTotalStudyTime] = useState(0);
+  const queryClient = useQueryClient();
 
-  // Chronomètre principal
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [subject, setSubject] = useState('');
+  const [note, setNote] = useState('');
+
+  const { data: sessions = [], refetch: refetchSessions } = useQuery({
+    queryKey: ['study-sessions', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      console.log('⏱️ StudyTimer: Récupération des sessions pour l\'utilisateur:', user.id);
+      
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('❌ Erreur lors de la récupération des sessions:', error);
+        throw error;
+      }
+
+      console.log(`✅ ${data?.length || 0} sessions récupérées`);
+      return data as StudySession[];
+    },
+    enabled: !!user
+  });
+
+  const { data: stats = {
+    total_hours: 0,
+    avg_session_duration: 0,
+    most_studied_subject: 'N/A',
+    sessions_count: 0
+  } } = useQuery({
+    queryKey: ['study-stats', user?.id],
+    queryFn: async () => {
+      if (!user) return {
+        total_hours: 0,
+        avg_session_duration: 0,
+        most_studied_subject: 'N/A',
+        sessions_count: 0
+      };
+      
+      console.log('📊 StudyTimer: Récupération des statistiques');
+      
+      const { data, error } = await supabase
+        .rpc('get_user_study_stats', {
+          p_user_id: user.id,
+          p_period: 'week'
+        });
+
+      if (error) {
+        console.error('❌ Erreur statistiques:', error);
+        return {
+          total_hours: 0,
+          avg_session_duration: 0,
+          most_studied_subject: 'N/A',
+          sessions_count: 0
+        };
+      }
+
+      const result = Array.isArray(data) ? data[0] : data;
+      const statsData = result || {
+        total_hours: 0,
+        avg_session_duration: 0,
+        most_studied_subject: 'N/A',
+        sessions_count: 0
+      };
+
+      console.log('✅ Statistiques récupérées:', statsData);
+      return statsData as StudyStats;
+    },
+    enabled: !!user
+  });
+
+  const startSessionMutation = useMutation({
+    mutationFn: async (sessionData: { subject?: string }) => {
+      if (!user) throw new Error('Utilisateur non authentifié');
+
+      console.log('▶️ Démarrage session:', sessionData);
+
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .insert({
+          user_id: user.id,
+          subject: sessionData.subject || null,
+          duration_minutes: 0,
+          completed: false,
+          started_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erreur démarrage session:', error);
+        throw error;
+      }
+
+      console.log('✅ Session démarrée:', data);
+      return data as StudySession;
+    },
+    onSuccess: (data) => {
+      setCurrentSessionId(data.id);
+      setIsRunning(true);
+      toast.success('Session d\'étude démarrée !');
+    },
+    onError: (error) => {
+      console.error('❌ Erreur lors du démarrage:', error);
+      toast.error('Erreur lors du démarrage de la session');
+    }
+  });
+
+  const endSessionMutation = useMutation({
+    mutationFn: async (params: { sessionId: string; durationMinutes: number; notes?: string }) => {
+      console.log('⏹️ Fin de session:', params);
+
+      const { error: sessionError } = await supabase
+        .from('study_sessions')
+        .update({
+          duration_minutes: params.durationMinutes,
+          completed: true,
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', params.sessionId);
+
+      if (sessionError) {
+        console.error('❌ Erreur fin session:', sessionError);
+        throw sessionError;
+      }
+
+      if (params.notes && params.notes.trim()) {
+        const { error: noteError } = await supabase
+          .from('study_session_notes')
+          .insert({
+            session_id: params.sessionId,
+            content: params.notes.trim()
+          });
+
+        if (noteError) {
+          console.error('❌ Erreur note:', noteError);
+        }
+      }
+
+      console.log('✅ Session terminée');
+    },
+    onSuccess: () => {
+      toast.success('Session terminée et sauvegardée !');
+      refetchSessions();
+      queryClient.invalidateQueries({ queryKey: ['study-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['study-stats'] });
+    },
+    onError: (error) => {
+      console.error('❌ Erreur fin session:', error);
+      toast.error('Erreur lors de la sauvegarde');
+    }
+  });
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
@@ -48,310 +209,238 @@ const StudyTimer: React.FC = () => {
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
     };
   }, [isRunning]);
 
-  // Charger les sessions existantes
-  useEffect(() => {
-    if (user) {
-      loadStudySessions();
-    }
-  }, [user]);
-
-  /**
-   * 📊 Charger les sessions d'étude de l'utilisateur
-   */
-  const loadStudySessions = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('study_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('started_at', { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.error('❌ Erreur lors du chargement des sessions:', error);
-        return;
-      }
-
-      if (data) {
-        const formattedSessions: StudySession[] = data.map(session => ({
-          id: session.id,
-          subject: session.subject || 'Matière non spécifiée',
-          duration: session.duration_minutes * 60,
-          startTime: new Date(session.started_at),
-          endTime: session.ended_at ? new Date(session.ended_at) : undefined
-        }));
-        
-        setSessions(formattedSessions);
-        
-        // Calculer le temps total d'étude
-        const total = data.reduce((acc, session) => acc + (session.duration_minutes || 0), 0);
-        setTotalStudyTime(total);
-      }
-    } catch (error) {
-      console.error('❌ Erreur lors du chargement des sessions:', error);
-    }
-  };
-
-  /**
-   * ▶️ Démarrer une session d'étude
-   */
-  const startTimer = async () => {
-    if (!subject.trim()) {
-      toast.error('Veuillez spécifier une matière d\'étude');
-      return;
-    }
-
-    if (!user) {
-      toast.error('Vous devez être connecté pour utiliser le chronomètre');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('study_sessions')
-        .insert({
-          user_id: user.id,
-          subject: subject.trim(),
-          duration_minutes: 0,
-          started_at: new Date().toISOString(),
-          completed: false
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ Erreur lors de la création de la session:', error);
-        toast.error('Impossible de démarrer la session');
-        return;
-      }
-
-      setCurrentSessionId(data.id);
-      setIsRunning(true);
-      setTime(0);
-      toast.success(`Session d'étude démarrée pour ${subject}`);
-    } catch (error) {
-      console.error('❌ Erreur lors du démarrage:', error);
-      toast.error('Erreur lors du démarrage de la session');
-    }
-  };
-
-  /**
-   * ⏸️ Mettre en pause le chronomètre
-   */
-  const pauseTimer = () => {
-    setIsRunning(false);
-    toast.info('Session mise en pause');
-  };
-
-  /**
-   * ▶️ Reprendre le chronomètre
-   */
-  const resumeTimer = () => {
-    setIsRunning(true);
-    toast.info('Session reprise');
-  };
-
-  /**
-   * ⏹️ Arrêter et sauvegarder la session
-   */
-  const stopTimer = async () => {
-    if (!currentSessionId || !user) return;
-
-    try {
-      const durationMinutes = Math.floor(time / 60);
-      
-      const { error } = await supabase
-        .from('study_sessions')
-        .update({
-          duration_minutes: durationMinutes,
-          ended_at: new Date().toISOString(),
-          completed: true
-        })
-        .eq('id', currentSessionId);
-
-      if (error) {
-        console.error('❌ Erreur lors de la sauvegarde:', error);
-        toast.error('Erreur lors de la sauvegarde');
-        return;
-      }
-
-      // Réinitialiser l'état
-      setIsRunning(false);
-      setTime(0);
-      setSubject('');
-      setCurrentSessionId(null);
-      
-      toast.success(`Session terminée : ${durationMinutes} minutes d'étude`);
-      
-      // Recharger les sessions
-      await loadStudySessions();
-    } catch (error) {
-      console.error('❌ Erreur lors de l\'arrêt:', error);
-      toast.error('Erreur lors de l\'arrêt de la session');
-    }
-  };
-
-  /**
-   * 🕐 Formater le temps en HH:MM:SS
-   */
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     
     if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleStart = async () => {
+    if (!currentSessionId) {
+      startSessionMutation.mutate({ subject: subject.trim() || undefined });
+    } else {
+      setIsRunning(true);
+      toast.success('Session reprise !');
+    }
+  };
+
+  const handlePause = () => {
+    setIsRunning(false);
+    toast.info('Session mise en pause');
+  };
+
+  const handleStop = async () => {
+    if (currentSessionId && time > 0) {
+      const durationMinutes = Math.max(1, Math.floor(time / 60));
+      
+      await endSessionMutation.mutateAsync({
+        sessionId: currentSessionId,
+        durationMinutes,
+        notes: note.trim() || undefined
+      });
+    }
+    
+    setIsRunning(false);
+    setTime(0);
+    setCurrentSessionId(null);
+    setSubject('');
+    setNote('');
+  };
+
   return (
-    <MainLayout requireAuth={true}>
-      <div className="container mx-auto py-4 px-4 max-w-4xl">
-        {/* En-tête */}
-        <div className="flex items-center gap-3 mb-6">
-          <Timer className="h-6 w-6 sm:h-8 sm:w-8 text-medical-blue" />
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Chronomètre d'Étude</h1>
-            <p className="text-sm sm:text-base text-gray-500">Suivez vos sessions d'étude en temps réel</p>
+    <MainLayout>
+      <div className="container mx-auto p-4 space-y-4 max-w-4xl">
+        {/* En-tête responsive */}
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-medical-blue" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Minuteur d'Étude</h1>
           </div>
+          <p className="text-sm sm:text-base text-gray-600">
+            Suivez vos sessions d'étude et améliorez votre productivité
+          </p>
+        </div>
+        
+        {/* Minuteur principal responsive */}
+        <Card className="max-w-lg mx-auto">
+          <CardContent className="p-4 sm:p-8 text-center space-y-4 sm:space-y-6">
+            {/* Affichage du temps */}
+            <div className="text-4xl sm:text-6xl font-mono font-bold text-medical-teal">
+              {formatTime(time)}
+            </div>
+            
+            {/* Champ matière */}
+            {!currentSessionId && (
+              <div className="space-y-2">
+                <Input
+                  placeholder="Matière d'étude (optionnel)"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  disabled={isRunning}
+                  className="text-center"
+                />
+              </div>
+            )}
+            
+            {/* Contrôles responsive */}
+            <div className="flex flex-col sm:flex-row justify-center gap-2">
+              {!isRunning ? (
+                <Button 
+                  onClick={handleStart} 
+                  size="lg" 
+                  className="flex items-center gap-2 flex-1 sm:flex-none"
+                  disabled={startSessionMutation.isPending}
+                >
+                  <Play className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {currentSessionId ? 'Reprendre' : 'Démarrer'}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handlePause} 
+                  variant="outline" 
+                  size="lg" 
+                  className="flex items-center gap-2 flex-1 sm:flex-none"
+                >
+                  <Pause className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Pause
+                </Button>
+              )}
+              
+              {currentSessionId && (
+                <Button 
+                  onClick={handleStop} 
+                  variant="destructive" 
+                  size="lg" 
+                  className="flex items-center gap-2 flex-1 sm:flex-none"
+                  disabled={endSessionMutation.isPending}
+                >
+                  <Square className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {endSessionMutation.isPending ? 'Sauvegarde...' : 'Arrêter'}
+                </Button>
+              )}
+            </div>
+            
+            {/* Champ note */}
+            {currentSessionId && (
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Note de session (optionnelle)"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Statistiques responsive */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-medical-teal mx-auto mb-2" />
+              <div className="text-lg sm:text-2xl font-bold">{stats.total_hours.toFixed(1)}h</div>
+              <div className="text-xs sm:text-sm text-gray-600">Total semaine</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Target className="h-6 w-6 sm:h-8 sm:w-8 text-medical-blue mx-auto mb-2" />
+              <div className="text-lg sm:text-2xl font-bold">{Math.round(stats.avg_session_duration)}min</div>
+              <div className="text-xs sm:text-sm text-gray-600">Durée moy.</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-medical-purple mx-auto mb-2" />
+              <div className="text-lg sm:text-2xl font-bold">{stats.sessions_count}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Sessions</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="col-span-2 lg:col-span-1">
+            <CardContent className="p-3 sm:p-4 text-center">
+              <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-medical-green mx-auto mb-2" />
+              <div className="text-sm sm:text-lg font-semibold truncate" title={stats.most_studied_subject}>
+                {stats.most_studied_subject}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600">Matière principale</div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Chronomètre principal */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl sm:text-3xl text-medical-blue">
-                {formatTime(time)}
-              </CardTitle>
-              <CardDescription>
-                {isRunning ? `Étude en cours : ${subject}` : 'Chronomètre arrêté'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Configuration de la session */}
-              {!currentSessionId && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Matière d'étude</label>
-                    <Input
-                      placeholder="Ex: Cardiologie, Anatomie..."
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Contrôles du chronomètre */}
-              <div className="flex flex-col sm:flex-row justify-center gap-3">
-                {!currentSessionId ? (
-                  <Button 
-                    onClick={startTimer}
-                    size="lg"
-                    className="bg-medical-blue hover:bg-medical-blue/90 flex-1 sm:flex-none"
-                    disabled={!subject.trim()}
+        {/* Sessions récentes responsive */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
+              Sessions récentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sessions.length === 0 ? (
+              <div className="text-center py-6 sm:py-8">
+                <Clock className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Aucune session d'étude pour le moment.</p>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1">
+                  Démarrez votre première session !
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sessions.map((session) => (
+                  <div 
+                    key={session.id} 
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-2 sm:gap-0"
                   >
-                    <Play className="mr-2 h-5 w-5" />
-                    Démarrer
-                  </Button>
-                ) : (
-                  <>
-                    {isRunning ? (
-                      <Button 
-                        onClick={pauseTimer}
-                        size="lg"
-                        variant="outline"
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Pause className="mr-2 h-5 w-5" />
-                        Pause
-                      </Button>
-                    ) : (
-                      <Button 
-                        onClick={resumeTimer}
-                        size="lg"
-                        className="bg-medical-green hover:bg-medical-green/90 flex-1 sm:flex-none"
-                      >
-                        <Play className="mr-2 h-5 w-5" />
-                        Reprendre
-                      </Button>
-                    )}
-                    <Button 
-                      onClick={stopTimer}
-                      size="lg"
-                      variant="destructive"
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Square className="mr-2 h-5 w-5" />
-                      Arrêter
-                    </Button>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Statistiques rapides */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Clock className="h-5 w-5" />
-                Temps total d'étude
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-medical-blue">
-                {Math.floor(totalStudyTime / 60)}h {totalStudyTime % 60}min
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Toutes sessions confondues
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Sessions récentes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BookOpen className="h-5 w-5" />
-                Sessions récentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {sessions.length > 0 ? (
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {sessions.slice(0, 5).map((session) => (
-                    <div key={session.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">{session.subject}</p>
-                        <p className="text-xs text-gray-600">
-                          {session.startTime.toLocaleDateString('fr-FR')}
-                        </p>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 text-sm sm:text-base">
+                        {session.subject || 'Session d\'étude générale'}
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-sm text-medical-blue">
-                          {Math.floor(session.duration / 60)}min
-                        </p>
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1">
+                        {new Date(session.started_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })} à {new Date(session.started_at).toLocaleTimeString('fr-FR', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-sm text-center py-4">
-                  Aucune session enregistrée
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-3">
+                      <div className="text-right">
+                        <div className="font-medium text-gray-900 text-sm sm:text-base">
+                          {session.duration_minutes} min
+                        </div>
+                      </div>
+                      <Badge 
+                        variant={session.completed ? "default" : "secondary"}
+                        className={session.completed ? "bg-green-600 text-xs" : "text-xs"}
+                      >
+                        {session.completed ? 'Terminée' : 'En cours'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );

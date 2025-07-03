@@ -1543,7 +1543,6 @@ export type Database = {
           is_private: boolean
           max_members: number | null
           name: string
-          subject: string | null
           updated_at: string
         }
         Insert: {
@@ -1554,7 +1553,6 @@ export type Database = {
           is_private?: boolean
           max_members?: number | null
           name: string
-          subject?: string | null
           updated_at?: string
         }
         Update: {
@@ -1565,7 +1563,6 @@ export type Database = {
           is_private?: boolean
           max_members?: number | null
           name?: string
-          subject?: string | null
           updated_at?: string
         }
         Relationships: [

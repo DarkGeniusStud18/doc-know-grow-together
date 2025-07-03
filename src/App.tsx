@@ -1,6 +1,6 @@
 
 /**
- * 🚀 Application Principale MedCollab - Version Complète Corrigée
+ * 🚀 Application Principale MedCollab - Version Complète Optimisée
  * 
  * Architecture moderne avec :
  * - Navigation complète et routes optimisées
@@ -17,7 +17,6 @@ import { AuthProvider } from '@/context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Toaster } from '@/components/ui/sonner';
 import ScrollToTop from '@/components/layout/ScrollToTop';
-import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
 
 // Import des pages principales
 import Splash from '@/pages/Splash';
@@ -28,7 +27,6 @@ import Dashboard from '@/pages/Dashboard';
 import Tools from '@/pages/Tools';
 import StudyGroups from '@/pages/StudyGroups';
 import AdminDashboard from '@/pages/AdminDashboard';
-import NotFound from '@/pages/NotFound';
 
 // Import des outils d'étude
 import PomodoroTimer from '@/pages/tools/PomodoroTimer';
@@ -46,7 +44,7 @@ import Settings from '@/pages/Settings';
 import Profile from '@/pages/Profile';
 import ClinicalCases from '@/pages/ClinicalCases';
 import Notes from '@/pages/Notes';
-import MusicLibrary from '@/pages/Music';
+import Music from '@/pages/Music';
 
 import './App.css';
 
@@ -58,7 +56,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes - durée de validité des données
-      gcTime: 10 * 60 * 1000, // 10 minutes - durée de conservation en cache
+      cacheTime: 10 * 60 * 1000, // 10 minutes - durée de conservation en cache
       refetchOnWindowFocus: false, // Éviter les requêtes automatiques lors du focus
       retry: 3, // Nombre de tentatives en cas d'échec
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Délai progressif
@@ -248,7 +246,7 @@ const App: React.FC = () => {
                 path="/music"
                 element={
                   <ProtectedRoute>
-                    <MusicLibrary />
+                    <Music />
                   </ProtectedRoute>
                 }
               />
@@ -272,25 +270,14 @@ const App: React.FC = () => {
               />
               
               {/* 🔐 Dashboard Administrateur sécurisé */}
-              <Route 
-                path="/admin-dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } 
-              />
+              <Route path="/admin-dashboard" element={<AdminDashboard />} />
               
-              {/* 🔀 Page 404 pour les routes invalides */}
-              <Route path="/404" element={<NotFound />} />
-              <Route path="*" element={<NotFound />} />
+              {/* 🔀 Gestion des routes invalides */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             
             {/* 🔔 Système de notifications toast avec position optimisée */}
             <Toaster position="top-right" richColors closeButton />
-            
-            {/* 📱 Composant d'installation PWA - Affiché globalement */}
-            <PWAInstallPrompt />
           </div>
         </Router>
       </AuthProvider>

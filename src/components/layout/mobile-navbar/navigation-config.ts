@@ -2,27 +2,30 @@
 /**
  * Configuration des éléments de navigation pour la barre de navigation mobile
  * 
- * Navigation réorganisée selon les spécifications exactes de l'utilisateur :
- * Menu principal : Dashboard, Ressources médicales, Communauté, Groupes d'étude
- * Menu secondaire : Outils de productivité, Mes notes, Bibliothèque musicale, Calendrier
+ * Organisation optimisée des fonctionnalités par priorité d'utilisation
+ * et adaptation aux contraintes d'espace mobile/tablette
  */
 
 import { 
   Home, 
   BookOpen, 
   Users, 
-  GraduationCap,
-  Wrench,
-  FileText,
-  Music,
   Calendar,
-  Stethoscope
+  Settings,
+  Music,
+  Target,
+  Timer,
+  GraduationCap,
+  Stethoscope,
+  BarChart3,
+  FileText,
+  Wrench
 } from 'lucide-react';
 import { MobileNavItem } from './types';
 
 /**
  * Éléments de navigation principaux - Affichés dans la barre inférieure mobile
- * Ordre exact spécifié par l'utilisateur
+ * Ordre spécifique requis par l'utilisateur
  */
 export const primaryNavItems: MobileNavItem[] = [
   {
@@ -48,7 +51,7 @@ export const primaryNavItems: MobileNavItem[] = [
   },
   {
     id: 'study-groups',
-    icon: GraduationCap, // Icône différente pour les groupes d'étude comme demandé
+    icon: GraduationCap, // Icône différente pour les groupes d'étude
     label: 'Groupes',
     href: '/study-groups',
     isActive: (pathname: string) => pathname.startsWith('/study-groups')
@@ -57,7 +60,7 @@ export const primaryNavItems: MobileNavItem[] = [
 
 /**
  * Éléments de navigation secondaires - Menu déployable
- * Ordre exact spécifié par l'utilisateur, exam-simulator retiré
+ * Ordre spécifique requis par l'utilisateur
  */
 export const secondaryNavItems: MobileNavItem[] = [
   {
@@ -87,6 +90,20 @@ export const secondaryNavItems: MobileNavItem[] = [
     label: 'Calendrier',
     href: '/calendar',
     isActive: (pathname: string) => pathname.startsWith('/calendar')
+  },
+  {
+    id: 'clinical-cases',
+    icon: Stethoscope,
+    label: 'Cas cliniques',
+    href: '/clinical-cases',
+    isActive: (pathname: string) => pathname.startsWith('/clinical-cases')
+  },
+  {
+    id: 'settings',
+    icon: Settings,
+    label: 'Paramètres',
+    href: '/settings',
+    isActive: (pathname: string) => pathname.startsWith('/settings')
   }
 ];
 
