@@ -17,6 +17,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Toaster } from '@/components/ui/sonner';
 import ScrollToTop from '@/components/layout/ScrollToTop';
+import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
 
 // Import des pages principales
 import Splash from '@/pages/Splash';
@@ -287,6 +288,9 @@ const App: React.FC = () => {
             
             {/* 🔔 Système de notifications toast avec position optimisée */}
             <Toaster position="top-right" richColors closeButton />
+            
+            {/* 📱 Composant d'installation PWA - Affiché globalement */}
+            <PWAInstallPrompt />
           </div>
         </Router>
       </AuthProvider>
