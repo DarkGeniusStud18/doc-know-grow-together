@@ -124,10 +124,7 @@ const MobileNavbar: React.FC = () => {
         className="lg:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg mobile-nav-fixed"
         style={{
           height: '80px',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-          position: 'fixed !important',
-          bottom: '0 !important',
-          zIndex: '9999 !important'
+          paddingBottom: 'env(safe-area-inset-bottom)'
         }}
       >
         <div 
