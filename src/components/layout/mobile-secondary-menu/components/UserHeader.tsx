@@ -105,7 +105,7 @@ export const UserHeader: React.FC<UserHeaderProps> = ({
         className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2 transition-all duration-200"
         aria-label="Fermer le menu"
       >
-        <X size={20} />
+        <X size={30} />
       </Button>
 
       {/* 👤 Informations utilisateur avec avatar et détails */}
