@@ -211,7 +211,7 @@ const Resources = () => {
               </div>
             </div>
           </div>
-        </div;
+        </div>
 
         {/* Contenu principal */}
         {isLoading ? (
