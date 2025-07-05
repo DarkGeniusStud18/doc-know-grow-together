@@ -37,9 +37,9 @@ const Calendar = () => {
         .from('calendar_events')
         .select('*')
         .eq('user_id', user.id)
-        .gte('start_date', startDate.toISOString())
-        .lte('end_date', endDate.toISOString())
-        .order('start_date');
+        .gte('start_time', startDate.toISOString())
+        .lte('end_time', endDate.toISOString())
+        .order('start_time');
         
       if (error) throw error;
       return data || [];
@@ -54,7 +54,7 @@ const Calendar = () => {
 
   const getEventsForDate = (date: Date) => {
     return events?.filter(event => 
-      isSameDay(new Date(event.start_date), date)
+      isSameDay(new Date(event.start_time), date)
     ) || [];
   };
 
@@ -71,7 +71,7 @@ const Calendar = () => {
             {event.title}
           </h3>
           <Badge variant="outline" className="text-xs ml-2 flex-shrink-0">
-            {event.type}
+            Événement
           </Badge>
         </div>
         
@@ -84,15 +84,8 @@ const Calendar = () => {
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500">
           <div className="flex items-center">
             <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
-            <span>{format(new Date(event.start_date), 'HH:mm', { locale: fr })}</span>
+            <span>{format(new Date(event.start_time), 'HH:mm', { locale: fr })}</span>
           </div>
-          
-          {event.location && (
-            <div className="flex items-center">
-              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-              <span className="truncate">{event.location}</span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

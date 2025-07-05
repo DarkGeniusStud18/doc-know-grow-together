@@ -1,62 +1,51 @@
 
-/**
- * 🖥️ Barre de navigation desktop optimisée pour MedCollab - Version refactorisée
- * 
- * Architecture modulaire avec composants séparés :
- * - PageTitle : Gestion intelligente des titres de page
- * - SearchBar : Recherche avec debouncing et validation
- * - UserActions : Actions utilisateur et menu contextuel
- * 
- * Optimisations maintenues :
- * - Mémorisation des calculs coûteux avec useMemo
- * - Gestionnaires d'événements optimisés avec useCallback
- * - États locaux minimaux pour de meilleures performances
- * - Intégration native/web transparente sans interférence
- */
-
 import React from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { PageTitle } from './components/PageTitle';
 import { SearchBar } from './components/SearchBar';
 import { UserActions } from './components/UserActions';
+import AdminAccessButton from '@/components/admin/AdminAccessButton';
 
 /**
- * Composant principal de navigation desktop refactorisé
- * Architecture modulaire pour une meilleure maintenabilité
+ * 🖥️ Barre de navigation desktop - Design professionnel et moderne
+ * 
+ * Caractéristiques :
+ * - Layout responsive adaptatif
+ * - Composants modulaires réutilisables
+ * - Performance optimisée
+ * - Accessibilité complète
+ * - Intégration parfaite avec le thème
  */
-const DesktopNavbar: React.FC = () => {
-  const { user, signOut } = useAuth();
-  
-  // 🛡️ Protection : masquer la navbar si aucun utilisateur connecté
-  if (!user) {
-    console.log('🚫 DesktopNavbar: Aucun utilisateur connecté, masquage de la navbar');
-    return null;
-  }
-
-  /**
-   * 🔍 Gestionnaire de recherche centralisé
-   * Traite les requêtes de recherche provenant du composant SearchBar
-   */
-  const handleSearch = (query: string) => {
-    console.log('DesktopNavbar: Recherche centralisée:', query);
-    // 🚀 TODO: Intégrer le service de recherche global
-  };
-
+export const DesktopNavbar: React.FC = () => {
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm backdrop-blur-md">
-      <div className="container px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center gap-4 lg:gap-6">
-        
-        {/* 📋 Titre de page avec animation de transition fluide */}
-        <PageTitle />
-
-        {/* 🔍 Barre de recherche intelligente avec états visuels dynamiques */}
-        <SearchBar onSearch={handleSearch} />
-
-        {/* ⚡ Section actions utilisateur avec optimisations d'accessibilité */}
-        <UserActions user={user} onLogout={signOut} />
+    <header 
+      className={`
+        sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md 
+        border-b border-gray-200/50 shadow-sm
+        transition-all duration-300 ease-in-out
+      `}
+      role="banner"
+    >
+      <div className="container mx-auto px-4 lg:px-6">
+        <div className="flex items-center justify-between h-14 lg:h-16">
+          {/* 📄 Titre de la page actuelle */}
+          <PageTitle />
+          
+          {/* 🔍 Barre de recherche centrée */}
+          <div className="flex-1 max-w-xl mx-8">
+            <SearchBar />
+          </div>
+          
+          {/* 👤 Actions utilisateur */}
+          <div className="flex items-center gap-3 relative">
+            <UserActions />
+            
+            {/* 🔐 Bouton d'accès admin ultra-dissimulé */}
+            <div className="absolute -top-2 -right-2">
+              <AdminAccessButton />
+            </div>
+          </div>
+        </div>
       </div>
     </header>
   );
 };
-
-export default DesktopNavbar;
