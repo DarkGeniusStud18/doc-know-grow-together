@@ -98,7 +98,7 @@ export const UserHeader: React.FC<UserHeaderProps> = ({
   return (
     <div className="relative bg-gradient-to-r from-medical-blue to-medical-teal text-white p-6 rounded-t-3xl">
       {/* 🚪 Bouton de fermeture UNIQUE - Positionné en haut à droite */}
-      {/*<Button
+      <Button
         variant="ghost"
         size="sm"
         onClick={onClose}
@@ -106,7 +106,7 @@ export const UserHeader: React.FC<UserHeaderProps> = ({
         aria-label="Fermer le menu"
       >
         <X size={20} />
-      </Button>*/}
+      </Button>
 
       {/* 👤 Informations utilisateur avec avatar et détails */}
       <div className="flex items-center space-x-4 pr-12">

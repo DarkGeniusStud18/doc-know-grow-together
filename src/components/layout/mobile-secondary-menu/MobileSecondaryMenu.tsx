@@ -48,15 +48,15 @@ const MobileSecondaryMenu: React.FC<MobileSecondaryMenuProps> = ({
   const handleClose = () => {
     console.log('🚪 MobileSecondaryMenu: Fermeture du menu demandée');
     
-    const closeItem = {
+    /*const closeItem = {
       id: 'close',
       label: 'Fermer',
       icon: X,
       href: 'close' // Marqueur spécial pour fermeture
-    };
+    };*/
     
     // 📞 Appel du gestionnaire parent avec l'élément de fermeture
-    onItemClick(closeItem);
+    // onItemClick(closeItem);
   };
 
   /**
