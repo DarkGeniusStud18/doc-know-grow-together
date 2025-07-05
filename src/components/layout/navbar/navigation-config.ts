@@ -10,21 +10,21 @@ import {
   Home, 
   BookOpen, 
   Users, 
-  User
+  GraduationCap
 } from 'lucide-react';
 import { NavItem } from './types';
 
 /**
  * Configuration des éléments de navigation organisés par priorité
- * Ordre basé sur l'importance et la fréquence d'utilisation
+ * Ordre mis à jour selon les exigences utilisateur
  */
 export const navigationItems: NavItem[] = [
   {
     icon: Home,
-    label: 'Accueil',
-    href: '/',
-    requiresAuth: false,
-    showInSimplified: true
+    label: 'Dashboard',
+    href: '/dashboard',
+    requiresAuth: true,
+    showInSimplified: false
   },
   {
     icon: BookOpen,
@@ -41,9 +41,9 @@ export const navigationItems: NavItem[] = [
     showInSimplified: true
   },
   {
-    icon: User,
-    label: 'Tableau de bord',
-    href: '/dashboard',
+    icon: GraduationCap,
+    label: 'Groupe d\'étude',
+    href: '/study-groups',
     requiresAuth: true,
     showInSimplified: false
   }

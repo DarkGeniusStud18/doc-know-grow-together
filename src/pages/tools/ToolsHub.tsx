@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Clock, Calculator, BookOpen, Brain, 
   FileText, Calendar, Target, Timer,
-  Zap, TrendingUp, BarChart3, PieChart
+  Zap, TrendingUp, BarChart3, PieChart,
+  GraduationCap
 } from 'lucide-react';
 
 const ToolsHub = () => {
@@ -55,6 +56,15 @@ const ToolsHub = () => {
   // Outils académiques
   const academicTools = [
     {
+      title: "Simulateur d'examen",
+      description: "Préparez-vous à vos examens avec des simulations réalistes",
+      icon: <GraduationCap className="h-8 w-8 text-indigo-500" />,
+      path: "/exam-simulator",
+      category: "Évaluation",
+      difficulty: "Intermédiaire",
+      color: "bg-indigo-50 border-indigo-200"
+    },
+    {
       title: "Calculateurs médicaux",
       description: "Collection de calculateurs pour les calculs cliniques",
       icon: <Calculator className="h-8 w-8 text-orange-500" />,
@@ -66,29 +76,29 @@ const ToolsHub = () => {
     {
       title: "Assistant de recherche",
       description: "Outils pour organiser et analyser vos recherches",
-      icon: <BookOpen className="h-8 w-8 text-indigo-500" />,
+      icon: <BookOpen className="h-8 w-8 text-cyan-500" />,
       path: "/tools/research-assistant",
       category: "Recherche",
-      difficulty: "Intermédiaire",
-      color: "bg-indigo-50 border-indigo-200"
-    },
-    {
-      title: "Générateur de QCM",
-      description: "Créez des questionnaires personnalisés pour vos révisions",
-      icon: <Brain className="h-8 w-8 text-cyan-500" />,
-      path: "/tools/quiz-generator",
-      category: "Évaluation",
       difficulty: "Intermédiaire",
       color: "bg-cyan-50 border-cyan-200"
     },
     {
+      title: "Générateur de QCM",
+      description: "Créez des questionnaires personnalisés pour vos révisions",
+      icon: <Brain className="h-8 w-8 text-emerald-500" />,
+      path: "/tools/quiz-generator",
+      category: "Évaluation",
+      difficulty: "Intermédiaire",
+      color: "bg-emerald-50 border-emerald-200"
+    },
+    {
       title: "Suivi des performances",
       description: "Analysez vos résultats et identifiez vos points forts",
-      icon: <BarChart3 className="h-8 w-8 text-emerald-500" />,
+      icon: <BarChart3 className="h-8 w-8 text-teal-500" />,
       path: "/tools/performance-tracker",
       category: "Analyse",
       difficulty: "Avancé",
-      color: "bg-emerald-50 border-emerald-200"
+      color: "bg-teal-50 border-teal-200"
     }
   ];
 
@@ -102,25 +112,23 @@ const ToolsHub = () => {
   };
 
   const ToolCard = ({ tool }: { tool: any }) => (
-    <Card className={`hover:shadow-lg transition-all duration-300 border-2 ${tool.color} group`}>
+    <Card className={`hover:shadow-lg transition-all duration-300 border-2 ${tool.color} group h-full`}>
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-white shadow-sm group-hover:scale-110 transition-transform">
               {tool.icon}
             </div>
-            <div>
-              <Badge variant="secondary" className="mb-2">{tool.category}</Badge>
-              <CardTitle className="text-lg">{tool.title}</CardTitle>
-            </div>
+            <Badge variant="secondary" className="text-xs">{tool.category}</Badge>
           </div>
-          <Badge className={getDifficultyColor(tool.difficulty)}>
+          <Badge className={`${getDifficultyColor(tool.difficulty)} text-xs`}>
             {tool.difficulty}
           </Badge>
         </div>
+        <CardTitle className="text-lg leading-tight">{tool.title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <CardDescription className="mb-4 text-sm">{tool.description}</CardDescription>
+      <CardContent className="flex flex-col justify-between flex-1">
+        <CardDescription className="mb-4 text-sm flex-1">{tool.description}</CardDescription>
         <Button asChild className="w-full group-hover:scale-105 transition-transform">
           <Link to={tool.path}>
             Utiliser l'outil
@@ -133,79 +141,79 @@ const ToolsHub = () => {
 
   return (
     <MainLayout requireAuth={true}>
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-medical-navy mb-4">
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
+        {/* Header responsive */}
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-medical-navy mb-2 sm:mb-4">
             Centre d'Outils
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto px-2">
             Découvrez notre collection d'outils conçus pour optimiser votre apprentissage, 
             améliorer votre productivité et vous accompagner dans votre réussite académique.
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {/* Stats responsive */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
           <Card>
-            <CardContent className="p-6 text-center">
-              <Clock className="h-8 w-8 text-medical-blue mx-auto mb-2" />
-              <h3 className="text-2xl font-bold text-medical-navy">8</h3>
-              <p className="text-gray-600">Outils disponibles</p>
+            <CardContent className="p-4 sm:p-6 text-center">
+              <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-medical-blue mx-auto mb-2" />
+              <h3 className="text-xl sm:text-2xl font-bold text-medical-navy">9</h3>
+              <p className="text-sm sm:text-base text-gray-600">Outils disponibles</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6 text-center">
-              <TrendingUp className="h-8 w-8 text-medical-teal mx-auto mb-2" />
-              <h3 className="text-2xl font-bold text-medical-navy">95%</h3>
-              <p className="text-gray-600">Satisfaction utilisateur</p>
+            <CardContent className="p-4 sm:p-6 text-center">
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-medical-teal mx-auto mb-2" />
+              <h3 className="text-xl sm:text-2xl font-bold text-medical-navy">95%</h3>
+              <p className="text-sm sm:text-base text-gray-600">Satisfaction utilisateur</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6 text-center">
-              <PieChart className="h-8 w-8 text-medical-green mx-auto mb-2" />
-              <h3 className="text-2xl font-bold text-medical-navy">24/7</h3>
-              <p className="text-gray-600">Accès disponible</p>
+            <CardContent className="p-4 sm:p-6 text-center">
+              <PieChart className="h-6 w-6 sm:h-8 sm:w-8 text-medical-green mx-auto mb-2" />
+              <h3 className="text-xl sm:text-2xl font-bold text-medical-navy">24/7</h3>
+              <p className="text-sm sm:text-base text-gray-600">Accès disponible</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Outils de Productivité */}
-        <section className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <Clock className="h-6 w-6 text-medical-blue" />
-            <h2 className="text-2xl font-bold text-medical-navy">Outils de Productivité</h2>
+        {/* Outils de Productivité responsive */}
+        <section className="mb-8 sm:mb-12">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6 px-2">
+            <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-medical-blue flex-shrink-0" />
+            <h2 className="text-xl sm:text-2xl font-bold text-medical-navy">Outils de Productivité</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
             {productivityTools.map((tool, index) => (
               <ToolCard key={index} tool={tool} />
             ))}
           </div>
         </section>
 
-        {/* Outils Académiques */}
+        {/* Outils Académiques responsive */}
         <section>
-          <div className="flex items-center gap-3 mb-6">
-            <BookOpen className="h-6 w-6 text-medical-green" />
-            <h2 className="text-2xl font-bold text-medical-navy">Outils Académiques</h2>
+          <div className="flex items-center gap-3 mb-4 sm:mb-6 px-2">
+            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-medical-green flex-shrink-0" />
+            <h2 className="text-xl sm:text-2xl font-bold text-medical-navy">Outils Académiques</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {academicTools.map((tool, index) => (
               <ToolCard key={index} tool={tool} />
             ))}
           </div>
         </section>
 
-        {/* Call to Action */}
-        <div className="mt-16 text-center">
+        {/* Call to Action responsive */}
+        <div className="mt-12 sm:mt-16">
           <Card className="bg-gradient-to-r from-medical-blue to-medical-teal text-white border-0">
-            <CardContent className="p-8">
-              <h3 className="text-2xl font-bold mb-4">Besoin d'un outil spécifique ?</h3>
-              <p className="text-lg mb-6 opacity-90">
+            <CardContent className="p-6 sm:p-8 text-center">
+              <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Besoin d'un outil spécifique ?</h3>
+              <p className="text-sm sm:text-base lg:text-lg mb-4 sm:mb-6 opacity-90 max-w-2xl mx-auto">
                 Nous développons constamment de nouveaux outils pour répondre à vos besoins. 
                 N'hésitez pas à nous faire part de vos suggestions !
               </p>
-              <Button size="lg" variant="secondary">
+              <Button size="lg" variant="secondary" className="text-sm sm:text-base">
                 Suggérer un outil
               </Button>
             </CardContent>
