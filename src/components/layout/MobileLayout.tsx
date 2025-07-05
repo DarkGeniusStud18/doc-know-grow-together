@@ -14,7 +14,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import MobileTopBar from './mobile-topbar/MobileTopBar';
-import MobileNavbar from './mobile-navbar/MobileNavbar';
+import { MobileNavbar } from './mobile-navbar/MobileNavbar';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { usePWAStatus } from '@/hooks/usePWAStatus';
 

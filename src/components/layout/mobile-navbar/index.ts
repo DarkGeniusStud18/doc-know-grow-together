@@ -6,7 +6,7 @@
  * pour une utilisation simplifiée dans l'application
  */
 
-export { default as MobileNavbar } from './MobileNavbar';
+export { MobileNavbar, default as default } from './MobileNavbar';
 export { MagicNavIcon } from './components/MagicNavIcon';
 export { useBlobAnimation } from './hooks/useBlobAnimation';
 export { primaryNavItems, secondaryNavItems } from './navigation-config';

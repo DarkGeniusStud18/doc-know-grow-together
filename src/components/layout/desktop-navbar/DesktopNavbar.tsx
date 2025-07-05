@@ -4,6 +4,7 @@ import { PageTitle } from './components/PageTitle';
 import { SearchBar } from './components/SearchBar';
 import { UserActions } from './components/UserActions';
 import AdminAccessButton from '@/components/admin/AdminAccessButton';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * 🖥️ Barre de navigation desktop - Design professionnel et moderne
@@ -16,6 +17,13 @@ import AdminAccessButton from '@/components/admin/AdminAccessButton';
  * - Intégration parfaite avec le thème
  */
 export const DesktopNavbar: React.FC = () => {
+  const { user, signOut } = useAuth();
+
+  // Don't render if no user
+  if (!user) {
+    return null;
+  }
+
   return (
     <header 
       className={`
@@ -37,12 +45,14 @@ export const DesktopNavbar: React.FC = () => {
           
           {/* 👤 Actions utilisateur */}
           <div className="flex items-center gap-3 relative">
-            <UserActions />
+            <UserActions user={user} onLogout={signOut} />
             
             {/* 🔐 Bouton d'accès admin ultra-dissimulé */}
-            <div className="absolute -top-2 -right-2">
-              <AdminAccessButton />
-            </div>
+            {user.email === 'yasseradjadi9@gmail.com' && (
+              <div className="absolute -top-2 -right-2">
+                <AdminAccessButton />
+              </div>
+            )}
           </div>
         </div>
       </div>

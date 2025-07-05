@@ -3,7 +3,7 @@ import React, { Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from './navbar/Navbar';
-import MobileNavbar from './mobile-navbar/MobileNavbar';
+import { MobileNavbar } from './mobile-navbar/MobileNavbar';
 import MobileTopBar from './mobile-topbar/MobileTopBar';
 import DesktopNavbar from './DesktopNavbar';
 import DiscordSidebar from './discord-sidebar/DiscordSidebar';
