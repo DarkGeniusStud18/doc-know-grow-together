@@ -23,12 +23,13 @@ export interface UserHeaderProps {
 export interface MobileSecondaryMenuItem {
   id: string;
   label: string;
-  icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+  icon: React.ComponentType<any>; // Changed to match MobileNavItem
   href?: string;
   onClick?: () => void;
   variant?: 'default' | 'danger';
   requiresAuth?: boolean;
-  isActive?: (pathname: string) => boolean; // Ajout de la propriété manquante
+  category?: string; // Added category property
+  isActive?: (pathname: string) => boolean;
 }
 
 /**
@@ -50,8 +51,8 @@ export interface MobileNavItem {
 export interface MobileSecondaryMenuProps {
   items: MobileSecondaryMenuItem[];
   onItemClick: (item: MobileSecondaryMenuItem) => void;
-  userRole?: string; // Ajout de la propriété userRole
-  userName?: string; // Ajout de la propriété userName
+  userRole?: string;
+  userName?: string;
 }
 
 /**

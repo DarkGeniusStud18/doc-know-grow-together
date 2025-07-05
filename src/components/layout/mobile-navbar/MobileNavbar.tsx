@@ -50,14 +50,15 @@ export const MobileNavbar: React.FC = () => {
 
   const activeIndex = getActiveIndex();
 
-  // Convert secondary nav items to mobile secondary menu items
+  // Convert secondary nav items to mobile secondary menu items with proper typing
   const secondaryMenuItems: MobileSecondaryMenuItem[] = secondaryNavItems.map(item => ({
     id: item.id,
     icon: item.icon,
     label: item.label,
     href: item.href,
     requiresAuth: false,
-    category: 'secondary'
+    category: 'secondary',
+    isActive: item.isActive
   }));
 
   const handleSecondaryItemClick = (item: MobileSecondaryMenuItem) => {
