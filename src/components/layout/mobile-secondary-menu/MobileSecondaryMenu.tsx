@@ -46,9 +46,9 @@ const MobileSecondaryMenu: React.FC<MobileSecondaryMenuProps> = ({
    * mais utilise une vraie navigation pour fermer le menu
    */
   const handleClose = () => {
-    console.log('🚪 MobileSecondaryMenu: Fermeture du menu demandée');
+    /*console.log('🚪 MobileSecondaryMenu: Fermeture du menu demandée');
     
-    /*const closeItem = {
+    const closeItem = {
       id: 'close',
       label: 'Fermer',
       icon: X,
