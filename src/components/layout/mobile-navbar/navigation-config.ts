@@ -81,7 +81,7 @@ export const secondaryNavItems: MobileNavItem[] = [
     id: 'music',
     icon: Music,
     label: 'Bibliothèque musicale',
-    href: '/music',
+    href: '/music-library',
     isActive: (pathname: string) => pathname.startsWith('/music')
   },
   {
@@ -90,13 +90,6 @@ export const secondaryNavItems: MobileNavItem[] = [
     label: 'Calendrier',
     href: '/calendar',
     isActive: (pathname: string) => pathname.startsWith('/calendar')
-  },
-  {
-    id: 'settings',
-    icon: Settings,
-    label: 'Paramètres',
-    href: '/settings',
-    isActive: (pathname: string) => pathname.startsWith('/settings')
   }
 ];
 

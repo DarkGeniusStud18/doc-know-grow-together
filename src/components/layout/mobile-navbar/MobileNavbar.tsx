@@ -73,9 +73,11 @@ export const MobileNavbar: React.FC = () => {
         fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md 
         border-t border-gray-200/50 shadow-lg px-2 py-2 
         safe-area-inset-bottom md:px-4 lg:hidden
+        transform-none sticky-mobile-nav
       "
       role="navigation"
       aria-label="Navigation mobile principale"
+      style={{ position: 'fixed' }}
     >
       <div className="relative max-w-md mx-auto">
         {/* 🌟 Blob de navigation animé */}

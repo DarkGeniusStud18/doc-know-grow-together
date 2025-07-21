@@ -1,30 +1,39 @@
-// Service Worker optimisé pour MedCollab PWA
-// Gestion avancée du cache avec stratégies intelligentes et fonctionnalités hors ligne robustes
+/**
+ * 🔧 Service Worker MedCollab - Version PWA Optimisée v2.0.0
+ * 
+ * Fonctionnalités avancées :
+ * - Cache intelligent des ressources statiques
+ * - Stratégies de mise en cache optimisées
+ * - Support hors ligne amélioré
+ * - Gestion des mises à jour automatiques
+ * - Compatible Android, iOS et Desktop
+ * - Suppression du logo Chrome indésirable
+ */
 
-const CACHE_NAME = "medcollab-v1.3.0";
-const STATIC_CACHE = "medcollab-static-v1.3.0";
-const DYNAMIC_CACHE = "medcollab-dynamic-v1.3.0";
-const IMAGE_CACHE = "medcollab-images-v1.3.0";
-const API_CACHE = "medcollab-api-v1.3.0";
+const CACHE_NAME = "medcollab-v2.0.0";
+const STATIC_CACHE = "medcollab-static-v2.0.0";
+const DYNAMIC_CACHE = "medcollab-dynamic-v2.0.0";
+const IMAGE_CACHE = "medcollab-images-v2.0.0";
+const API_CACHE = "medcollab-api-v2.0.0";
 
 // Ressources essentielles à mettre en cache avec priorité optimisée
 const ESSENTIAL_URLS = [
   "/",
+  "/index.html",
   "/dashboard",
   "/login",
   "/register",
   "/tools",
   "/community",
   "/manifest.json",
-  "/offline.html", // Page hors ligne de secours améliorée
-  "/favicon.ico",
+  "/offline.html",
 ];
 
-// URLs des images importantes avec fallbacks
+// URLs des images importantes avec le bon logo PWA
 const IMPORTANT_IMAGES = [
   "/lovable-uploads/a892db17-0e9b-48b1-88a9-d2e2a7ca1bf9.png",
-  "/lovable-uploads/a892db17-0e9b-48b1-88a9-d2e2a7ca1bf9.png",
-  "/favicon.ico",
+  "/pwa-192x192.png",
+  "/pwa-512x512.png",
   "/pictures/wallpaper.png",
 ];
 
@@ -41,14 +50,14 @@ const CACHE_STRATEGIES = {
  * Optimisé pour éviter les échecs de mise en cache et améliorer les performances
  */
 self.addEventListener("install", (event) => {
-  console.log("Service Worker: Installation en cours... v1.3.0");
+  console.log("🔧 SW: Installation en cours... v2.0.0");
 
   event.waitUntil(
     Promise.allSettled([
       // Cache des ressources statiques essentielles avec gestion d'erreurs
       caches.open(STATIC_CACHE).then(async (cache) => {
         console.log(
-          "Service Worker: Mise en cache des ressources essentielles"
+          "🔧 SW: Mise en cache des ressources essentielles"
         );
         const results = await Promise.allSettled(
           ESSENTIAL_URLS.map((url) =>
@@ -88,8 +97,8 @@ self.addEventListener("install", (event) => {
       }),
     ])
       .then(() => {
-        console.log("Service Worker: Installation terminée avec succès");
-        self.skipWaiting(); // Force l'activation immédiate pour les mises à jour
+        console.log("✅ SW: Installation terminée avec succès");
+        self.skipWaiting(); // Force l'activation immédiate pour éviter le logo Chrome
       })
       .catch((error) => {
         console.error("Service Worker: Erreur durant l'installation:", error);
@@ -462,5 +471,5 @@ self.addEventListener("unhandledrejection", (event) => {
 });
 
 console.log(
-  "Service Worker MedCollab v1.3.0 chargé et configuré avec optimisations avancées"
+  "🚀 SW: Service Worker MedCollab v2.0.0 chargé avec optimisations PWA avancées"
 );

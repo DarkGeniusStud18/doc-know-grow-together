@@ -41,13 +41,19 @@
       "src": "/lovable-uploads/a892db17-0e9b-48b1-88a9-d2e2a7ca1bf9.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/lovable-uploads/a892db17-0e9b-48b1-88a9-d2e2a7ca1bf9.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/a892db17-0e9b-48b1-88a9-d2e2a7ca1bf9.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "id": "/"

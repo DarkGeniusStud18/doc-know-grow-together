@@ -88,16 +88,16 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({
     return null;
   }
 
-  // Styles adaptatifs selon l'environnement (desktop/mobile)
+  // Styles adaptatifs selon l'environnement (desktop/mobile) - Ultra dissimulé
   const buttonStyles = isMobile 
     ? `
-        w-3 h-3 rounded-full bg-gray-200 hover:bg-gray-300 
-        transition-colors duration-200 cursor-pointer opacity-20 hover:opacity-40
+        w-2 h-2 rounded-full bg-gray-100 hover:bg-gray-200 
+        transition-colors duration-200 cursor-pointer opacity-10 hover:opacity-20
         ${className}
       `
     : `
-        w-2 h-2 rounded-full bg-gray-200 hover:bg-gray-300 
-        transition-colors duration-200 cursor-pointer opacity-30 hover:opacity-60
+        w-1 h-1 rounded-full bg-gray-100 hover:bg-gray-200 
+        transition-colors duration-200 cursor-pointer opacity-5 hover:opacity-15
         ${className}
       `;
 
@@ -107,8 +107,8 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({
       className={buttonStyles}
       title="" // Pas de tooltip pour rester discret
       style={{
-        minWidth: isMobile ? '12px' : '8px',
-        minHeight: isMobile ? '12px' : '8px'
+        minWidth: isMobile ? '8px' : '4px',
+        minHeight: isMobile ? '8px' : '4px'
       }}
     />
   );

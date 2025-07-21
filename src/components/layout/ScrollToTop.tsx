@@ -29,19 +29,23 @@ const ScrollToTop: React.FC = () => {
     const shouldScroll = !excludedRoutes.some(route => pathname.startsWith(route));
 
     if (shouldScroll) {
-      // Défilement vers le haut avec comportement fluide
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'smooth' // Animation fluide
-      });
+      // Délai court pour s'assurer que le composant est monté
+      setTimeout(() => {
+        // Défilement vers le haut avec comportement fluide
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'auto' // Changé de 'smooth' à 'auto' pour un scroll immédiat
+        });
 
-      // Fallback pour les navigateurs qui ne supportent pas behavior: 'smooth'
-      try {
-        window.scroll(0, 0);
-      } catch (error) {
-        console.log('ScrollToTop: Fallback scroll appliqué');
-      }
+        // Fallback supplémentaire pour garantir le scroll
+        try {
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        } catch (error) {
+          console.log('ScrollToTop: Fallback scroll appliqué');
+        }
+      }, 10); // Délai très court mais nécessaire
     }
 
     // Log pour le débogage

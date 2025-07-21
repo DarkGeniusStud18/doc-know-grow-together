@@ -28,19 +28,26 @@ import {
   Shield,
   LogOut,
   Eye,
-  EyeOff
+  EyeOff,
+  GraduationCap,
+  Clock
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Interface pour les statistiques utilisateur
+ * Interface pour les statistiques utilisateur réelles
  */
 interface UserStats {
   totalUsers: number;
-  activeUsers: number;
+  activeUsersMonth: number;
+  activeUsersWeek: number;
+  newUsersToday: number;
   studyGroups: number;
   discussions: number;
   resources: number;
   presentations: number;
+  studySessions: number;
+  totalStudyMinutes: number;
 }
 
 /**
@@ -57,14 +64,18 @@ const AdminDashboard: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [authAttempts, setAuthAttempts] = useState(0);
   
-  // États des données
+  // États des données réelles
   const [stats, setStats] = useState<UserStats>({
     totalUsers: 0,
-    activeUsers: 0,
+    activeUsersMonth: 0,
+    activeUsersWeek: 0,
+    newUsersToday: 0,
     studyGroups: 0,
     discussions: 0,
     resources: 0,
-    presentations: 0
+    presentations: 0,
+    studySessions: 0,
+    totalStudyMinutes: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -114,32 +125,46 @@ const AdminDashboard: React.FC = () => {
   };
 
   /**
-   * 📊 Chargement des statistiques administrateur
+   * 📊 Chargement des statistiques administrateur réelles depuis la base de données
    */
   const loadAdminStats = async () => {
     try {
       setLoading(true);
+      console.log('📊 Chargement des statistiques administrateur réelles...');
       
-      // Simulation de données (à remplacer par vraies requêtes Supabase)
-      const mockStats: UserStats = {
-        totalUsers: 1247,
-        activeUsers: 892,
-        studyGroups: 156,
-        discussions: 2341,
-        resources: 567,
-        presentations: 234
-      };
-
-      // Délai pour simuler le chargement
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Appel de la fonction Supabase pour obtenir les statistiques réelles
+      const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
       
-      setStats(mockStats);
-      console.log('📊 Statistiques admin chargées:', mockStats);
+      if (error) {
+        console.error('❌ Erreur lors de la récupération des statistiques:', error);
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        const realStats = data[0];
+        const formattedStats: UserStats = {
+          totalUsers: Number(realStats.total_users) || 0,
+          activeUsersMonth: Number(realStats.active_users_month) || 0,
+          activeUsersWeek: Number(realStats.active_users_week) || 0,
+          newUsersToday: Number(realStats.new_users_today) || 0,
+          studyGroups: Number(realStats.total_groups) || 0,
+          discussions: Number(realStats.total_topics) || 0,
+          resources: Number(realStats.total_resources) || 0,
+          presentations: Number(realStats.total_presentations) || 0,
+          studySessions: Number(realStats.total_study_sessions) || 0,
+          totalStudyMinutes: Number(realStats.total_study_minutes) || 0
+        };
+        
+        setStats(formattedStats);
+        console.log('✅ Statistiques admin réelles chargées:', formattedStats);
+      } else {
+        console.log('⚠️ Aucune donnée retournée, utilisation de valeurs par défaut');
+      }
       
     } catch (error) {
       console.error('❌ Erreur lors du chargement des stats:', error);
       toast.error('Erreur de chargement', {
-        description: 'Impossible de charger les statistiques',
+        description: 'Impossible de charger les statistiques réelles',
       });
     } finally {
       setLoading(false);
@@ -285,7 +310,7 @@ const AdminDashboard: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {/* Utilisateurs totaux */}
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
@@ -304,20 +329,56 @@ const AdminDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Utilisateurs actifs */}
+          {/* Utilisateurs actifs mensuels */}
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
                 <TrendingUp className="w-4 h-4 mr-2 text-green-500" />
-                Utilisateurs actifs
+                Actifs (mois)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {stats.activeUsers.toLocaleString()}
+                {stats.activeUsersMonth.toLocaleString()}
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Actifs ce mois-ci
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Utilisateurs actifs hebdomadaires */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                <Activity className="w-4 h-4 mr-2 text-emerald-500" />
+                Actifs (semaine)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-600">
+                {stats.activeUsersWeek.toLocaleString()}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Actifs cette semaine
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Nouveaux utilisateurs aujourd'hui */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                <Users className="w-4 h-4 mr-2 text-cyan-500" />
+                Nouveaux (jour)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-cyan-600">
+                {stats.newUsersToday.toLocaleString()}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Inscrits aujourd'hui
               </p>
             </CardContent>
           </Card>
@@ -326,7 +387,7 @@ const AdminDashboard: React.FC = () => {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
-                <Users className="w-4 h-4 mr-2 text-purple-500" />
+                <GraduationCap className="w-4 h-4 mr-2 text-purple-500" />
                 Groupes d'étude
               </CardTitle>
             </CardHeader>
@@ -353,7 +414,7 @@ const AdminDashboard: React.FC = () => {
                 {stats.discussions.toLocaleString()}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Messages échangés
+                Sujets créés
               </p>
             </CardContent>
           </Card>
@@ -393,10 +454,46 @@ const AdminDashboard: React.FC = () => {
               </p>
             </CardContent>
           </Card>
+
+          {/* Sessions d'étude */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-indigo-500" />
+                Sessions d'étude
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-indigo-600">
+                {stats.studySessions.toLocaleString()}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Sessions effectuées
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Temps d'étude total */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-pink-500" />
+                Temps d'étude
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-pink-600">
+                {Math.round(stats.totalStudyMinutes / 60).toLocaleString()}h
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Heures d'étude totales
+              </p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      {/* Section d'informations supplémentaires */}
+      {/* Section d'informations supplémentaires avec données réelles */}
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -406,15 +503,19 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Nouveaux utilisateurs aujourd'hui</span>
-                <Badge variant="secondary">+12</Badge>
+                <Badge variant="secondary">+{stats.newUsersToday}</Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Groupes créés cette semaine</span>
-                <Badge variant="secondary">+8</Badge>
+                <span className="text-gray-600">Utilisateurs actifs cette semaine</span>
+                <Badge variant="secondary">{stats.activeUsersWeek}</Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Ressources ajoutées</span>
-                <Badge variant="secondary">+23</Badge>
+                <span className="text-gray-600">Sessions d'étude actives</span>
+                <Badge variant="secondary">{stats.studySessions}</Badge>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Heures d'étude totales</span>
+                <Badge variant="secondary">{Math.round(stats.totalStudyMinutes / 60)}h</Badge>
               </div>
             </div>
           </CardContent>

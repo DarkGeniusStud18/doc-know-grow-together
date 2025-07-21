@@ -99,6 +99,24 @@ const ToolsHub = () => {
       category: "Analyse",
       difficulty: "Avancé",
       color: "bg-teal-50 border-teal-200"
+    },
+    {
+      title: "Présentations interactives",
+      description: "Créez des présentations dynamiques avec quiz et animations",
+      icon: <FileText className="h-8 w-8 text-purple-500" />,
+      path: "/tools/interactive-presentations",
+      category: "Présentation",
+      difficulty: "Intermédiaire",
+      color: "bg-purple-50 border-purple-200"
+    },
+    {
+      title: "Cas cliniques",
+      description: "Explorez des cas cliniques réels pour votre formation",
+      icon: <BookOpen className="h-8 w-8 text-rose-500" />,
+      path: "/tools/clinical-cases",
+      category: "Formation",
+      difficulty: "Avancé",
+      color: "bg-rose-50 border-rose-200"
     }
   ];
 
@@ -158,7 +176,7 @@ const ToolsHub = () => {
           <Card>
             <CardContent className="p-4 sm:p-6 text-center">
               <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-medical-blue mx-auto mb-2" />
-              <h3 className="text-xl sm:text-2xl font-bold text-medical-navy">9</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-medical-navy">11</h3>
               <p className="text-sm sm:text-base text-gray-600">Outils disponibles</p>
             </CardContent>
           </Card>
