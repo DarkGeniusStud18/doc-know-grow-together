@@ -9,19 +9,19 @@
  * - Transitions CSS natives pour fluidité maximale
  */
 
-/*import React from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { BlobPosition } from '../types';
 
 interface NavigationBlobProps {
   blobPosition: BlobPosition;
-}*/
+}
 
 /**
  * Blob magique animé avec gradient médical
  * Optimisé pour les animations fluides de navigation Magic Navbar
  */
-/*export const NavigationBlob: React.FC<NavigationBlobProps> = ({ blobPosition }) => {
+export const NavigationBlob: React.FC<NavigationBlobProps> = ({ blobPosition }) => {
   return (
     <div
       className={cn(
@@ -41,4 +41,3 @@ interface NavigationBlobProps {
     />
   );
 };
-*/
