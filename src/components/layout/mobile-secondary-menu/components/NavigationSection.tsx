@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * 🧭 Section de navigation pour le menu secondaire mobile - Version optimisée

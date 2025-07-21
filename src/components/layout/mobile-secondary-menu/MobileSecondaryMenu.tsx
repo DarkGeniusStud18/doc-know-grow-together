@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * 📱 Menu secondaire mobile déployable avec navigation fonctionnelle - Version optimisée

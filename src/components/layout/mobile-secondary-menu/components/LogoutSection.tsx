@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * 🚪 Section de déconnexion pour le menu secondaire mobile - Version optimisée
