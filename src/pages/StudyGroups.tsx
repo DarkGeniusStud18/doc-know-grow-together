@@ -1,237 +1,214 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
- * 👥 Page des Groupes d'Étude - Version optimisée et responsive
- * 
- * ✅ Améliorations apportées :
- * - Responsive design parfait pour tous les écrans
- * - Performance optimisée avec React Query
- * - Commentaires français détaillés
- * - Gestion d'erreurs robuste
- * - Interface utilisateur améliorée
- * - Fonctionnalités PWA intégrées
+ * 📚 Page Groupes d'Étude - Gestion complète des groupes d'étude
+ * Fonctionnalités : création, modification, suppression, gestion des membres
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import MainLayout from '@/components/layout/MainLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { toast } from '@/components/ui/sonner';
-import { Search, Plus, Users, Lock, Globe, Calendar, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/components/ui/sonner';
+import { Users, Plus, Settings, UserPlus, MessageSquare, BookOpen, Calendar, Search, Filter } from 'lucide-react';
 
-// 🔗 Utilization du MobileLayout pour une meilleure expérience mobile
-import MobileLayout from '@/components/layout/MobileLayout';
-
-/**
- * 📋 Interface TypeScript pour un groupe d'étude
- * Structure de données optimisée pour la performance
- */
-type StudyGroup = {
+interface StudyGroup {
   id: string;
   name: string;
   description: string;
+  subject: string;
   creator_id: string;
   is_private: boolean;
   max_members: number;
   created_at: string;
-  member_count?: number;
-  is_member?: boolean;
-  user_role?: string;
-};
+  updated_at: string;
+  member_count: number;
+  is_member: boolean;
+  user_role: string;
+  study_group_members: any[];
+}
 
-/**
- * 👥 Composant principal des Groupes d'Étude
- * 
- * Fonctionnalités optimisées :
- * - Interface responsive adaptée mobile/desktop
- * - Gestion d'état avec React Query pour la performance
- * - Création et gestion de groupes simplifiées
- * - Recherche et filtrage en temps réel
- * - Notifications utilisateur améliorées
- * - Synchronisation automatique des données
- */
 const StudyGroups: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  
-  // 🎛️ États locaux pour l'interface utilisateur
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [formData, setFormData] = useState({
+  const [groups, setGroups] = useState<StudyGroup[]>([]);
+  const [myGroups, setMyGroups] = useState<StudyGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newGroup, setNewGroup] = useState({
     name: '',
     description: '',
+    subject: '',
     is_private: false,
-    max_members: 20
+    max_members: 10
   });
 
-  console.log('👥 StudyGroups: Rendu pour utilisateur', user?.id);
+  // Sujets disponibles pour les groupes d'étude
+  const subjects = [
+    { value: 'all', label: 'Tous les sujets' },
+    { value: 'anatomie', label: 'Anatomie' },
+    { value: 'physiologie', label: 'Physiologie' },
+    { value: 'pharmacologie', label: 'Pharmacologie' },
+    { value: 'pathologie', label: 'Pathologie' },
+    { value: 'cardiologie', label: 'Cardiologie' },
+    { value: 'neurologie', label: 'Neurologie' },
+    { value: 'chirurgie', label: 'Chirurgie' },
+    { value: 'medecine_generale', label: 'Médecine générale' },
+    { value: 'pediatrie', label: 'Pédiatrie' },
+    { value: 'gynecologie', label: 'Gynécologie' },
+    { value: 'psychiatrie', label: 'Psychiatrie' },
+    { value: 'autre', label: 'Autre' }
+  ];
 
-  /**
-   * 📊 Hook React Query pour récupérer les groupes d'étude
-   * Optimisé pour la performance et la synchronisation
-   */
-  const { data: groups = [], isLoading, refetch } = useQuery({
-    queryKey: ['studyGroups', user?.id],
-    queryFn: async (): Promise<StudyGroup[]> => {
-      if (!user) {
-        console.log('⚠️ Aucun utilisateur connecté pour récupérer les groupes');
-        return [];
-      }
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
-      console.log('📊 Récupération des groupes d\'étude pour', user.id);
+  const fetchGroups = async () => {
+    try {
+      setLoading(true);
+      
+      // Récupérer tous les groupes avec les informations des membres
+      const { data: groupsData, error: groupsError } = await supabase
+        .from('study_groups')
+        .select(`
+          *,
+          study_group_members (
+            id,
+            user_id,
+            role,
+            joined_at,
+            profiles (
+              display_name,
+              email
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-      try {
-        // 📥 Récupération de tous les groupes avec comptage des membres
-        const { data: groupsData, error: groupsError } = await supabase
-          .from('study_groups')
-          .select('*')
-          .order('created_at', { ascending: false });
+      if (groupsError) throw groupsError;
 
-        if (groupsError) {
-          console.error('❌ Erreur lors de la récupération des groupes:', groupsError);
-          throw groupsError;
-        }
-
-        console.log('✅ Groupes récupérés:', groupsData?.length || 0);
-
-        // 🔄 Enrichissement des données avec informations de membre
-        const enrichedGroups = await Promise.all(
-          (groupsData || []).map(async (group) => {
-            try {
-              // 📊 Comptage des membres du groupe
-              const { count: memberCount } = await supabase
-                .from('study_group_members')
-                .select('*', { count: 'exact', head: true })
-                .eq('group_id', group.id);
-
-              // 👤 Vérification de l'appartenance de l'utilisateur actuel
-              const { data: memberData } = await supabase
-                .from('study_group_members')
-                .select('role')
-                .eq('group_id', group.id)
-                .eq('user_id', user.id)
-                .single();
-
-              const enrichedGroup = {
-                ...group,
-                member_count: memberCount || 0,
-                is_member: !!memberData,
-                user_role: memberData?.role || null
-              };
-
-              console.log('✅ Groupe enrichi:', enrichedGroup.name, 'Membres:', enrichedGroup.member_count);
-              return enrichedGroup;
-
-            } catch (enrichError) {
-              console.error('⚠️ Erreur lors de l\'enrichissement du groupe:', group.id, enrichError);
-              return {
-                ...group,
-                member_count: 0,
-                is_member: false,
-                user_role: null
-              };
-            }
-          })
-        );
-
-        return enrichedGroups;
-
-      } catch (error) {
-        console.error('❌ Erreur globale lors de la récupération des groupes:', error);
-        toast.error('❌ Erreur lors du chargement des groupes', {
-          description: 'Impossible de charger les groupes d\'étude. Veuillez réessayer.'
+      if (groupsData) {
+        // Traiter les données pour calculer le nombre de membres et le statut utilisateur
+        const processedGroups = groupsData.map(group => {
+          const memberCount = group.study_group_members?.length || 0;
+          const currentUserMembership = group.study_group_members?.find(
+            member => member.user_id === user?.id
+          );
+          
+          return {
+            ...group,
+            member_count: memberCount,
+            is_member: !!currentUserMembership,
+            user_role: currentUserMembership?.role || 'none',
+            subject: group.subject || 'Non spécifié' // Gérer les cas où subject est null
+          };
         });
-        return [];
+
+        setGroups(processedGroups);
+        
+        // Filtrer les groupes où l'utilisateur est membre
+        if (user) {
+          const userGroups = processedGroups.filter(group => group.is_member);
+          setMyGroups(userGroups);
+        }
       }
-    },
-    enabled: !!user,
-    staleTime: 30000, // 30 secondes de cache
-    gcTime: 300000, // 5 minutes de cache (updated from cacheTime)
-  });
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des groupes:', error);
+      toast.error('Erreur lors du chargement des groupes');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  /**
-   * 🆕 Mutation pour créer un nouveau groupe
-   */
-  const createGroupMutation = useMutation({
-    mutationFn: async (groupData: typeof formData) => {
-      if (!user) throw new Error('Utilisateur non connecté');
+  const createGroup = async () => {
+    if (!user) {
+      toast.error('Vous devez être connecté pour créer un groupe');
+      return;
+    }
 
+    try {
       const { data, error } = await supabase
         .from('study_groups')
-        .insert({
-          name: groupData.name,
-          description: groupData.description,
-          creator_id: user.id,
-          is_private: groupData.is_private,
-          max_members: groupData.max_members
-        })
+        .insert([
+          {
+            ...newGroup,
+            creator_id: user.id
+          }
+        ])
         .select()
         .single();
 
       if (error) throw error;
-      return data;
-    },
-    onSuccess: (newGroup) => {
-      queryClient.invalidateQueries({ queryKey: ['studyGroups'] });
-      setShowCreateDialog(false);
-      setFormData({ name: '', description: '', is_private: false, max_members: 20 });
-      toast.success('✅ Groupe créé avec succès!', {
-        description: `Le groupe "${newGroup.name}" a été créé.`
-      });
-    },
-    onError: (error) => {
-      console.error('❌ Erreur lors de la création du groupe:', error);
-      toast.error('❌ Erreur lors de la création', {
-        description: 'Impossible de créer le groupe. Veuillez réessayer.'
-      });
+
+      if (data) {
+        // Ajouter le créateur comme membre admin
+        await supabase
+          .from('study_group_members')
+          .insert([
+            {
+              group_id: data.id,
+              user_id: user.id,
+              role: 'admin'
+            }
+          ]);
+
+        toast.success('Groupe créé avec succès !');
+        setIsCreateDialogOpen(false);
+        setNewGroup({
+          name: '',
+          description: '',
+          subject: '',
+          is_private: false,
+          max_members: 10
+        });
+        fetchGroups();
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de la création du groupe:', error);
+      toast.error('Erreur lors de la création du groupe');
     }
-  });
+  };
 
-  /**
-   * 🚪 Mutation pour rejoindre un groupe
-   */
-  const joinGroupMutation = useMutation({
-    mutationFn: async (groupId: string) => {
-      if (!user) throw new Error('Utilisateur non connecté');
+  const joinGroup = async (groupId: string) => {
+    if (!user) {
+      toast.error('Vous devez être connecté pour rejoindre un groupe');
+      return;
+    }
 
+    try {
       const { error } = await supabase
         .from('study_group_members')
-        .insert({
-          group_id: groupId,
-          user_id: user.id,
-          role: 'member'
-        });
+        .insert([
+          {
+            group_id: groupId,
+            user_id: user.id,
+            role: 'member'
+          }
+        ]);
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['studyGroups'] });
-      toast.success('🎉 Vous avez rejoint le groupe!');
-    },
-    onError: (error) => {
-      console.error('❌ Erreur lors de l\'adhésion au groupe:', error);
-      toast.error('❌ Erreur lors de l\'adhésion', {
-        description: 'Impossible de rejoindre le groupe. Veuillez réessayer.'
-      });
+
+      toast.success('Vous avez rejoint le groupe !');
+      fetchGroups();
+    } catch (error: any) {
+      console.error('Erreur lors de l\'adhésion au groupe:', error);
+      toast.error('Erreur lors de l\'adhésion au groupe');
     }
-  });
+  };
 
-  /**
-   * 🚪 Mutation pour quitter un groupe
-   */
-  const leaveGroupMutation = useMutation({
-    mutationFn: async (groupId: string) => {
-      if (!user) throw new Error('Utilisateur non connecté');
+  const leaveGroup = async (groupId: string) => {
+    if (!user) return;
 
+    try {
       const { error } = await supabase
         .from('study_group_members')
         .delete()
@@ -239,284 +216,310 @@ const StudyGroups: React.FC = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['studyGroups'] });
-      toast.success('👋 Vous avez quitté le groupe');
-    },
-    onError: (error) => {
-      console.error('❌ Erreur lors de la sortie du groupe:', error);
-      toast.error('❌ Erreur lors de la sortie', {
-        description: 'Impossible de quitter le groupe. Veuillez réessayer.'
-      });
-    }
-  });
 
-  /**
-   * 📝 Gestionnaire de création de groupe
-   */
-  const handleCreateGroup = () => {
-    if (!formData.name.trim()) {
-      toast.error('❌ Nom requis', {
-        description: 'Veuillez saisir un nom pour le groupe.'
-      });
-      return;
+      toast.success('Vous avez quitté le groupe');
+      fetchGroups();
+    } catch (error: any) {
+      console.error('Erreur lors de la sortie du groupe:', error);
+      toast.error('Erreur lors de la sortie du groupe');
     }
-
-    createGroupMutation.mutate(formData);
   };
 
-  /**
-   * 🔍 Filtrage des groupes selon la recherche utilisateur
-   */
-  const filteredGroups = (groups as StudyGroup[]).filter(group =>
-    group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    group.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const deleteGroup = async (groupId: string) => {
+    if (!user) return;
 
-  console.log('🔍 Groupes filtrés:', filteredGroups.length, 'sur', (groups as StudyGroup[]).length);
+    try {
+      const { error } = await supabase
+        .from('study_groups')
+        .delete()
+        .eq('id', groupId)
+        .eq('creator_id', user.id);
 
-  // 🔄 Affichage du loader pendant le chargement
-  if (isLoading) {
+      if (error) throw error;
+
+      toast.success('Groupe supprimé avec succès');
+      fetchGroups();
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression du groupe:', error);
+      toast.error('Erreur lors de la suppression du groupe');
+    }
+  };
+
+  const filteredGroups = groups.filter(group => {
+    const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         group.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         group.subject?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSubject = selectedSubject === 'all' || group.subject === selectedSubject;
+    return matchesSearch && matchesSubject;
+  });
+
+  if (loading) {
     return (
-      <MobileLayout requireAuth={true} title="Groupes d'étude">
-        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-teal"></div>
-          <p className="text-gray-600 text-center">🔄 Chargement des groupes d'étude...</p>
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto mb-4"></div>
+          <p className="text-lg">Chargement des groupes d'étude...</p>
         </div>
-      </MobileLayout>
+      </div>
     );
   }
 
   return (
-    <MobileLayout requireAuth={true} title="Groupes d'étude">
-      <div className="space-y-6 p-3 sm:p-4 md:p-6">
-        
-        {/* 🎯 En-tête avec titre et actions - Responsive */}
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 gap-4">
-          <div className="text-center sm:text-left">
-            <h1 className="text-2xl sm:text-3xl font-bold text-medical-navy">👥 Groupes d'étude</h1>
-            <p className="text-gray-500 mt-1 text-sm sm:text-base">
-              Rejoignez ou créez des groupes d'étude collaboratifs
-            </p>
-          </div>
-          
-          {/* 🔍 Barre de recherche et bouton de création - Layout responsive */}
-          <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:gap-3">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="🔍 Rechercher des groupes..."
-                className="pl-9 w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            {/* ➕ Dialog de création de groupe */}
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto bg-medical-teal hover:bg-medical-teal/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  ➕ Créer un groupe
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] mx-4">
-                <DialogHeader>
-                  <DialogTitle>✨ Créer un nouveau groupe d'étude</DialogTitle>
-                  <DialogDescription>
-                    Créez un espace de collaboration pour étudier ensemble
-                  </DialogDescription>
-                </DialogHeader>
-                
-                {/* 📝 Formulaire de création - Optimisé mobile */}
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">📝 Nom du groupe</Label>
-                    <Input 
-                      id="name" 
-                      placeholder="Nom du groupe"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">📋 Description</Label>
-                    <Textarea 
-                      id="description" 
-                      placeholder="Description du groupe..."
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      className="resize-none"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="maxMembers">👥 Nombre maximum de membres</Label>
-                    <Input 
-                      id="maxMembers" 
-                      type="number"
-                      min="5"
-                      max="100"
-                      value={formData.max_members}
-                      onChange={(e) => setFormData({...formData, max_members: parseInt(e.target.value) || 20})}
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="isPrivate" 
-                      checked={formData.is_private}
-                      onCheckedChange={(checked) => setFormData({...formData, is_private: checked})}
-                    />
-                    <Label htmlFor="isPrivate">🔒 Groupe privé</Label>
-                  </div>
-                </div>
-                <DialogFooter className="flex-col sm:flex-row gap-2">
-                  <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
-                    ❌ Annuler
-                  </Button>
-                  <Button 
-                    onClick={handleCreateGroup} 
-                    disabled={!formData.name.trim() || createGroupMutation.isPending}
-                    className="w-full sm:w-auto bg-medical-teal hover:bg-medical-teal/90"
-                  >
-                    {createGroupMutation.isPending ? '🔄 Création...' : '✅ Créer le groupe'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+    <div className="space-y-6 p-4 sm:p-6">
+      {/* En-tête avec titre et bouton de création */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-medical-navy flex items-center gap-3">
+            <Users className="h-8 w-8 text-medical-blue" />
+            Groupes d'Étude
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Rejoignez des groupes d'étude ou créez le vôtre pour étudier ensemble
+          </p>
         </div>
 
-        {/* 📊 Affichage des groupes ou message vide */}
-        {filteredGroups.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-200 bg-gray-50/50">
-            <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-              <div className="bg-gray-100 rounded-full p-6 mb-4">
-                <Users className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-medium text-gray-700">
-                {searchQuery ? '🔍 Aucun groupe trouvé' : '👥 Aucun groupe disponible'}
-              </h3>
-              <p className="text-gray-500 mt-2 text-center">
-                {searchQuery 
-                  ? 'Essayez de modifier votre recherche ou créez un nouveau groupe'
-                  : 'Créez le premier groupe d\'étude pour commencer à collaborer'
-                }
-              </p>
-              <Button 
-                className="mt-6 bg-medical-teal hover:bg-medical-teal/90" 
-                onClick={() => setShowCreateDialog(true)}
-              >
+        {user && (
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-medical-blue hover:bg-medical-blue/90 w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
-                ✨ Créer un groupe
+                Créer un Groupe
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          /* 🎯 Grille responsive des groupes d'étude */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredGroups.map((group) => (
-              <Card 
-                key={group.id} 
-                className="overflow-hidden hover:shadow-lg transition-all duration-200 border-2 hover:border-medical-teal/30"
-              >
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Créer un nouveau groupe d'étude</DialogTitle>
+                <DialogDescription>
+                  Remplissez les informations pour créer votre groupe d'étude
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Nom du groupe</label>
+                  <Input
+                    value={newGroup.name}
+                    onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+                    placeholder="Entrez le nom du groupe"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={newGroup.description}
+                    onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+                    placeholder="Décrivez votre groupe d'étude"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Sujet</label>
+                  <Select value={newGroup.subject} onValueChange={(value) => setNewGroup({ ...newGroup, subject: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisissez un sujet" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.filter(s => s.value !== 'all').map(subject => (
+                        <SelectItem key={subject.value} value={subject.value}>
+                          {subject.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Nombre maximum de membres</label>
+                  <Input
+                    type="number"
+                    value={newGroup.max_members}
+                    onChange={(e) => setNewGroup({ ...newGroup, max_members: parseInt(e.target.value) || 10 })}
+                    min={2}
+                    max={50}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button onClick={createGroup} disabled={!newGroup.name || !newGroup.subject}>
+                    Créer le Groupe
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {/* Mes groupes */}
+      {user && myGroups.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-medical-navy">Mes Groupes</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {myGroups.map((group) => (
+              <Card key={group.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-base sm:text-lg line-clamp-2">{group.name}</CardTitle>
-                    <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
-                      {group.is_private ? (
-                        <Lock className="h-4 w-4 text-gray-400" />
-                      ) : (
-                        <Globe className="h-4 w-4 text-gray-400" />
-                      )}
-                      {group.user_role === 'admin' && (
-                        <Badge variant="default" className="bg-medical-teal">👑 Admin</Badge>
-                      )}
-                    </div>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{group.name}</CardTitle>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      {group.user_role === 'admin' ? 'Admin' : 'Membre'}
+                    </Badge>
                   </div>
-                  {group.description && (
-                    <CardDescription className="line-clamp-2 text-sm">
-                      {group.description}
-                    </CardDescription>
-                  )}
+                  <CardDescription>{group.description}</CardDescription>
                 </CardHeader>
-                
-                <CardContent className="pb-3">
-                  <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-1" />
-                      <span>{group.member_count || 0} membre{(group.member_count || 0) !== 1 ? 's' : ''}</span>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <BookOpen className="h-4 w-4" />
+                      <span>{group.subject}</span>
                     </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      <span>{new Date(group.created_at).toLocaleDateString('fr-FR')}</span>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Users className="h-4 w-4" />
+                      <span>{group.member_count} membre(s)</span>
                     </div>
-                  </div>
-                  
-                  {/* 📊 Barre de progression des membres */}
-                  <div className="mt-3">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span>Membres</span>
-                      <span>{group.member_count || 0}/{group.max_members}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-medical-teal h-2 rounded-full transition-all duration-300" 
-                        style={{
-                          width: `${Math.min(((group.member_count || 0) / group.max_members) * 100, 100)}%`
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                </CardContent>
-                
-                <CardFooter className="pt-3 pb-4">
-                  {group.is_member ? (
-                    <div className="flex gap-2 w-full">
-                      <Button 
-                        className="flex-1 bg-medical-teal hover:bg-medical-teal/90"
-                        onClick={() => navigate(`/study-groups/${group.id}`)}
-                      >
-                        ✅ Accéder au groupe
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1">
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Chat
                       </Button>
+                      {group.user_role === 'admin' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => deleteGroup(group.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Supprimer
+                        </Button>
+                      )}
                       {group.user_role !== 'admin' && (
                         <Button 
+                          size="sm" 
                           variant="outline"
-                          onClick={() => leaveGroupMutation.mutate(group.id)}
-                          disabled={leaveGroupMutation.isPending}
-                          className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                          onClick={() => leaveGroup(group.id)}
+                          className="text-red-600 hover:text-red-700"
                         >
-                          🚪 Quitter
+                          Quitter
                         </Button>
                       )}
                     </div>
-                  ) : (
-                    <Button 
-                      className="w-full"
-                      onClick={() => joinGroupMutation.mutate(group.id)}
-                      disabled={(group.member_count || 0) >= group.max_members || joinGroupMutation.isPending}
-                      variant={(group.member_count || 0) >= group.max_members ? "secondary" : "default"}
-                    >
-                      {(group.member_count || 0) >= group.max_members ? (
-                        <>
-                          <AlertCircle className="h-4 w-4 mr-2" />
-                          🚫 Groupe complet
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          ➕ Rejoindre
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </CardFooter>
+                  </div>
+                </CardContent>
               </Card>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Filtres de recherche */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Rechercher des groupes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {subjects.map(subject => (
+              <SelectItem key={subject.value} value={subject.value}>
+                {subject.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Tous les groupes */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-medical-navy">
+          Tous les Groupes ({filteredGroups.length})
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredGroups.map((group) => (
+            <Card key={group.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{group.name}</CardTitle>
+                  <div className="flex gap-2">
+                    {group.is_private && (
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                        Privé
+                      </Badge>
+                    )}
+                    <Badge className="bg-blue-100 text-blue-800">
+                      {group.subject}
+                    </Badge>
+                  </div>
+                </div>
+                <CardDescription>{group.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Users className="h-4 w-4" />
+                    <span>{group.member_count}/{group.max_members} membres</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Créé le {new Date(group.created_at).toLocaleDateString('fr-FR')}
+                  </div>
+                  
+                  {user && (
+                    <div className="flex gap-2">
+                      {group.is_member ? (
+                        <Button size="sm" variant="outline" className="flex-1">
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          Accéder
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => joinGroup(group.id)}
+                          disabled={group.member_count >= group.max_members}
+                        >
+                          <UserPlus className="h-4 w-4 mr-1" />
+                          {group.member_count >= group.max_members ? 'Complet' : 'Rejoindre'}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredGroups.length === 0 && (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                Aucun groupe trouvé
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {searchTerm || selectedSubject !== 'all'
+                  ? 'Aucun groupe ne correspond à vos critères de recherche'
+                  : 'Aucun groupe d\'étude disponible pour le moment'
+                }
+              </p>
+              {user && (
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Créer le premier groupe
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
-    </MobileLayout>
+    </div>
   );
 };
 
