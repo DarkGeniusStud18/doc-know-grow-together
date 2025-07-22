@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { NavigationItemProps } from '../types';
 
 /**
@@ -24,11 +25,18 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
   isActive,
   onClick
 }) => {
+  // 🔗 Navigation avec React Router pour les liens valides
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onClick();
+  };
+
   return (
-    <button
-      onClick={onClick}
+    <Link
+      to={item.href || '#'}
+      onClick={handleClick}
       className={`
-        group relative w-full p-4 rounded-2xl text-left transition-all duration-200
+        group relative block w-full p-4 rounded-2xl text-left transition-all duration-200 no-underline
         ${isActive 
           ? 'bg-medical-teal text-white shadow-lg scale-[1.02]' 
           : 'bg-white hover:bg-gray-50 border border-gray-100 hover:border-medical-teal/30 hover:shadow-md active:scale-[0.98]'
@@ -77,6 +85,6 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
       <div className="absolute inset-0 rounded-2xl overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-active:translate-x-full transition-transform duration-300"></div>
       </div>
-    </button>
+    </Link>
   );
 };

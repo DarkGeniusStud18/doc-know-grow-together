@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { NavigationItems } from './components/NavigationItems';
 import { MoreButton } from './components/MoreButton';
 import { NavigationBlob } from './components/NavigationBlob';
@@ -23,6 +23,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
  */
 export const MobileNavbar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -62,8 +63,13 @@ export const MobileNavbar: React.FC = () => {
   }));
 
   const handleSecondaryItemClick = (item: MobileSecondaryMenuItem) => {
+    console.log('🔗 Navigation vers:', item.href, 'depuis mobile navbar');
     setIsMenuOpen(false);
-    // Navigation is handled by the Link component in the menu
+    
+    // 🧭 Navigation réelle avec React Router
+    if (item.href && item.href !== '#') {
+      navigate(item.href);
+    }
   };
 
   return (

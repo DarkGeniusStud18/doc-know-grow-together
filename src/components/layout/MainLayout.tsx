@@ -8,6 +8,7 @@ import MobileTopBar from './mobile-topbar/MobileTopBar';
 import DesktopNavbar from './DesktopNavbar';
 import DiscordSidebar from './discord-sidebar/DiscordSidebar';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { UpdateManager } from './pwa-status/components/UpdateManager';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -42,6 +43,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <ErrorBoundary>
+      {/* 🔄 Gestionnaire de mises à jour OTA - Affiché sur tous les types d'écrans */}
+      <UpdateManager />
+      
       {/* Conteneur principal avec styles pour masquer les barres de défilement */}
       <div className={`
         min-h-screen bg-gray-50 dark:bg-gray-900 flex
