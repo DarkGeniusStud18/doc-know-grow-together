@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
           "lovable-uploads/a892db17-0e9b-48b1-88a9-d2e2a7ca1bf9.png",
         ],
         workbox: {
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,json,webmanifest}"],
           navigateFallback: "/index.html",
           navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

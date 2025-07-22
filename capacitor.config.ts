@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
       : 'https://0af55372-f4a7-4914-a7f4-25b16047afc1.lovableproject.com?forceHideBadge=true',
     cleartext: true,
     allowNavigation: [
-      'https://0af55372-f4a7-4914-a7f4-25b16047afc1.lovableproject.com',
+      //'https://0af55372-f4a7-4914-a7f4-25b16047afc1.lovableproject.com',
       'https://*.supabase.co',
       'https://supabase.com'
     ],
