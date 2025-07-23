@@ -333,7 +333,7 @@ const CommunityDiscussion = () => {
     <MainLayout>
       <div className="space-y-6 pb-10 mt-6">
         {/* En-tête du sujet avec titre et options d'admin */}
-        <div className="flex justify-between items-start">
+        <div className="md:flex justify-between items-start">
           <Button
             variant="outline"
             size="sm"

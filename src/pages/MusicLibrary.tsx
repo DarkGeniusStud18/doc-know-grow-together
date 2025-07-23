@@ -200,7 +200,7 @@ const MusicLibrary: React.FC = () => {
           </TabsList>
           
           <TabsContent value="library" className="space-y-6">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {categories.map(category => (
                 <Button
                   key={category.key}
@@ -215,7 +215,7 @@ const MusicLibrary: React.FC = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredTracks.map((track) => (
                 <Card key={track.id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="aspect-square bg-gradient-to-br from-medical-teal to-medical-navy relative">
@@ -263,7 +263,7 @@ const MusicLibrary: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="player" className="space-y-6 mt-6">
-            <Card className="w-full max-w-md mx-auto">
+            <Card className="w-50 max-w-md mx-auto">
               <CardHeader className="text-center">
                 <div className="w-48 h-48 mx-auto bg-gradient-to-br from-medical-teal to-medical-navy rounded-lg flex items-center justify-center mb-4">
                   {currentTrack?.cover_image ? (

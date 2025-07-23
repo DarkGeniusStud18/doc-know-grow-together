@@ -268,7 +268,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Fonctionnalités principales */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {featureCards
               .filter(card => card.category === 'primary')
               .map((feature, index) => (
