@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
@@ -85,7 +86,7 @@ const TaskList: React.FC = () => {
     <MainLayout>
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Gestionnaire de tâches</h1>
+          <h1 className="text-xl font-bold me-2">Tâches</h1>
           <div className="flex gap-2">
             <Button onClick={() => setShowNewCategoryForm(true)} variant="outline">
               Nouvelle catégorie

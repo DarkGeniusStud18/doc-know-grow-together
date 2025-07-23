@@ -164,7 +164,7 @@ const Notes: React.FC = () => {
 
   return (
     <MainLayout requireAuth={true}>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-6 mx-auto max-w-4xl px-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-medical-navy">Mes Notes</h1>
@@ -192,7 +192,7 @@ const Notes: React.FC = () => {
 
         {/* Notes Grid */}
         {filteredNotes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredNotes.map((note) => (
               <Card key={note.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>

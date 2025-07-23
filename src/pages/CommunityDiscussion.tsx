@@ -331,7 +331,7 @@ const CommunityDiscussion = () => {
   
   return (
     <MainLayout>
-      <div className="space-y-6 pb-10">
+      <div className="space-y-6 pb-10 mt-6">
         {/* En-tête du sujet avec titre et options d'admin */}
         <div className="flex justify-between items-start">
           <Button
@@ -509,10 +509,10 @@ const CommunityDiscussion = () => {
         </Card>
         
         {/* Chat component */}
-        <DiscussionChat 
+        {/*<DiscussionChat 
           topicId={id!} 
           topicTitle={topic?.title || 'Discussion'} 
-        />
+        />*/}
         
         {/* Bouton pour remonter en haut de la page */}
         {showScrollButton && (

@@ -229,7 +229,7 @@ const Community: React.FC = () => {
   
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-medical-navy">Communauté</h1>
@@ -503,12 +503,12 @@ const TopicsList: React.FC<TopicsListProps> = ({ topics, isLoading, error, onCre
                   <MessageSquare className="h-4 w-4 mr-1 opacity-70" />
                   <span>{(topic.response_count || 0)} réponse{(topic.response_count || 0) !== 1 ? 's' : ''}</span>
                 </div>
-                {(topic.chat_message_count || 0) > 0 && (
+                {/*{(topic.chat_message_count || 0) > 0 && (
                   <div className="flex items-center">
                     <MessageSquare className="h-4 w-4 mr-1 opacity-70" />
                     <span>{topic.chat_message_count} chat</span>
                   </div>
-                )}
+                )}*/}
               </div>
             </div>
           </CardContent>

@@ -85,9 +85,9 @@ export const MobileNavbar: React.FC = () => {
       aria-label="Navigation mobile principale"
       style={{ position: 'fixed' }}
     >
-      <div className="relative max-w-md mx-auto">
+      <div className="relative max-w-md mx-auto mb-2">
         {/* 🌟 Blob de navigation animé */}
-        <NavigationBlob blobPosition={blobPosition} />
+        {/*<NavigationBlob blobPosition={blobPosition} />*/}
         
         {/* 📱 Conteneur des éléments de navigation */}
         <div className="relative flex items-center justify-between px-2">

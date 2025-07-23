@@ -103,6 +103,50 @@ const FlashcardGenerator = () => {
         <h1 className="text-3xl font-bold mb-6">Générateur de fiches d'étude</h1>
         
         <div className="flex flex-col lg:flex-row gap-8">
+
+          
+          {/* Panel latéral */}
+          <div className="lg:w-72">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Gestion</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2">
+                    <Button 
+                      variant={activeView === 'list' ? 'default' : 'outline'} 
+                      className="w-full justify-start" 
+                      onClick={() => setActiveView('list')}
+                    >
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                      Mes fiches
+                    </Button>
+                    
+                    
+                    <Button 
+                      variant={activeView === 'categories' ? 'default' : 'outline'} 
+                      className="w-full justify-start" 
+                      onClick={() => setActiveView('categories')}
+                    >
+                      <Settings2 className="h-4 w-4 mr-2" />
+                      Catégories
+                    </Button>
+                    
+                    <Button 
+                      variant={activeView === 'import' ? 'default' : 'outline'} 
+                      className="w-full justify-start" 
+                      onClick={() => setActiveView('import')}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Importer
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
           {/* Panel principal */}
           <div className="flex-1">
             <Card className="mb-6">
@@ -175,65 +219,24 @@ const FlashcardGenerator = () => {
                 )}
               </CardContent>
             </Card>
-          </div>
-          
-          {/* Panel latéral */}
-          <div className="lg:w-72">
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Gestion</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    <Button 
-                      variant={activeView === 'list' ? 'default' : 'outline'} 
-                      className="w-full justify-start" 
-                      onClick={() => setActiveView('list')}
-                    >
-                      <LayoutGrid className="h-4 w-4 mr-2" />
-                      Mes fiches
-                    </Button>
-                    
-                    <Button 
-                      variant={activeView === 'import' ? 'default' : 'outline'} 
-                      className="w-full justify-start" 
-                      onClick={() => setActiveView('import')}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Importer
-                    </Button>
-                    
-                    <Button 
-                      variant={activeView === 'categories' ? 'default' : 'outline'} 
-                      className="w-full justify-start" 
-                      onClick={() => setActiveView('categories')}
-                    >
-                      <Settings2 className="h-4 w-4 mr-2" />
-                      Catégories
-                    </Button>
+            {/* Statistiques */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Statistiques</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total des fiches</span>
+                    <span className="font-medium">{flashcards.length}</span>
                   </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Statistiques</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Total des fiches</span>
-                      <span className="font-medium">{flashcards.length}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Catégories</span>
-                      <span className="font-medium">{categories.length}</span>
-                    </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Catégories</span>
+                    <span className="font-medium">{categories.length}</span>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

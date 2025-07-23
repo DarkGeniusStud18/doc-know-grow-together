@@ -371,7 +371,7 @@ const StudyGoals: React.FC = () => {
                 </div>
                 
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  <Button className='mt-2' type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                     Annuler
                   </Button>
                   <Button 

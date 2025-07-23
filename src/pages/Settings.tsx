@@ -50,7 +50,7 @@ const Settings = () => {
         <Tabs defaultValue="profile" className="w-full">
           {/* Onglets responsive avec scroll horizontal sur mobile */}
           <div className="w-full overflow-x-auto mb-4 sm:mb-6">
-            <TabsList className="flex w-max sm:w-full min-w-full sm:min-w-0 bg-muted p-1 rounded-lg">
+            <TabsList className="flex w-5 sm:w-full min-w-full sm:min-w-0 bg-muted p-1 rounded-lg">
               <TabsTrigger value="profile" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
                 Profil
               </TabsTrigger>

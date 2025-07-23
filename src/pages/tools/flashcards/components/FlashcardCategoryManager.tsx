@@ -73,7 +73,7 @@ const FlashcardCategoryManager: React.FC<FlashcardCategoryManagerProps> = ({
             </Button>
           </DialogTrigger>
           
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="w-50 sm:max-w-[425px] rounded-lg">
             <DialogHeader>
               <DialogTitle>Ajouter une nouvelle catégorie</DialogTitle>
             </DialogHeader>
@@ -128,6 +128,7 @@ const FlashcardCategoryManager: React.FC<FlashcardCategoryManagerProps> = ({
                 type="button"
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
+                className='text-gray-600 hover:text-gray-900 mt-2'
               >
                 Annuler
               </Button>

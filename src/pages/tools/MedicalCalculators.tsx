@@ -1,3 +1,5 @@
+/* eslint-disable no-case-declarations */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
@@ -421,7 +423,7 @@ const MedicalCalculators = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calculator Selection */}
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-medical-navy">Sélectionner un calculateur</h2>

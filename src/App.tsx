@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as React from 'react';
 import { Suspense } from 'react';
@@ -41,9 +42,9 @@ const QuizGenerator = React.lazy(() => import('@/pages/tools/QuizGenerator'));
 const PerformanceTracker = React.lazy(() => import('@/pages/tools/PerformanceTracker'));
 const InteractivePresentations = React.lazy(() => import('@/pages/tools/InteractivePresentations'));
 const ClinicalCasesExplorer = React.lazy(() => import('@/pages/tools/ClinicalCasesExplorer'));
+const ExamSimulator = React.lazy(() => import('@/pages/tools/ExamSimulator'));
 
 // Lazy loading des autres pages
-const ExamSimulator = React.lazy(() => import('@/pages/ExamSimulator'));
 const ExamHistory = React.lazy(() => import('@/pages/ExamHistory'));
 const ClinicalCases = React.lazy(() => import('@/pages/ClinicalCases'));
 const ContinuingEducation = React.lazy(() => import('@/pages/ContinuingEducation'));
@@ -196,9 +197,10 @@ const App: React.FC = () => {
                     <Route path="/tools/performance-tracker" element={<PerformanceTracker />} />
                     <Route path="/tools/interactive-presentations" element={<InteractivePresentations />} />
                     <Route path="/tools/clinical-cases" element={<ClinicalCasesExplorer />} />
+                    <Route path="/tools/exam-simulator" element={<ExamSimulator />} />
 
                     {/* Routes d'évaluation et formation */}
-                    <Route path="/exam-simulator" element={<ExamSimulator />} />
+                    {/*<Route path="/exam-simulator" element={<ExamSimulator />} />*/}
                     <Route path="/exam-history" element={<ExamHistory />} />
                     <Route path="/clinical-cases" element={<ClinicalCases />} />
                     <Route path="/continuing-education" element={<ContinuingEducation />} />

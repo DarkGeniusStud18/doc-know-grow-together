@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
@@ -184,7 +185,7 @@ const MusicLibrary: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-6 mx-auto max-w-4xl px-4">
         <div>
           <h1 className="text-3xl font-bold text-medical-navy">Bibliothèque musicale</h1>
           <p className="text-gray-500 mt-1">
@@ -214,7 +215,7 @@ const MusicLibrary: React.FC = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredTracks.map((track) => (
                 <Card key={track.id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="aspect-square bg-gradient-to-br from-medical-teal to-medical-navy relative">
@@ -261,7 +262,7 @@ const MusicLibrary: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="player" className="space-y-6">
+          <TabsContent value="player" className="space-y-6 mt-6">
             <Card className="w-full max-w-md mx-auto">
               <CardHeader className="text-center">
                 <div className="w-48 h-48 mx-auto bg-gradient-to-br from-medical-teal to-medical-navy rounded-lg flex items-center justify-center mb-4">

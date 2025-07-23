@@ -16,7 +16,8 @@ import {
   ClipboardList,
   Presentation,
   Stethoscope,
-  Clock
+  Clock,
+  FileText
 } from 'lucide-react';
 
 const Tools = () => {
@@ -94,6 +95,15 @@ const Tools = () => {
       color: 'bg-yellow-500'
     },
     {
+      id: 'exam-simulator',
+      title: "Simulateur d'examens",
+      description: "Entraînez-vous aux examens avec des QCM et des cas cliniques réalistes.",
+      icon: FileText,
+      link: '/tools/exam-simulator',
+      color: "bg-red-400",
+      category: 'primary'
+    },
+    {
       id: 'performance-tracker',
       title: 'Suivi de performance',
       description: 'Analyse automatique de vos performances et progrès',
@@ -121,7 +131,7 @@ const Tools = () => {
 
   return (
     <MainLayout requireAuth={true}>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="mx-auto py-6 space-y-6">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-medical-navy">Boîte à outils</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -130,7 +140,7 @@ const Tools = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {tools.map((tool) => {
             const IconComponent = tool.icon;
             return (
@@ -158,7 +168,7 @@ const Tools = () => {
           })}
         </div>
 
-        <div className="mt-12 text-center">
+        {/*<div className="mt-12 text-center">
           <div className="bg-gradient-to-r from-medical-blue to-medical-teal rounded-xl p-8 text-white">
             <h2 className="text-2xl font-bold mb-4">Besoin d'aide ?</h2>
             <p className="text-medical-light mb-6">
@@ -168,7 +178,7 @@ const Tools = () => {
               Guide d'utilisation
             </Button>
           </div>
-        </div>
+        </div>*/}
       </div>
     </MainLayout>
   );

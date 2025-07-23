@@ -32,6 +32,8 @@ import {
   Music,
   Target,
   TrendingUp,
+  NotepadText,
+  NotebookText,
 } from "lucide-react";
 
 interface FeatureCard {
@@ -51,18 +53,18 @@ const Dashboard: React.FC = () => {
 
   const studentFeatureCards: FeatureCard[] = useMemo(() => [
     {
-      title: "Fiches de révision",
-      description: "Créez et organisez vos fiches pour optimiser vos révisions médicales.",
-      icon: <GraduationCap className="h-8 w-8 text-blue-500" />,
+      title: "Notes de cours",
+      description: "Organisez vos notes d'études et de recherche.",
+      icon: <NotebookText className="h-8 w-8 text-blue-500" />,
       link: "/notes",
       color: "bg-blue-50 hover:bg-blue-100",
       category: 'primary'
     },
     {
-      title: "Groupes d'étude",
-      description: "Rejoignez ou créez des groupes d'étude collaboratifs avec d'autres étudiants.",
-      icon: <Users className="h-8 w-8 text-orange-500" />,
-      link: "/study-groups",
+      title: "Générateur de fiches",
+      description: "Créez des fiches d'étude personnalisées pour réviser efficacement.",
+      icon: <BookOpen className="h-8 w-8 text-orange-500" />,
+      link: "/tools/flashcard-generator",
       color: "bg-orange-50 hover:bg-orange-100",
       category: 'primary'
     },
@@ -98,14 +100,14 @@ const Dashboard: React.FC = () => {
       color: "bg-pink-50 hover:bg-pink-100",
       category: 'secondary'
     },
-    {
+    /*{
       title: "Ressources médicales",
       description: "Explorez une vaste collection de ressources académiques vérifiées.",
       icon: <Book className="h-8 w-8 text-indigo-500" />,
       link: "/resources",
       color: "bg-indigo-50 hover:bg-indigo-100",
       category: 'primary'
-    },
+    },*/
     {
       title: "Historique d'activités",
       description: "Suivez votre progression et consultez l'historique de vos activités.",
@@ -183,7 +185,7 @@ const Dashboard: React.FC = () => {
     <MainLayout requireAuth={true}>
       <div className="space-y-8 animate-fade-in">
         {/* En-tête de bienvenue - TOUJOURS AFFICHÉ */}
-        <div className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-2xl p-8 shadow-lg">
+        <div className="bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-2xl p-8 shadow-lg mt-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-2">
@@ -207,7 +209,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Section des statistiques rapides */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
           <Card className="rounded-2xl border-0 shadow-md hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -257,14 +259,16 @@ const Dashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900">
               Vos outils {user?.role === 'student' ? 'd\'étude' : 'professionnels'}
             </h2>
-            <Button variant="outline" className="rounded-xl">
-              <Search className="h-4 w-4 mr-2" />
-              Explorer tout
-            </Button>
+            <Link to="/tools" className="text-sm text-medical-blue hover:underline">
+              <Button variant="outline" className="rounded-xl">
+                <Search className="h-4 w-4 mr-2" />
+                Explorer tout
+              </Button>
+            </Link>
           </div>
 
           {/* Fonctionnalités principales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {featureCards
               .filter(card => card.category === 'primary')
               .map((feature, index) => (
@@ -295,11 +299,11 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Outils complémentaires */}
-          <div className="space-y-4">
+          {/*<div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-800">
               Outils complémentaires
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {featureCards
                 .filter(card => card.category === 'secondary')
                 .map((feature, index) => (
@@ -327,7 +331,7 @@ const Dashboard: React.FC = () => {
                 </Card>
               ))}
             </div>
-          </div>
+          </div>*/}
         </div>
 
         {/* Section de liens rapides */}
@@ -351,7 +355,7 @@ const Dashboard: React.FC = () => {
                   <span className="text-sm">Paramètres</span>
                 </Link>
               </Button>
-              <Button variant="ghost" className="h-auto p-4 flex-col rounded-xl" asChild>
+              {/*<Button variant="ghost" className="h-auto p-4 flex-col rounded-xl" asChild>
                 <Link to="/activities">
                   <Activity className="h-6 w-6 mb-2" />
                   <span className="text-sm">Activités</span>
@@ -362,7 +366,7 @@ const Dashboard: React.FC = () => {
                   <MessageSquare className="h-6 w-6 mb-2" />
                   <span className="text-sm">Aide</span>
                 </Link>
-              </Button>
+              </Button>*/}
             </div>
           </CardContent>
         </Card>
