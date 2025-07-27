@@ -53,6 +53,7 @@ const Subscription = React.lazy(() => import('@/pages/Subscription'));
 const KYCVerification = React.lazy(() => import('@/pages/KYCVerification'));
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
+const Messaging = React.lazy(() => import('@/pages/Messaging'));
 
 /**
  * Configuration optimisée du QueryClient avec gestion intelligente du cache
@@ -103,28 +104,52 @@ const SuspenseLoader: React.FC = () => (
 );
 
 /**
- * Hook pour déterminer si c'est la première visite
+ * Hook pour déterminer si c'est la première visite - Corrigé pour éviter les boucles infinies
  */
 const useFirstVisit = () => {
+  // Utilisation d'une approche plus stable pour détecter la première visite
   const [isFirstVisit, setIsFirstVisit] = React.useState(() => {
-    const hasVisited = localStorage.getItem('medcollab-visited');
-    return !hasVisited;
+    try {
+      const hasVisited = localStorage.getItem('medcollab-visited');
+      const hasUser = localStorage.getItem('demoUser') || localStorage.getItem('supabase.auth.token');
+      
+      // Si l'utilisateur a déjà un compte ou s'est connecté, ne pas aller sur splash
+      return !hasVisited && !hasUser;
+    } catch {
+      return false; // En cas d'erreur, éviter le splash
+    }
   });
 
   const markAsVisited = React.useCallback(() => {
-    localStorage.setItem('medcollab-visited', 'true');
-    setIsFirstVisit(false);
+    try {
+      localStorage.setItem('medcollab-visited', 'true');
+      setIsFirstVisit(false);
+    } catch (error) {
+      console.warn('Impossible de marquer la visite:', error);
+    }
   }, []);
 
   return { isFirstVisit, markAsVisited };
 };
 
 /**
- * Composant de redirection pour la première visite
+ * Composant de redirection intelligent pour la première visite
  */
 const InitialRedirect: React.FC = () => {
-  const { isFirstVisit } = useFirstVisit();
+  const { isFirstVisit, markAsVisited } = useFirstVisit();
   
+  React.useEffect(() => {
+    // Marquer comme visité après 100ms pour éviter les boucles
+    const timer = setTimeout(() => {
+      if (isFirstVisit) {
+        markAsVisited();
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [isFirstVisit, markAsVisited]);
+  
+  // Redirection directe sans attendre
   if (isFirstVisit) {
     return <Navigate to="/splash" replace />;
   }
@@ -174,14 +199,13 @@ const App: React.FC = () => {
 
                     {/* Routes de contenu éducatif */}
                     <Route path="/resources" element={<Resources />} />
-                    <Route path="/community" element={<Community />} />
-                    <Route path="/community/:id" element={<CommunityDiscussion />} />
+                    
+                    {/* Route de messagerie unifiée */}
+                    <Route path="/messaging" element={<Messaging />} />
 
                     {/* Routes d'organisation et planification */}
                     <Route path="/calendar" element={<Calendar />} />
                     <Route path="/notes" element={<Notes />} />
-                    <Route path="/study-groups" element={<StudyGroups />} />
-                    <Route path="/study-groups/:id" element={<StudyGroupDetail />} />
 
                     {/* Routes des outils d'étude avec lazy loading optimisé */}
                     <Route path="/tools" element={<Tools />} />

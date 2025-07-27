@@ -42,10 +42,13 @@ const Splash: React.FC = () => {
   useEffect(() => {
     if (!loading && animationPhase >= 4) {
       const timer = setTimeout(() => {
+        // Marquer comme visité avant de naviguer
+        localStorage.setItem('medcollab-visited', 'true');
+        
         if (user) {
           navigate('/dashboard', { replace: true });
         } else {
-          navigate('/', { replace: true });
+          navigate('/index', { replace: true });
         }
       }, 1000);
 

@@ -99,9 +99,8 @@ const Tools = () => {
       title: "Simulateur d'examens",
       description: "Entraînez-vous aux examens avec des QCM et des cas cliniques réalistes.",
       icon: FileText,
-      link: '/tools/exam-simulator',
-      color: "bg-red-400",
-      category: 'primary'
+      path: '/tools/exam-simulator',
+      color: "bg-red-400"
     },
     {
       id: 'performance-tracker',

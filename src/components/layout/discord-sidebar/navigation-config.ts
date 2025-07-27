@@ -20,7 +20,7 @@ import { NavItemData } from './types';
 export const commonNavItems: NavItemData[] = [
   { path: '/dashboard', icon: Home, label: 'Tableau de bord principal' },
   { path: '/resources', icon: BookOpen, label: 'Ressources médicales complètes' },
-  { path: '/community', icon: Users, label: 'Communauté médicale interactive' },
+  { path: '/messaging', icon: Users, label: 'Chat médicale interactive' },
   { path: '/calendar', icon: Calendar, label: 'Calendrier des études personnalisé' },
   { path: '/music-library', icon: Music, label: 'Bibliothèque musicale pour la concentration' },
 ];
@@ -31,9 +31,7 @@ export const commonNavItems: NavItemData[] = [
  */
 export const studentNavItems: NavItemData[] = [
   { path: '/notes', icon: FileText, label: 'Mes notes d\'étude personnelles' },
-  { path: '/study-groups', icon: Users, label: 'Groupes d\'étude collaboratifs' },
   { path: '/tools', icon: Wrench, label: 'Outils de productivité académique' },
-  { path: '/exam-simulator', icon: LayoutGrid, label: 'Simulateur d\'examens interactif' },
 ];
 
 /**
@@ -43,7 +41,6 @@ export const studentNavItems: NavItemData[] = [
 export const professionalNavItems: NavItemData[] = [
   { path: '/clinical-cases', icon: Stethoscope, label: 'Cas cliniques interactifs avancés' },
   { path: '/continuing-education', icon: GraduationCap, label: 'Formation médicale continue certifiée' },
-  { path: '/study-groups', icon: MessageSquare, label: 'Groupes professionnels spécialisés' },
 ];
 
 /**

@@ -43,18 +43,18 @@ export const primaryNavItems: MobileNavItem[] = [
     isActive: (pathname: string) => pathname.startsWith('/resources')
   },
   {
-    id: 'community',
+    id: 'messaging',
     icon: Users,
-    label: 'Communauté',
-    href: '/community',
-    isActive: (pathname: string) => pathname.startsWith('/community')
+    label: 'Messagerie',
+    href: '/messaging',
+    isActive: (pathname: string) => pathname.startsWith('/messaging')
   },
   {
-    id: 'study-groups',
-    icon: GraduationCap,
-    label: 'Groupe d\'étude',
-    href: '/study-groups',
-    isActive: (pathname: string) => pathname.startsWith('/study-groups')
+    id: 'notes',
+    icon: FileText,
+    label: 'Notes',
+    href: '/notes',
+    isActive: (pathname: string) => pathname.startsWith('/notes')
   }
 ];
 
@@ -69,13 +69,6 @@ export const secondaryNavItems: MobileNavItem[] = [
     label: 'Outils de productivité',
     href: '/tools',
     isActive: (pathname: string) => pathname.startsWith('/tools')
-  },
-  {
-    id: 'notes',
-    icon: FileText,
-    label: 'Mes notes',
-    href: '/notes',
-    isActive: (pathname: string) => pathname.startsWith('/notes')
   },
   {
     id: 'music',
