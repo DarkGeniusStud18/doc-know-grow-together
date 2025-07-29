@@ -11,4 +11,4 @@ Disallow: /email-confirmation
 Disallow: /profile
 
 # Sitemap location
-Sitemap: https://medcollab.app/sitemap.xml
+Sitemap: doc-know-grow-together.netlify.app/sitemap.xml

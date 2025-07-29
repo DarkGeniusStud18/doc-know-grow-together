@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import React from "react";
+import { Helmet } from "react-helmet-async";
 
 interface SEOHeadProps {
   title?: string;
@@ -14,20 +13,20 @@ interface SEOHeadProps {
  * This helps with SEO by providing proper titles and descriptions for each page
  */
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = 'MedCollab',
-  description = 'MedCollab est une plateforme collaborative pour les étudiants et professionnels de santé.',
-  canonicalUrl = '',
-  ogImage = '/public/pictures/wallpaper.png',
+  title = "MedCollab",
+  description = "MedCollab est une plateforme collaborative pour les étudiants et professionnels de santé.",
+  canonicalUrl = "",
+  ogImage = "/public/pictures/wallpaper.png",
 }) => {
-  const fullTitle = title === 'MedCollab' ? title : `${title} | MedCollab`;
-  const fullUrl = `https://medcollab.app${canonicalUrl}`;
+  const fullTitle = title === "MedCollab" ? title : `${title} | MedCollab`;
+  const fullUrl = `doc-know-grow-together.netlify.app${canonicalUrl}`;
 
   return (
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={fullUrl} />
-      
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />
       <meta property="og:url" content={fullUrl} />
