@@ -9,7 +9,8 @@
 import { 
   Book, BookOpen, Calendar, FileText, LayoutGrid, Settings, 
   Wrench, Users, Music, Stethoscope, GraduationCap,
-  Home, MessageSquare
+  Home, MessageSquare,
+  MessageCircle
 } from 'lucide-react';
 import { NavItemData } from './types';
 
@@ -20,7 +21,7 @@ import { NavItemData } from './types';
 export const commonNavItems: NavItemData[] = [
   { path: '/dashboard', icon: Home, label: 'Tableau de bord principal' },
   { path: '/resources', icon: BookOpen, label: 'Ressources médicales complètes' },
-  { path: '/messaging', icon: Users, label: 'Chat médicale interactive' },
+  { path: '/messaging', icon: MessageCircle, label: 'Chat médicale interactive' },
   { path: '/calendar', icon: Calendar, label: 'Calendrier des études personnalisé' },
   { path: '/music-library', icon: Music, label: 'Bibliothèque musicale pour la concentration' },
 ];
