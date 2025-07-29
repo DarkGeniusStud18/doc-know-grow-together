@@ -1,9 +1,8 @@
-
 /**
  * 🔐 Bouton d'Accès Administrateur - Version Ultra Dissimulée
  * 
  * Sécurité maximale :
- * - Visible uniquement pour yasseradjadi9@gmail.com
+ * - Visible uniquement pour yasseradjadi9@gmail.com, merinakinm@gmail.com et boristeslazerotwo@gmail.com
  * - Triple-clic requis pour activation
  * - Design ultra-discret (petit point)
  * - Fonctionnement sur desktop ET mobile
@@ -32,8 +31,15 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({
   const [clickCount, setClickCount] = useState(0);
   const [resetTimeout, setResetTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  // 🛡️ Vérification de l'autorisation d'accès admin (email spécifique)
-  const isAuthorizedAdmin = user?.email === 'yasseradjadi9@gmail.com';
+  // 🛡️ Liste élargie des emails autorisés pour l'accès admin
+  const authorizedEmails = [
+    'yasseradjadi9@gmail.com',
+    'merinakinm@gmail.com', 
+    'boristeslazerotwo@gmail.com'
+  ];
+
+  // 🛡️ Vérification de l'autorisation d'accès admin (emails spécifiques)
+  const isAuthorizedAdmin = user?.email && authorizedEmails.includes(user.email);
 
   /**
    * 🖱️ Gestion du triple-clic pour accès admin
@@ -53,7 +59,7 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({
     setClickCount(newCount);
 
     // Debug uniquement pour l'utilisateur autorisé
-    console.log(`🔐 Clic admin ${newCount}/3 détecté`);
+    console.log(`🔐 Clic admin ${newCount}/3 détecté pour ${user?.email}`);
 
     // Triple-clic détecté = accès admin
     if (newCount === 3) {
@@ -72,7 +78,7 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({
     }, 2000);
     
     setResetTimeout(timeout);
-  }, [clickCount, resetTimeout, navigate, isAuthorizedAdmin]);
+  }, [clickCount, resetTimeout, navigate, isAuthorizedAdmin, user?.email]);
 
   // Nettoyage du timeout au démontage
   useEffect(() => {
@@ -100,6 +106,8 @@ const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({
         transition-colors duration-200 cursor-pointer opacity-5 hover:opacity-15
         ${className}
       `;
+
+  console.log('🔐 AdminAccessButton: Rendu pour utilisateur autorisé', user?.email);
 
   return (
     <div

@@ -9,7 +9,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { Toaster } from '@/components/ui/sonner';
 import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import LoadingScreen from '@/components/layout/LoadingScreen';
+
 import ScrollToTop from '@/components/layout/ScrollToTop';
 
 // Lazy loading des pages pour améliorer les performances de chargement initial
@@ -53,7 +53,9 @@ const Subscription = React.lazy(() => import('@/pages/Subscription'));
 const KYCVerification = React.lazy(() => import('@/pages/KYCVerification'));
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
+const Chat = React.lazy(() => import('@/pages/Chat'));
 const Messaging = React.lazy(() => import('@/pages/Messaging'));
+const Notifications = React.lazy(() => import('@/pages/Notifications'));
 
 /**
  * Configuration optimisée du QueryClient avec gestion intelligente du cache
@@ -104,57 +106,58 @@ const SuspenseLoader: React.FC = () => (
 );
 
 /**
- * Hook pour déterminer si c'est la première visite - Corrigé pour éviter les boucles infinies
- */
-const useFirstVisit = () => {
-  // Utilisation d'une approche plus stable pour détecter la première visite
-  const [isFirstVisit, setIsFirstVisit] = React.useState(() => {
-    try {
-      const hasVisited = localStorage.getItem('medcollab-visited');
-      const hasUser = localStorage.getItem('demoUser') || localStorage.getItem('supabase.auth.token');
-      
-      // Si l'utilisateur a déjà un compte ou s'est connecté, ne pas aller sur splash
-      return !hasVisited && !hasUser;
-    } catch {
-      return false; // En cas d'erreur, éviter le splash
-    }
-  });
-
-  const markAsVisited = React.useCallback(() => {
-    try {
-      localStorage.setItem('medcollab-visited', 'true');
-      setIsFirstVisit(false);
-    } catch (error) {
-      console.warn('Impossible de marquer la visite:', error);
-    }
-  }, []);
-
-  return { isFirstVisit, markAsVisited };
-};
-
-/**
- * Composant de redirection intelligent pour la première visite
+ * Composant de redirection intelligent - CORRIGÉ pour éviter les boucles infinies
+ * Gère les nouveaux utilisateurs et les utilisateurs existants de manière stable
  */
 const InitialRedirect: React.FC = () => {
-  const { isFirstVisit, markAsVisited } = useFirstVisit();
-  
+  const [shouldRedirect, setShouldRedirect] = React.useState<string | null>(null);
+
   React.useEffect(() => {
-    // Marquer comme visité après 100ms pour éviter les boucles
-    const timer = setTimeout(() => {
-      if (isFirstVisit) {
-        markAsVisited();
+    // Fonction pour déterminer la destination de redirection
+    const determineRedirect = () => {
+      try {
+        // Vérifier d'abord si l'utilisateur a déjà visité l'app
+        const hasVisited = localStorage.getItem('medcollab-visited');
+        
+        // Vérifier s'il y a un utilisateur connecté (démo ou réel)
+        const hasDemoUser = localStorage.getItem('demoUser');
+        const hasSupabaseSession = localStorage.getItem('supabase.auth.token');
+        
+        // Si l'utilisateur n'a jamais visité ET n'a pas de session active
+        if (!hasVisited && !hasDemoUser && !hasSupabaseSession) {
+          console.log('🆕 Nouvel utilisateur détecté - redirection vers splash');
+          return '/splash';
+        }
+        
+        // Sinon, rediriger vers la page d'accueil
+        console.log('👤 Utilisateur existant ou session active - redirection vers index');
+        return '/index';
+      } catch (error) {
+        console.error('Erreur lors de la détermination de redirection:', error);
+        // En cas d'erreur, aller sur la page d'accueil par sécurité
+        return '/index';
       }
-    }, 100);
-    
+    };
+
+    // Délai très court pour éviter les flickers
+    const timer = setTimeout(() => {
+      const destination = determineRedirect();
+      setShouldRedirect(destination);
+    }, 50);
+
     return () => clearTimeout(timer);
-  }, [isFirstVisit, markAsVisited]);
-  
-  // Redirection directe sans attendre
-  if (isFirstVisit) {
-    return <Navigate to="/splash" replace />;
+  }, []);
+
+  // Afficher un loader pendant la détermination
+  if (!shouldRedirect) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-medical-light to-medical-blue/5 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-medical-light border-t-medical-blue rounded-full animate-spin"></div>
+      </div>
+    );
   }
-  
-  return <Navigate to="/index" replace />;
+
+  return <Navigate to={shouldRedirect} replace />;
 };
 
 /**
@@ -176,8 +179,7 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <LoadingScreen>
-              <Router>
+            <Router>
                 <ScrollToTop />
                 <Suspense fallback={<SuspenseLoader />}>
                   <Routes>
@@ -200,8 +202,10 @@ const App: React.FC = () => {
                     {/* Routes de contenu éducatif */}
                     <Route path="/resources" element={<Resources />} />
                     
-                    {/* Route de messagerie unifiée */}
+                    {/* Route de messagerie unifiée - Chat System */}
+                    <Route path="/chat" element={<Chat />} />
                     <Route path="/messaging" element={<Messaging />} />
+                    <Route path="/notifications" element={<Notifications />} />
 
                     {/* Routes d'organisation et planification */}
                     <Route path="/calendar" element={<Calendar />} />
@@ -243,7 +247,6 @@ const App: React.FC = () => {
                   </Routes>
                 </Suspense>
               </Router>
-            </LoadingScreen>
 
             {/* Composants globaux avec ordre d'affichage optimisé */}
             <Toaster 

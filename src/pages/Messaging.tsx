@@ -1,42 +1,37 @@
 /**
- * 💬 Page de messagerie unifiée - Style Messenger moderne
+ * 💬 Page de Messagerie Unifiée - Style Messenger Moderne
  * 
- * Fonctionnalités avancées :
- * - Interface type WhatsApp/Telegram
- * - Recherche d'utilisateurs en temps réel
- * - Invitations et gestion des contacts
- * - Groupes et communautés
- * - Messages vocaux et partage de fichiers
- * - Notifications push natives
- * - Design responsive optimisé mobile
+ * Fonctionnalités principales :
+ * - Chat direct entre utilisateurs
+ * - Communautés publiques 
+ * - Groupes d'étude privés
+ * - Système d'invitations
+ * - Notifications push intégrées
+ * - Partage de fichiers multimédias
+ * - Messages vocaux (à venir)
+ * - Interface mobile-first responsive
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import MainLayout from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Search, 
-  Plus, 
-  Users, 
-  MessageCircle, 
-  Send, 
-  Mic, 
-  Paperclip, 
-  Phone,
-  Video,
-  MoreVertical,
-  UserPlus,
-  Hash,
-  Globe
+  Search, Plus, MessageCircle, Users, Hash, Send, 
+  Paperclip, Smile, Phone, Video, MoreVertical,
+  UserPlus, Settings, Bell, Archive, Star,
+  Image, File, Mic, ChevronLeft, Eye, Crown, Globe
 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // Types pour la messagerie
 interface Message {

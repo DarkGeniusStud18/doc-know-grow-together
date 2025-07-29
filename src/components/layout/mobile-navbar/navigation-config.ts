@@ -9,7 +9,8 @@
 import { 
   Home, 
   BookOpen, 
-  Users, 
+  MessageCircle,
+  FileText,
   Calendar,
   Settings,
   Music,
@@ -18,7 +19,7 @@ import {
   GraduationCap,
   Stethoscope,
   BarChart3,
-  FileText,
+  Users,
   Wrench
 } from 'lucide-react';
 import { MobileNavItem } from './types';
@@ -43,11 +44,11 @@ export const primaryNavItems: MobileNavItem[] = [
     isActive: (pathname: string) => pathname.startsWith('/resources')
   },
   {
-    id: 'messaging',
-    icon: Users,
-    label: 'Messagerie',
-    href: '/messaging',
-    isActive: (pathname: string) => pathname.startsWith('/messaging')
+    id: 'chat',
+    icon: MessageCircle,
+    label: 'Chat',
+    href: '/chat',
+    isActive: (pathname: string) => pathname.startsWith('/chat') || pathname.startsWith('/messaging')
   },
   {
     id: 'notes',
@@ -69,6 +70,13 @@ export const secondaryNavItems: MobileNavItem[] = [
     label: 'Outils de productivité',
     href: '/tools',
     isActive: (pathname: string) => pathname.startsWith('/tools')
+  },
+  {
+    id: 'study-groups',
+    icon: Users,
+    label: 'Groupes d\'étude',
+    href: '/study-groups',
+    isActive: (pathname: string) => pathname.startsWith('/study-groups')
   },
   {
     id: 'music',

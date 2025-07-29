@@ -1,8 +1,9 @@
 
 // Page principale des paramètres de l'application - Version mobile optimisée
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from '@/components/ui/scroll-area';
 import MainLayout from '@/components/layout/MainLayout';
 import ProfileSettings from '@/components/settings/ProfileSettings';
 import AccountSettings from '@/components/settings/AccountSettings';
@@ -12,9 +13,15 @@ import PerformanceSettings from '@/components/settings/PerformanceSettings';
 import RoleSwitcher from '@/components/profile/RoleSwitcher';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { getSubscriptionDetails } from '@/lib/auth/services/subscription-service';
 import { useQuery } from '@tanstack/react-query';
+import { 
+  User, CreditCard, Bell, Palette, Gauge, 
+  ChevronLeft, Settings as SettingsIcon,
+  Shield, Moon, Sun
+} from 'lucide-react';
 
 /**
  * Page des paramètres utilisateur qui regroupe toutes les catégories de réglages

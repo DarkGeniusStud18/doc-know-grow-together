@@ -78,6 +78,14 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false,
     rollupOptions: {
       external: ["lovable-tagger"],
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+          supabase: ['@supabase/supabase-js'],
+          utils: ['date-fns', 'clsx', 'class-variance-authority']
+        }
+      }
     },
   },
 }));

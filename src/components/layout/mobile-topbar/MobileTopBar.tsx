@@ -15,13 +15,14 @@
 
 import React, { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Settings, Wifi, WifiOff, Smartphone, Globe } from "lucide-react";
+import { Settings, Wifi, WifiOff, Smartphone, Globe, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { usePWAStatus } from "@/hooks/usePWAStatus";
 import { cn } from "@/lib/utils";
+import AdminAccessButton from "@/components/admin/AdminAccessButton";
 
 /**
  * 📋 Interface pour les propriétés de la barre supérieure mobile
@@ -177,20 +178,45 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
             )}
           </div>
 
-          {/* ⚙️ SECTION EXTRÊME DROITE : BOUTON PARAMÈTRES optimisé */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "p-2 rounded-full transition-all duration-200 flex-shrink-0 ml-2 group",
-              "hover:bg-gray-100 active:scale-95 focus:outline-none focus:ring-2 focus:ring-medical-blue focus:ring-offset-2"
-            )}
-            asChild
-          >
-            <Link to="/settings" aria-label="Accéder aux paramètres">
-              <Settings size={20} className="text-gray-700 group-hover:text-medical-blue group-hover:rotate-90 transition-all duration-200" />
-            </Link>
-          </Button>
+          {/* 🔔 SECTION DROITE : BOUTON NOTIFICATIONS + PARAMÈTRES */}
+          <div className="flex items-center space-x-2">
+            {/* 🔔 Bouton Notifications */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "p-2 rounded-full transition-all duration-200 flex-shrink-0 group",
+                "hover:bg-gray-100 active:scale-95 focus:outline-none focus:ring-2 focus:ring-medical-blue focus:ring-offset-2"
+              )}
+              asChild
+            >
+              <Link to="/notifications" aria-label="Accéder aux notifications">
+                <Bell size={18} className="text-gray-700 group-hover:text-medical-blue transition-colors duration-200" />
+                {/* Badge pour notifications non lues */}
+                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs bg-red-500 text-white">
+                  3
+                </Badge>
+              </Link>
+            </Button>
+
+            {/* ⚙️ Bouton Paramètres */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "p-2 rounded-full transition-all duration-200 flex-shrink-0 group",
+                "hover:bg-gray-100 active:scale-95 focus:outline-none focus:ring-2 focus:ring-medical-blue focus:ring-offset-2"
+              )}
+              asChild
+            >
+              <Link to="/settings" aria-label="Accéder aux paramètres">
+                <Settings size={18} className="text-gray-700 group-hover:text-medical-blue group-hover:rotate-90 transition-all duration-200" />
+              </Link>
+            </Button>
+
+            {/* 🔐 Bouton admin ultra-discret (pour les administrateurs autorisés uniquement) */}
+            <AdminAccessButton isMobile={true} className="ml-1" />
+          </div>
         </div>
 
         {/* 🎯 INDICATEUR DE RÔLE UTILISATEUR - Barre colorée subtile avec animation */}

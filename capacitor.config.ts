@@ -5,13 +5,13 @@ const config: CapacitorConfig = {
   appName: 'MedCollab - Plateforme Médicale Collaborative',
   webDir: 'dist',
   server: {
-    // 🔄 Configuration pour les mises à jour OTA et support mobile
+    // 🔄 Configuration corrigée pour éviter "Not found" en Android Studio
     url: process.env.NODE_ENV === 'production' 
       ? undefined 
-      : 'https://0af55372-f4a7-4914-a7f4-25b16047afc1.lovableproject.com?forceHideBadge=true',
+      : 'https://c0e9bf31-c1a9-41bf-b4b8-64a460d16a75.lovableproject.com?forceHideBadge=true',
     cleartext: true,
     allowNavigation: [
-      //'https://0af55372-f4a7-4914-a7f4-25b16047afc1.lovableproject.com',
+      'https://c0e9bf31-c1a9-41bf-b4b8-64a460d16a75.lovableproject.com',
       'https://*.supabase.co',
       'https://supabase.com'
     ],
