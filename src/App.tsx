@@ -5,6 +5,8 @@ import { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { Toaster } from '@/components/ui/sonner';
 import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
@@ -106,58 +108,71 @@ const SuspenseLoader: React.FC = () => (
 );
 
 /**
- * Composant de redirection intelligent - CORRIGÉ pour éviter les boucles infinies
- * Gère les nouveaux utilisateurs et les utilisateurs existants de manière stable
+ * 🔄 Composant de redirection intelligent - ENTIÈREMENT REVU
+ * Résout définitivement les problèmes de boucles infinites et pages blanches
  */
 const InitialRedirect: React.FC = () => {
-  const [shouldRedirect, setShouldRedirect] = React.useState<string | null>(null);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [hasChecked, setHasChecked] = React.useState(false);
 
   React.useEffect(() => {
-    // Fonction pour déterminer la destination de redirection
-    const determineRedirect = () => {
+    // 🚫 Éviter la redirection multiple
+    if (hasChecked || loading) return;
+
+    const checkAndRedirect = async () => {
       try {
-        // Vérifier d'abord si l'utilisateur a déjà visité l'app
+        // 🔍 Vérifier l'état de l'utilisateur d'abord
         const hasVisited = localStorage.getItem('medcollab-visited');
         
-        // Vérifier s'il y a un utilisateur connecté (démo ou réel)
-        const hasDemoUser = localStorage.getItem('demoUser');
-        const hasSupabaseSession = localStorage.getItem('supabase.auth.token');
-        
-        // Si l'utilisateur n'a jamais visité ET n'a pas de session active
-        if (!hasVisited && !hasDemoUser && !hasSupabaseSession) {
-          console.log('🆕 Nouvel utilisateur détecté - redirection vers splash');
-          return '/splash';
+        console.log('🔍 Vérification état utilisateur:', {
+          user: !!user,
+          hasVisited: !!hasVisited,
+          loading
+        });
+
+        // ✅ Si utilisateur connecté -> dashboard
+        if (user) {
+          console.log('✅ Utilisateur connecté -> dashboard');
+          navigate('/dashboard', { replace: true });
+          setHasChecked(true);
+          return;
         }
-        
-        // Sinon, rediriger vers la page d'accueil
-        console.log('👤 Utilisateur existant ou session active - redirection vers index');
-        return '/index';
+
+        // 🆕 Si premier utilisateur -> splash
+        if (!hasVisited) {
+          console.log('🆕 Premier utilisateur -> splash');
+          navigate('/splash', { replace: true });
+          setHasChecked(true);
+          return;
+        }
+
+        // 👤 Utilisateur existant sans connexion -> index
+        console.log('👤 Utilisateur existant -> index');
+        navigate('/index', { replace: true });
+        setHasChecked(true);
+
       } catch (error) {
-        console.error('Erreur lors de la détermination de redirection:', error);
-        // En cas d'erreur, aller sur la page d'accueil par sécurité
-        return '/index';
+        console.error('❌ Erreur redirection:', error);
+        navigate('/index', { replace: true });
+        setHasChecked(true);
       }
     };
 
-    // Délai très court pour éviter les flickers
-    const timer = setTimeout(() => {
-      const destination = determineRedirect();
-      setShouldRedirect(destination);
-    }, 50);
-
+    // 📱 Délai minimal pour éviter les flickers
+    const timer = setTimeout(checkAndRedirect, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [user, loading, hasChecked, navigate]);
 
-  // Afficher un loader pendant la détermination
-  if (!shouldRedirect) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-medical-light to-medical-blue/5 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-medical-light border-t-medical-blue rounded-full animate-spin"></div>
+  // 🔄 Écran de chargement pendant la vérification
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-medical-light to-medical-blue/5 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-medical-light border-t-medical-blue rounded-full animate-spin"></div>
+        <p className="text-medical-navy font-medium">Initialisation...</p>
       </div>
-    );
-  }
-
-  return <Navigate to={shouldRedirect} replace />;
+    </div>
+  );
 };
 
 /**

@@ -56,10 +56,10 @@ const navigationItems = [
     description: 'Études de cas pratiques'
   },
   {
-    name: 'Messagerie',
-    href: '/messaging',
+    name: 'Chat',
+    href: '/chat',
     icon: MessageSquare,
-    description: 'Discussions et groupes'
+    description: 'Messagerie unifiée'
   },
   {
     name: 'Calendrier',

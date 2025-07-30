@@ -118,12 +118,10 @@ export const MobileNavbar: React.FC = () => {
             userName={user?.displayName}
           />
 
-          {/* 🔐 Bouton d'accès admin ultra-dissimulé */}
-          {user?.email === 'yasseradjadi9@gmail.com' && (
-            <div className="absolute -top-1 -right-1">
-              <AdminAccessButton isMobile={true} />
-            </div>
-          )}
+          {/* 🔐 Bouton d'accès admin pour utilisateurs autorisés */}
+          <div className="absolute -top-2 -right-2">
+            <AdminAccessButton isMobile={true} />
+          </div>
         </div>
       </div>
     </nav>

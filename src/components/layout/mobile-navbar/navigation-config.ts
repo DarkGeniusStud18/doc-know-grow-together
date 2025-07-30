@@ -32,16 +32,9 @@ export const primaryNavItems: MobileNavItem[] = [
   {
     id: 'dashboard',
     icon: Home,
-    label: 'Dashboard',
+    label: 'Accueil',
     href: '/dashboard',
     isActive: (pathname: string) => pathname === '/dashboard' || pathname === '/'
-  },
-  {
-    id: 'resources',
-    icon: BookOpen,
-    label: 'Ressources médicales',
-    href: '/resources',
-    isActive: (pathname: string) => pathname.startsWith('/resources')
   },
   {
     id: 'chat',
@@ -56,6 +49,13 @@ export const primaryNavItems: MobileNavItem[] = [
     label: 'Notes',
     href: '/notes',
     isActive: (pathname: string) => pathname.startsWith('/notes')
+  },
+  {
+    id: 'music',
+    icon: Music,
+    label: 'Musique',
+    href: '/music-library',
+    isActive: (pathname: string) => pathname.startsWith('/music')
   }
 ];
 
@@ -65,11 +65,25 @@ export const primaryNavItems: MobileNavItem[] = [
  */
 export const secondaryNavItems: MobileNavItem[] = [
   {
+    id: 'resources',
+    icon: BookOpen,
+    label: 'Ressources',
+    href: '/resources',
+    isActive: (pathname: string) => pathname.startsWith('/resources')
+  },
+  {
     id: 'tools',
     icon: Wrench,
-    label: 'Outils de productivité',
+    label: 'Outils',
     href: '/tools',
     isActive: (pathname: string) => pathname.startsWith('/tools')
+  },
+  {
+    id: 'calendar',
+    icon: Calendar,
+    label: 'Calendrier',
+    href: '/calendar',
+    isActive: (pathname: string) => pathname.startsWith('/calendar')
   },
   {
     id: 'study-groups',
@@ -79,18 +93,18 @@ export const secondaryNavItems: MobileNavItem[] = [
     isActive: (pathname: string) => pathname.startsWith('/study-groups')
   },
   {
-    id: 'music',
-    icon: Music,
-    label: 'Bibliothèque musicale',
-    href: '/music-library',
-    isActive: (pathname: string) => pathname.startsWith('/music')
+    id: 'clinical-cases',
+    icon: Stethoscope,
+    label: 'Cas cliniques',
+    href: '/clinical-cases',
+    isActive: (pathname: string) => pathname.startsWith('/clinical-cases')
   },
   {
-    id: 'calendar',
-    icon: Calendar,
-    label: 'Calendrier',
-    href: '/calendar',
-    isActive: (pathname: string) => pathname.startsWith('/calendar')
+    id: 'settings',
+    icon: Settings,
+    label: 'Paramètres',
+    href: '/settings',
+    isActive: (pathname: string) => pathname.startsWith('/settings')
   }
 ];
 

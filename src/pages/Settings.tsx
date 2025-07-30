@@ -51,30 +51,32 @@ const Settings = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto py-4 sm:py-6 px-4 sm:px-6 max-w-6xl">
-        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Paramètres</h1>
+      <div className="container mx-auto py-3 sm:py-6 px-3 sm:px-6 max-w-6xl">
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
+          <h1 className="text-lg sm:text-2xl font-bold">⚙️ Paramètres</h1>
+        </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          {/* Onglets responsive avec scroll horizontal sur mobile */}
+          {/* 📱 Onglets responsive optimisés mobile avec scroll horizontal */}
           <div className="w-full overflow-x-auto mb-4 sm:mb-6">
-            <TabsList className="flex w-5 sm:w-full min-w-full sm:min-w-0 bg-muted p-1 rounded-lg">
-              <TabsTrigger value="profile" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
-                Profil
+            <TabsList className="flex w-max sm:w-full min-w-max sm:min-w-0 bg-muted p-1 rounded-lg h-auto">
+              <TabsTrigger value="profile" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
+                👤 Profil
               </TabsTrigger>
-              <TabsTrigger value="account" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
-                Compte
+              <TabsTrigger value="account" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
+                🔐 Compte
               </TabsTrigger>
-              <TabsTrigger value="subscription" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
-                Abonnement
+              <TabsTrigger value="subscription" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
+                👑 Premium
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
-                Notifications
+              <TabsTrigger value="notifications" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
+                🔔 Notifs
               </TabsTrigger>
-              <TabsTrigger value="display" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
-                Affichage
+              <TabsTrigger value="display" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
+                🎨 Thème
               </TabsTrigger>
-              <TabsTrigger value="performance" className="whitespace-nowrap px-3 py-2 text-sm sm:text-base">
-                Performance
+              <TabsTrigger value="performance" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
+                ⚡ Perf
               </TabsTrigger>
             </TabsList>
           </div>
