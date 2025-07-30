@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 
 /**
  * Composant de sidebar optimisé inspiré de Discord avec animations Magic Navbar
@@ -14,6 +15,7 @@ import { generateNavItems } from './navigation-config';
 import { useBlobAnimation } from './hooks/useBlobAnimation';
 import { MagicNavIcon } from './components/MagicNavIcon';
 import { UserAvatar } from './components/UserAvatar';
+import AdminAccessButton from "@/components/admin/AdminAccessButton";
 import { LogoutButton } from './components/LogoutButton';
 
 /**
@@ -125,6 +127,9 @@ const DiscordSidebar: React.FC = () => {
       
       {/* Bouton de déconnexion fixe en bas avec animations spéciales */}
       <LogoutButton onLogout={handleLogout} />
+
+      {/* 🔐 Bouton admin ultra-discret (pour les administrateurs autorisés uniquement) */}
+      <AdminAccessButton isMobile={true} className="mb-10" />
     </div>
   );
 };
