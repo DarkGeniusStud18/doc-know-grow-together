@@ -119,9 +119,9 @@ export const MobileNavbar: React.FC = () => {
           />
 
           {/* 🔐 Bouton d'accès admin pour utilisateurs autorisés */}
-          <div className="absolute -top-2 -right-2">
+          {/*<div className="absolute -top-2 -right-2">
             <AdminAccessButton isMobile={true} />
-          </div>
+          </div>*/}
         </div>
       </div>
     </nav>

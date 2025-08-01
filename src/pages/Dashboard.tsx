@@ -209,7 +209,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Section des statistiques rapides */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="rounded-2xl border-0 shadow-md hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
