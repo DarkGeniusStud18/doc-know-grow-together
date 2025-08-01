@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           author_id: string
@@ -133,6 +172,166 @@ export type Database = {
           {
             foreignKeyName: "calendar_events_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string | null
+          conversation_id: string | null
+          created_at: string | null
+          edited_at: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          message_type: string | null
+          reply_to: string | null
+          room_id: string | null
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          edited_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          message_type?: string | null
+          reply_to?: string | null
+          room_id?: string | null
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          edited_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          message_type?: string | null
+          reply_to?: string | null
+          room_id?: string | null
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_room_members: {
+        Row: {
+          id: string
+          joined_at: string | null
+          role: string | null
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_room_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_room_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string | null
+          creator_id: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          max_members: number | null
+          name: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          max_members?: number | null
+          name: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          max_members?: number | null
+          name?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_rooms_creator_id_fkey"
+            columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -501,6 +700,36 @@ export type Database = {
           },
         ]
       }
+      device_tokens: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          platform: string
+          token: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform?: string
+          token: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform?: string
+          token?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       discussion_chat_messages: {
         Row: {
           content: string
@@ -539,45 +768,6 @@ export type Database = {
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "community_topics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      edit_notifications: {
-        Row: {
-          created_at: string
-          edit_id: string
-          id: string
-          is_read: boolean | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          edit_id: string
-          id?: string
-          is_read?: boolean | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          edit_id?: string
-          id?: string
-          is_read?: boolean | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "edit_notifications_edit_id_fkey"
-            columns: ["edit_id"]
-            isOneToOne: false
-            referencedRelation: "resource_edits"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_edit_notifications_edit"
-            columns: ["edit_id"]
-            isOneToOne: false
-            referencedRelation: "resource_edits"
             referencedColumns: ["id"]
           },
         ]
@@ -1064,45 +1254,6 @@ export type Database = {
           },
         ]
       }
-      playlist_tracks_new: {
-        Row: {
-          added_at: string | null
-          id: string
-          playlist_id: string | null
-          position: number
-          track_id: string | null
-        }
-        Insert: {
-          added_at?: string | null
-          id?: string
-          playlist_id?: string | null
-          position: number
-          track_id?: string | null
-        }
-        Update: {
-          added_at?: string | null
-          id?: string
-          playlist_id?: string | null
-          position?: number
-          track_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "playlist_tracks_new_playlist_id_fkey"
-            columns: ["playlist_id"]
-            isOneToOne: false
-            referencedRelation: "user_playlists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "playlist_tracks_new_track_id_fkey"
-            columns: ["track_id"]
-            isOneToOne: false
-            referencedRelation: "music_tracks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       playlists: {
         Row: {
           created_at: string
@@ -1307,12 +1458,15 @@ export type Database = {
           display_name: string
           email: string | null
           id: string
+          is_admin: boolean | null
           kyc_status: Database["public"]["Enums"]["kyc_status"]
+          last_seen: string | null
           profile_image: string | null
           provider: string | null
           provider_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           specialty: string | null
+          status: string | null
           subscription_expiry: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
           university: string | null
@@ -1324,12 +1478,15 @@ export type Database = {
           display_name: string
           email?: string | null
           id: string
+          is_admin?: boolean | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
+          last_seen?: string | null
           profile_image?: string | null
           provider?: string | null
           provider_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           specialty?: string | null
+          status?: string | null
           subscription_expiry?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           university?: string | null
@@ -1341,12 +1498,15 @@ export type Database = {
           display_name?: string
           email?: string | null
           id?: string
+          is_admin?: boolean | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
+          last_seen?: string | null
           profile_image?: string | null
           provider?: string | null
           provider_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           specialty?: string | null
+          status?: string | null
           subscription_expiry?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           university?: string | null
@@ -1561,71 +1721,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      resource_edits: {
-        Row: {
-          article_id: string | null
-          changes: Json
-          created_at: string
-          edit_summary: string | null
-          edit_type: string
-          editor_id: string
-          id: string
-          original_author_id: string
-          resource_id: string | null
-        }
-        Insert: {
-          article_id?: string | null
-          changes: Json
-          created_at?: string
-          edit_summary?: string | null
-          edit_type: string
-          editor_id: string
-          id?: string
-          original_author_id: string
-          resource_id?: string | null
-        }
-        Update: {
-          article_id?: string | null
-          changes?: Json
-          created_at?: string
-          edit_summary?: string | null
-          edit_type?: string
-          editor_id?: string
-          id?: string
-          original_author_id?: string
-          resource_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_resource_edits_article"
-            columns: ["article_id"]
-            isOneToOne: false
-            referencedRelation: "articles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_resource_edits_resource"
-            columns: ["resource_id"]
-            isOneToOne: false
-            referencedRelation: "resources"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resource_edits_article_id_fkey"
-            columns: ["article_id"]
-            isOneToOne: false
-            referencedRelation: "articles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resource_edits_resource_id_fkey"
-            columns: ["resource_id"]
-            isOneToOne: false
-            referencedRelation: "resources"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       resource_files: {
         Row: {
@@ -2169,6 +2264,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invitations: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string | null
+          recipient_id: string
+          sender_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_id: string
+          sender_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_id?: string
+          sender_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_invitations_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_invitations_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_music_preferences: {
         Row: {
           created_at: string
@@ -2354,6 +2494,10 @@ export type Database = {
         }
         Returns: number
       }
+      cleanup_expired_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       delete_group_message: {
         Args: { p_message_id: string; p_user_id: string }
         Returns: boolean
@@ -2440,6 +2584,10 @@ export type Database = {
       insert_group_message: {
         Args: { p_content: string; p_user_id: string; p_group_id: string }
         Returns: string
+      }
+      mark_notifications_as_read: {
+        Args: { notification_ids: string[] }
+        Returns: boolean
       }
       update_group_message: {
         Args: { p_message_id: string; p_content: string; p_user_id: string }
