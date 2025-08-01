@@ -52,31 +52,86 @@ const Settings = () => {
   return (
     <MainLayout>
       <div className="container mx-auto py-3 sm:py-6 px-3 sm:px-6 max-w-6xl">
+        {/* 📱 En-tête mobile optimisé avec bouton retour */}
         <div className="flex items-center gap-3 mb-4 sm:mb-6">
-          <h1 className="text-lg sm:text-2xl font-bold">⚙️ Paramètres</h1>
+          <ChevronLeft 
+            className="h-5 w-5 sm:hidden cursor-pointer text-muted-foreground hover:text-foreground transition-colors" 
+            onClick={() => window.history.back()}
+          />
+          <div className="flex items-center gap-2">
+            <SettingsIcon className="h-5 w-5 sm:h-6 sm:w-6 text-medical-teal" />
+            <h1 className="text-lg sm:text-2xl font-bold text-medical-navy">
+              Paramètres
+            </h1>
+          </div>
+        </div>
+
+        {/* 📱 Indicateur de statut utilisateur mobile */}
+        <div className="bg-gradient-to-r from-medical-teal/10 to-medical-navy/10 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 border border-medical-teal/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <User className="h-8 w-8 sm:h-10 sm:w-10 text-medical-teal" />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+              </div>
+              <div>
+                <p className="font-medium text-sm sm:text-base">{user?.email?.split('@')[0] || 'Utilisateur'}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {isPremium ? '👑 Compte Premium' : '🆓 Compte Gratuit'}
+                </p>
+              </div>
+            </div>
+            <Badge variant={isPremium ? "default" : "secondary"} className="text-xs">
+              {isPremium ? 'Premium' : 'Gratuit'}
+            </Badge>
+          </div>
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          {/* 📱 Onglets responsive optimisés mobile avec scroll horizontal */}
-          <div className="w-full overflow-x-auto mb-4 sm:mb-6">
-            <TabsList className="flex w-max sm:w-full min-w-max sm:min-w-0 bg-muted p-1 rounded-lg h-auto">
-              <TabsTrigger value="profile" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
-                👤 Profil
+          {/* 📱 Onglets responsive optimisés mobile avec scroll horizontal amélioré */}
+          <div className="w-full overflow-x-auto mb-4 sm:mb-6 scrollbar-hide">
+            <TabsList className="flex w-max sm:w-full min-w-max sm:min-w-0 bg-gradient-to-r from-medical-teal/5 to-medical-navy/5 p-1 rounded-xl h-auto shadow-sm border border-medical-teal/10">
+              <TabsTrigger 
+                value="profile" 
+                className="whitespace-nowrap px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex-shrink-0 gap-1.5 sm:gap-2 data-[state=active]:bg-white data-[state=active]:text-medical-navy data-[state=active]:shadow-sm"
+              >
+                <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Profil</span>
               </TabsTrigger>
-              <TabsTrigger value="account" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
-                🔐 Compte
+              <TabsTrigger 
+                value="account" 
+                className="whitespace-nowrap px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex-shrink-0 gap-1.5 sm:gap-2 data-[state=active]:bg-white data-[state=active]:text-medical-navy data-[state=active]:shadow-sm"
+              >
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Compte</span>
               </TabsTrigger>
-              <TabsTrigger value="subscription" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
-                👑 Premium
+              <TabsTrigger 
+                value="subscription" 
+                className="whitespace-nowrap px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex-shrink-0 gap-1.5 sm:gap-2 data-[state=active]:bg-white data-[state=active]:text-medical-navy data-[state=active]:shadow-sm"
+              >
+                <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Premium</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
-                🔔 Notifs
+              <TabsTrigger 
+                value="notifications" 
+                className="whitespace-nowrap px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex-shrink-0 gap-1.5 sm:gap-2 data-[state=active]:bg-white data-[state=active]:text-medical-navy data-[state=active]:shadow-sm"
+              >
+                <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Notifs</span>
               </TabsTrigger>
-              <TabsTrigger value="display" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
-                🎨 Thème
+              <TabsTrigger 
+                value="display" 
+                className="whitespace-nowrap px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex-shrink-0 gap-1.5 sm:gap-2 data-[state=active]:bg-white data-[state=active]:text-medical-navy data-[state=active]:shadow-sm"
+              >
+                <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Thème</span>
               </TabsTrigger>
-              <TabsTrigger value="performance" className="whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base flex-shrink-0">
-                ⚡ Perf
+              <TabsTrigger 
+                value="performance" 
+                className="whitespace-nowrap px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex-shrink-0 gap-1.5 sm:gap-2 data-[state=active]:bg-white data-[state=active]:text-medical-navy data-[state=active]:shadow-sm"
+              >
+                <Gauge className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Perf</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -91,60 +146,116 @@ const Settings = () => {
           </TabsContent>
           
           <TabsContent value="subscription" className="space-y-4 sm:space-y-6 mt-0">
-            <Card className="w-full">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg sm:text-xl">Abonnement</CardTitle>
+            <Card className="w-full overflow-hidden border border-medical-teal/20">
+              <CardHeader className="pb-4 bg-gradient-to-r from-medical-teal/5 to-medical-navy/5">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-medical-teal" />
+                  <CardTitle className="text-lg sm:text-xl text-medical-navy">Gestion de l'abonnement</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 sm:p-6">
                 {!user ? (
                   <div className="text-center py-6 sm:py-8">
+                    <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                      <User className="h-8 w-8 text-gray-400 mx-auto" />
+                    </div>
                     <p className="text-sm sm:text-base text-muted-foreground">
                       Veuillez vous connecter pour voir les informations d'abonnement
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-4 sm:space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-xs sm:text-sm text-muted-foreground font-medium">Statut actuel</p>
-                        <p className="text-base sm:text-lg font-semibold">
-                          {isPremium 
-                            ? <span className="text-green-600">Premium</span> 
-                            : <span className="text-gray-600">Gratuit</span>
-                          }
-                        </p>
+                    {/* 📊 Carte de statut premium/gratuit mobile-friendly */}
+                    <div className="bg-gradient-to-r from-medical-teal/10 to-medical-navy/10 p-4 rounded-lg border border-medical-teal/20">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${isPremium ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                          <span className="text-sm font-medium">Statut actuel</span>
+                        </div>
+                        <Badge 
+                          variant={isPremium ? "default" : "secondary"} 
+                          className={`text-xs px-2 py-1 ${isPremium ? 'bg-medical-teal text-white' : ''}`}
+                        >
+                          {isPremium ? '👑 Premium' : '🆓 Gratuit'}
+                        </Badge>
                       </div>
+                      
+                      {/* 📅 Informations d'expiration si premium */}
                       {isPremium && subscription?.expiryDate && (
-                        <div className="space-y-2">
-                          <p className="text-xs sm:text-sm text-muted-foreground font-medium">Date d'expiration</p>
-                          <p className="text-base sm:text-lg font-semibold">
-                            {formatExpiryDate(subscription.expiryDate)}
-                          </p>
+                        <div className="text-xs text-muted-foreground border-t border-medical-teal/10 pt-2">
+                          <span>Expire le: {formatExpiryDate(subscription.expiryDate)}</span>
                         </div>
                       )}
                     </div>
                     
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 sm:p-6 rounded-lg border">
-                      <h3 className="font-semibold mb-2 sm:mb-3 text-base sm:text-lg">
-                        {isPremium 
-                          ? "Vous bénéficiez de tous les avantages premium" 
-                          : "Passez à l'abonnement premium pour débloquer toutes les fonctionnalités"
-                        }
+                    {/* 🎯 Avantages premium responsive */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="bg-white border border-medical-teal/20 p-3 sm:p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-2 h-2 rounded-full ${isPremium ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          <span className="text-xs sm:text-sm font-medium">Cas cliniques premium</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Accès illimité aux cas avancés</p>
+                      </div>
+                      
+                      <div className="bg-white border border-medical-teal/20 p-3 sm:p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-2 h-2 rounded-full ${isPremium ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          <span className="text-xs sm:text-sm font-medium">Support prioritaire</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Assistance dédiée 24/7</p>
+                      </div>
+                      
+                      <div className="bg-white border border-medical-teal/20 p-3 sm:p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-2 h-2 rounded-full ${isPremium ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          <span className="text-xs sm:text-sm font-medium">Stockage illimité</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Notes et documents sans limite</p>
+                      </div>
+                      
+                      <div className="bg-white border border-medical-teal/20 p-3 sm:p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-2 h-2 rounded-full ${isPremium ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          <span className="text-xs sm:text-sm font-medium">Outils avancés</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Calculateurs et simulations</p>
+                      </div>
+                    </div>
+                    
+                    {/* 💡 Message promotionnel/informatif responsive */}
+                    <div className={`p-4 sm:p-6 rounded-lg border ${isPremium 
+                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 dark:from-green-950 dark:to-emerald-950' 
+                      : 'bg-gradient-to-r from-medical-teal/5 to-medical-navy/5 border-medical-teal/20'
+                    }`}>
+                      <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base flex items-center gap-2">
+                        {isPremium ? (
+                          <>
+                            <span className="text-green-600">✨</span>
+                            Vous profitez de tous les avantages premium
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-medical-teal">🚀</span>
+                            Débloquez votre potentiel médical
+                          </>
+                        )}
                       </h3>
-                      <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                      <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
                         {isPremium
-                          ? "Accédez à toutes les ressources premium, cas cliniques exclusifs et fonctionnalités avancées."
-                          : "Accédez aux ressources exclusives, cas cliniques détaillés et outils avancés pour votre formation médicale."
+                          ? "Continuez à exceller dans vos études avec l'accès complet à tous nos outils premium et ressources exclusives."
+                          : "Rejoignez des milliers d'étudiants et professionnels qui utilisent nos outils premium pour réussir leurs examens et leur carrière."
                         }
                       </p>
                     </div>
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="pt-4">
-                <Button asChild className="w-full sm:w-auto">
-                  <Link to="/subscription">
-                    {isPremium ? "Gérer mon abonnement" : "Découvrir nos offres"}
+              <CardFooter className="pt-4 bg-gray-50/50 dark:bg-gray-900/50 px-4 sm:px-6">
+                <Button asChild className="w-full bg-medical-teal hover:bg-medical-navy transition-colors">
+                  <Link to="/subscription" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    {isPremium ? "Gérer mon abonnement" : "Découvrir Premium"}
                   </Link>
                 </Button>
               </CardFooter>

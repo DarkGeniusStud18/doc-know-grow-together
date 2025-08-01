@@ -41,7 +41,7 @@ export const primaryNavItems: MobileNavItem[] = [
     icon: MessageCircle,
     label: 'Chat',
     href: '/chat',
-    isActive: (pathname: string) => pathname.startsWith('/chat') || pathname.startsWith('/messaging')
+    isActive: (pathname: string) => pathname.startsWith('/chat') || pathname.startsWith('/messaging') || pathname.startsWith('/community') || pathname.startsWith('/study-groups')
   },
   {
     id: 'notes',

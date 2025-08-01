@@ -21,7 +21,7 @@ import { NavItemData } from './types';
 export const commonNavItems: NavItemData[] = [
   { path: '/dashboard', icon: Home, label: 'Tableau de bord principal' },
   { path: '/resources', icon: BookOpen, label: 'Ressources médicales complètes' },
-  { path: '/chat', icon: MessageCircle, label: 'Chat médicale interactive' },
+  { path: '/chat', icon: MessageCircle, label: 'Chat unifié - Messages, groupes et communautés' },
   { path: '/calendar', icon: Calendar, label: 'Calendrier des études personnalisé' },
   { path: '/music-library', icon: Music, label: 'Bibliothèque musicale pour la concentration' },
 ];
