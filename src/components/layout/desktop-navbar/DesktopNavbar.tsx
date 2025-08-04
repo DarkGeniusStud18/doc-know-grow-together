@@ -47,12 +47,10 @@ export const DesktopNavbar: React.FC = () => {
           <div className="flex items-center gap-3 relative">
             <UserActions user={user} onLogout={signOut} />
             
-            {/* 🔐 Bouton d'accès admin ultra-dissimulé */}
-            {user.email === 'yasseradjadi9@gmail.com' && (
-              <div className="absolute -top-2 -right-2">
-                <AdminAccessButton />
-              </div>
-            )}
+            {/* 🔐 Bouton d'accès admin ultra-dissimulé pour utilisateurs autorisés */}
+            <div className="absolute -top-1 -right-1">
+              <AdminAccessButton isMobile={false} />
+            </div>
           </div>
         </div>
       </div>

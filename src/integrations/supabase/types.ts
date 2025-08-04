@@ -139,30 +139,48 @@ export type Database = {
       }
       calendar_events: {
         Row: {
+          attendees: Json | null
           created_at: string
           description: string | null
           end_time: string
+          event_type: string | null
           id: string
+          location: string | null
+          reminder_enabled: boolean | null
+          reminder_minutes_before: number | null
+          reminder_sent: boolean | null
           start_time: string
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          attendees?: Json | null
           created_at?: string
           description?: string | null
           end_time: string
+          event_type?: string | null
           id?: string
+          location?: string | null
+          reminder_enabled?: boolean | null
+          reminder_minutes_before?: number | null
+          reminder_sent?: boolean | null
           start_time: string
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          attendees?: Json | null
           created_at?: string
           description?: string | null
           end_time?: string
+          event_type?: string | null
           id?: string
+          location?: string | null
+          reminder_enabled?: boolean | null
+          reminder_minutes_before?: number | null
+          reminder_sent?: boolean | null
           start_time?: string
           title?: string
           updated_at?: string
@@ -1770,6 +1788,44 @@ export type Database = {
           },
         ]
       }
+      resource_shares: {
+        Row: {
+          id: string
+          ip_address: unknown | null
+          resource_id: string
+          share_platform: string
+          shared_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          ip_address?: unknown | null
+          resource_id: string
+          share_platform: string
+          shared_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string
+          share_platform?: string
+          shared_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_shares_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resources: {
         Row: {
           author: string | null
@@ -1777,19 +1833,27 @@ export type Database = {
           content_type: Database["public"]["Enums"]["content_type"]
           created_at: string
           created_by: string | null
+          custom_page_content: string | null
           description: string | null
+          download_count: number | null
           edit_count: number | null
           featured: boolean
+          featured_image_url: string | null
           id: string
           is_premium: boolean
+          is_public: boolean | null
           language: string | null
           last_edited_at: string | null
           last_edited_by: string | null
+          meta_description: string | null
           requires_verification: boolean
+          sharing_enabled: boolean | null
+          tags: Json | null
           thumbnail: string | null
           title: string
           updated_at: string
           url: string
+          view_count: number | null
         }
         Insert: {
           author?: string | null
@@ -1797,19 +1861,27 @@ export type Database = {
           content_type: Database["public"]["Enums"]["content_type"]
           created_at?: string
           created_by?: string | null
+          custom_page_content?: string | null
           description?: string | null
+          download_count?: number | null
           edit_count?: number | null
           featured?: boolean
+          featured_image_url?: string | null
           id?: string
           is_premium?: boolean
+          is_public?: boolean | null
           language?: string | null
           last_edited_at?: string | null
           last_edited_by?: string | null
+          meta_description?: string | null
           requires_verification?: boolean
+          sharing_enabled?: boolean | null
+          tags?: Json | null
           thumbnail?: string | null
           title: string
           updated_at?: string
           url: string
+          view_count?: number | null
         }
         Update: {
           author?: string | null
@@ -1817,19 +1889,27 @@ export type Database = {
           content_type?: Database["public"]["Enums"]["content_type"]
           created_at?: string
           created_by?: string | null
+          custom_page_content?: string | null
           description?: string | null
+          download_count?: number | null
           edit_count?: number | null
           featured?: boolean
+          featured_image_url?: string | null
           id?: string
           is_premium?: boolean
+          is_public?: boolean | null
           language?: string | null
           last_edited_at?: string | null
           last_edited_by?: string | null
+          meta_description?: string | null
           requires_verification?: boolean
+          sharing_enabled?: boolean | null
+          tags?: Json | null
           thumbnail?: string | null
           title?: string
           updated_at?: string
           url?: string
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -2351,6 +2431,48 @@ export type Database = {
           },
         ]
       }
+      user_notification_preferences: {
+        Row: {
+          chat_notifications: boolean | null
+          community_updates: boolean | null
+          created_at: string | null
+          device_tokens: Json | null
+          email_enabled: boolean | null
+          id: string
+          marketing_notifications: boolean | null
+          push_enabled: boolean | null
+          study_reminders: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_notifications?: boolean | null
+          community_updates?: boolean | null
+          created_at?: string | null
+          device_tokens?: Json | null
+          email_enabled?: boolean | null
+          id?: string
+          marketing_notifications?: boolean | null
+          push_enabled?: boolean | null
+          study_reminders?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_notifications?: boolean | null
+          community_updates?: boolean | null
+          created_at?: string | null
+          device_tokens?: Json | null
+          email_enabled?: boolean | null
+          id?: string
+          marketing_notifications?: boolean | null
+          push_enabled?: boolean | null
+          study_reminders?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_playlists: {
         Row: {
           cover_image: string | null
@@ -2495,6 +2617,10 @@ export type Database = {
         Returns: number
       }
       cleanup_expired_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

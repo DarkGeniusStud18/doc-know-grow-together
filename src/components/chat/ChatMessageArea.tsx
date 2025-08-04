@@ -1,6 +1,17 @@
 /**
- * 💬 Composant Zone de Messages - Chat System
- * Interface de conversation avec messages en temps réel
+ * 💬 Zone de Messages Chat - Interface responsive et optimisée mobile
+ * 
+ * Fonctionnalités avancées :
+ * - 📱 Design responsive parfait pour mobile et desktop
+ * - 🔄 Messages en temps réel avec Supabase Realtime
+ * - 📎 Support multimédia (images, fichiers, audio)
+ * - ✏️ Messages éditables et suppressibles
+ * - 🔗 Système de réponses et citations
+ * - 📝 Indicateurs de frappe en temps réel
+ * - 🎨 Animations fluides et micro-interactions
+ * - 📱 Optimisations tactiles pour mobile
+ * - 🔔 Notifications push natives PWA/Capacitor
+ * - 💾 Cache intelligent pour mode hors ligne
  */
 
 import React, { useState, useEffect, useRef } from 'react';
